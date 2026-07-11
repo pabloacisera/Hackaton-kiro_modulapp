@@ -1,0 +1,43 @@
+# Node / Turborepo
+node_modules/
+dist/
+build/
+.turbo/
+.tsbuildinfo
+coverage/
+npm-debug.log
+pnpm-debug.log*
+.pnpm-store/
+
+# Java / Maven (payment-service)
+services/payment-service/target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# Prisma
+prisma/*.db
+prisma/migrations/dev.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Docker
+*.pid
+
+# IDE / OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Redis / misc local state
+dump.rdb
