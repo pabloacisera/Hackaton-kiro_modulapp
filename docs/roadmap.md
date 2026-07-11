@@ -23,7 +23,10 @@ This document is for human developers — the equivalent for the agent lives in
 - Flow A: is there a deadline for the admin to accept/reject a paid order,
   or does it stay pending indefinitely? Current design does not enforce
   anything — the owner must confirm if they want an internal SLA (e.g.,
-  alert if 24h pass without admin resolution).
+  alert if 24h pass without admin resolution). Without an SLA, an order
+  stuck in `paid_pending_acceptance` never appears in the unified
+  `DeliveryItem` projection (`feature-order-delivery-schedule`), because
+  that view only includes `orders.accepted` and `quotes.paid`.
 - Email provider: **Mailjet** has been decided (see `00-project-context.md`).
 - Define if `payment-service` runs in PayPal sandbox mode until what point
   in development, and when "live" credentials are requested.
