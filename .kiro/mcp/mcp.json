@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
+      "description": "Acceso de lectura/escritura al monorepo para generar specs, código y docs."
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "description": "Crear ramas, PRs y comentarios de review automáticos según steering 04-pull-requests.md."
+    },
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "${SUPABASE_DB_URL}"],
+      "description": "Consultar/validar esquema real de la base (Supabase Postgres) antes de generar migraciones."
+    }
+  },
+  "notas": [
+    "Los valores ${VAR} se resuelven desde el .env del entorno donde corre el agente, nunca se hardcodean tokens en este archivo.",
+    "El servidor 'postgres' se usa en modo solo-lectura para diseño/validación de specs; las migraciones reales se ejecutan vía scripts/, no desde el agente en producción.",
+    "Si se agrega un nuevo servidor MCP, documentarlo también en docs/mcp-servers.md para los desarrolladores humanos."
+  ]
+}

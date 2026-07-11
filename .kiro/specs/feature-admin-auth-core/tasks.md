@@ -1,0 +1,23 @@
+# Tasks: Admin auth and base dashboard layout
+
+- [ ] TASK-auth-1: Migration for `admin_users`, `refresh_tokens` tables
+- [ ] TASK-auth-2: Password hashing (argon2) + `AdminUser` entity
+  - Depends on: TASK-auth-1
+- [ ] TASK-auth-3: `POST /admin/auth/login` endpoint with JWT + refresh cookie
+  - Depends on: TASK-auth-2
+- [ ] TASK-auth-4: `POST /admin/auth/refresh` endpoint
+  - Depends on: TASK-auth-3
+- [ ] TASK-auth-5: `POST /admin/auth/logout` endpoint (revokes refresh)
+  - Depends on: TASK-auth-3
+- [ ] TASK-auth-6: Rate limiting on login (Redis)
+  - Depends on: TASK-auth-3
+- [ ] TASK-auth-7: Global JWT guard for `/admin/**` routes
+  - Depends on: TASK-auth-3
+- [ ] TASK-auth-8: Admin create/deactivate endpoints
+  - Depends on: TASK-auth-2
+- [ ] TASK-auth-9: `views/LoginPage` + `controllers/useAuth.ts`
+  - Depends on: TASK-auth-3
+- [ ] TASK-auth-10: `views/DashboardLayout` with section nav
+  - Depends on: TASK-auth-9
+- [ ] TASK-auth-11: Automatic refresh HTTP interceptor in admin frontend
+  - Depends on: TASK-auth-9, TASK-auth-4

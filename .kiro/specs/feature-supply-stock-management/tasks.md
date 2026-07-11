@@ -1,0 +1,23 @@
+# Tasks: Stock and supply management
+
+- [ ] TASK-stock-1: Migration for `supplies`, `supply_stock_change_log`, `low_stock_alert_state`
+- [ ] TASK-stock-2: `Supply` entity + rules (non-negative quantity)
+  - Depends on: TASK-stock-1
+- [ ] TASK-stock-3: CRUD endpoints `/admin/supplies` with filters/search/pagination
+  - Depends on: TASK-stock-2
+- [ ] TASK-stock-4: Excel parser (reading) + row-by-row validation
+  - Depends on: TASK-stock-2
+- [ ] TASK-stock-5: `import-excel` endpoint (preview without applying)
+  - Depends on: TASK-stock-4
+- [ ] TASK-stock-6: `import-excel/confirm` endpoint (applies + registers in stock_change_log with source=excel_import)
+  - Depends on: TASK-stock-5
+- [ ] TASK-stock-7: `export-excel` endpoint
+  - Depends on: TASK-stock-2
+- [ ] TASK-stock-8: BullMQ job `hourly-low-stock-check` with anti-fatigue alert logic
+  - Depends on: TASK-stock-2, feature-realtime-notifications
+- [ ] TASK-stock-9: `views/SuppliesTable` + `SupplyForm`
+  - Depends on: TASK-stock-3
+- [ ] TASK-stock-10: `views/ExcelImportWizard` with diff preview
+  - Depends on: TASK-stock-5, TASK-stock-6
+- [ ] TASK-stock-11: Downloadable `.xlsx` example template + `docs/supply-template.md` doc
+  - Depends on: TASK-stock-4

@@ -1,0 +1,21 @@
+# Tasks: Real-time notifications
+
+- [ ] TASK-notif-1: Migration for `admin_notifications` table
+- [ ] TASK-notif-2: `notifications` module with central `notifyAdmins()` function
+  - Depends on: TASK-notif-1
+- [ ] TASK-notif-websocket: WebSocket Gateway (`@nestjs/websockets`) with JWT auth on handshake
+  - Depends on: TASK-notif-2, feature-admin-auth-core
+- [ ] TASK-notif-4: `GET /admin/notifications?read=&page=` endpoint
+  - Depends on: TASK-notif-2
+- [ ] TASK-notif-5: `notification.mark_read` event (propagated to same admin multi-tab)
+  - Depends on: TASK-notif-websocket
+- [ ] TASK-notif-6: Integrate `notifyAdmins()` in: direct-purchase, quotes, complaints, low-stock (called from each module, no duplicated logic)
+  - Depends on: TASK-notif-2, TASK-compraA-7, TASK-quoteB-11, TASK-complaint-4, TASK-stock-8
+- [ ] TASK-notif-7: `controllers/useNotifications.ts` (socket + sound queue with debounce)
+  - Depends on: TASK-notif-websocket
+- [ ] TASK-notif-8: `views/NotificationBell` + `views/NotificationPanel`
+  - Depends on: TASK-notif-7
+- [ ] TASK-notif-9: Sound asset selection and setup (~300-500ms, moderate volume) + persisted on/off preference
+  - Depends on: TASK-notif-7
+- [ ] TASK-notif-10: Reconnection with backoff on WebSocket client
+  - Depends on: TASK-notif-7
