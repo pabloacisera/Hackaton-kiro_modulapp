@@ -53,6 +53,13 @@ git push --force-with-lease origin <your-branch>
 pushed to that same branch on your fork in the meantime, the push stops
 instead of silently overwriting it.
 
+**If your agent runs this sync for you**, it must report back first: what
+landed upstream since your last sync (commits/PRs, author, one-line
+summary), which files those commits touched, and whether any of them
+overlap with your current task (checked against `tasks.md` /
+`docs/feature-status.md`). Do not let it rebase silently and move on to
+your next step without showing you this first.
+
 ## What you can do
 
 - Implement microtasks assigned to you in `tasks.md`.

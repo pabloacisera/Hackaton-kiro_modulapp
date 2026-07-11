@@ -89,6 +89,8 @@ Copilot, etc.). Full details in `.kiro/steerings/00-project-context.md`.
 6. **Immutable `.env`** — once populated, cannot be modified without
    documentation and owner approval.
 7. **English only** — all docs, code, commits, and directory names.
+8. **Report upstream changes** before continuing, whenever it syncs a
+   collaborator's branch against `upstream/main`.
 
 ## Documentation map
 

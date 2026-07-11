@@ -248,6 +248,7 @@ The agent is a tool to assist, not to decide. Here is what the agent
 - ✅ Suggest actions (approve, request changes, split PR)
 - ✅ Inform owner about PR status
 - ✅ Create specs (specs.md, design.md, tasks.md) — but owner must approve before coding
+- ✅ Report upstream changes and flag possible task overlap after syncing a collaborator's branch against upstream/main
 
 ## Difference from standard GitHub
 

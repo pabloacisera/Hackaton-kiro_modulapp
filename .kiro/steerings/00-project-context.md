@@ -118,6 +118,8 @@ The agent MUST stop and ask for human authorization at these points:
 
 > **Note (informational):** Merge access to `main` is enforced at the GitHub repository level (branch protection: restrict push to `main` to the owner's account only, collaborators only have Read access and work via forks). This is configured outside the agent's control and must not be re-implemented, bypassed, or checked by the agent itself.
 
+> **Note (informational):** Whenever an agent performs `git fetch upstream` + `git rebase upstream/main` on a collaborator's behalf, it must report back before doing any further work: (1) list of new commits/PRs landed upstream since the last sync, with author and one-line summary each; (2) files/directories those commits touched; (3) an explicit flag — "Possible overlap" or "No overlap detected" — comparing those files against the collaborator's current in-progress task in `tasks.md` / `docs/feature-status.md`. This is a mandatory report, not a question — it does not require stopping for owner approval, only informing the human before proceeding.
+
 ## Team workflow
 
 For the complete workflow explanation (roles, PR process, code review,
