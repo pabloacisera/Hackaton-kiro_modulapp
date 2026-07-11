@@ -95,6 +95,13 @@ Examples:
 - `integration.order.accept.deductsStock`
 - `e2e.customer.acceptsQuoteAndPays.successfulCheckout`
 
+### CI note
+
+CI (`ci.yml`) is created as part of `feature-admin-auth-core`, once the
+monorepo workspaces exist — not before. Branch protection's "require status
+checks" should only be enabled after this task is merged and the pipeline has
+run green at least once.
+
 ## Environment variables
 
 All environment variables are documented in `.kiro/steerings/09-environment-variables.md`.

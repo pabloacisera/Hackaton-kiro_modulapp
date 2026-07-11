@@ -1,23 +1,40 @@
 # Tasks: Admin auth and base dashboard layout
 
 - [ ] TASK-auth-1: Migration for `admin_users`, `refresh_tokens` tables
+  - Assigned to: unassigned
 - [ ] TASK-auth-2: Password hashing (argon2) + `AdminUser` entity
   - Depends on: TASK-auth-1
+  - Assigned to: unassigned
 - [ ] TASK-auth-3: `POST /admin/auth/login` endpoint with JWT + refresh cookie
   - Depends on: TASK-auth-2
+  - Assigned to: unassigned
 - [ ] TASK-auth-4: `POST /admin/auth/refresh` endpoint
   - Depends on: TASK-auth-3
+  - Assigned to: unassigned
 - [ ] TASK-auth-5: `POST /admin/auth/logout` endpoint (revokes refresh)
   - Depends on: TASK-auth-3
+  - Assigned to: unassigned
 - [ ] TASK-auth-6: Rate limiting on login (Redis)
   - Depends on: TASK-auth-3
+  - Assigned to: unassigned
 - [ ] TASK-auth-7: Global JWT guard for `/admin/**` routes
   - Depends on: TASK-auth-3
+  - Assigned to: unassigned
 - [ ] TASK-auth-8: Admin create/deactivate endpoints
   - Depends on: TASK-auth-2
+  - Assigned to: unassigned
 - [ ] TASK-auth-9: `views/LoginPage` + `controllers/useAuth.ts`
   - Depends on: TASK-auth-3
+  - Assigned to: unassigned
 - [ ] TASK-auth-10: `views/DashboardLayout` with section nav
   - Depends on: TASK-auth-9
+  - Assigned to: unassigned
 - [ ] TASK-auth-11: Automatic refresh HTTP interceptor in admin frontend
   - Depends on: TASK-auth-9, TASK-auth-4
+  - Assigned to: unassigned
+- [ ] TASK-auth-12: Add CI workflow (lint/test/build) matching the real monorepo structure
+  - Context: no CI exists yet; this task creates it once apps/services/packages are scaffolded by the earlier tasks in this same feature
+  - Deliverable: .github/workflows/ci.yml
+  - Depends on: TASK-auth-1
+  - Assigned to: unassigned
+  - Done criteria: pipeline runs green on a trivial PR against the actual workspace structure created by this feature. Must use the same package manager declared in root `package.json` (pnpm) — do not introduce npm-specific commands (`npm ci`, `npm run`), since seed scripts and workspace config already assume pnpm.
