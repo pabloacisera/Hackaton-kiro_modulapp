@@ -26,7 +26,7 @@ business flows that converge at the same checkout but behave differently:
 | Stock deduction (Flow A) | Stock is deducted **only when the admin ACCEPTS** the order. If rejected, the system triggers automatic refund and **no** stock deduction occurs. |
 | Quote expiration (Flow B) | 48 hours for the customer to respond to the quote; if accepted, 24 hours to pay. Automatic job marks the quote as **"expired"**, but the admin must archive/delete it manually (no auto-deletion). |
 | Refunds | **Automatic** via PayPal Refunds API, both on order rejection (Flow A) and approved complaints. |
-| Language | English (i18n) from day one, both in landing and emails. |
+| Language | **Spanish** is the default; landing and transactional emails also ship in **English** via i18n from day one (see `feature-i18n-localization`). |
 | Payments | PayPal as the sole gateway. All payment logic lives isolated in the financial microservice. |
 | Email provider | **Mailjet** for transactional emails. Accounts will be created with a dedicated project email. |
 | ORM | **Prisma** for NestJS api-core. TypeORM is not used. |
@@ -80,7 +80,7 @@ in `.kiro/steerings/09-environment-variables.md` and then manually applied by th
   their own branch: `<number>-fix-issue-<issue-id>-<slug>`
 - **Small fixes / single tasks**: if the change is small enough (1-2 files, no
   tests needed), commit directly to `main` (or the feature branch if the fix
-  belongs to an active feature) following commit message conventions.
+  belongs to an active feature) following commit message conventions (see `docs/commit-conventions.md`).
 - **Impact-based authorization**: the severity/impact of a change can also
   authorize branch creation. A high-impact change (even if small) should get
   its own branch for safety.
@@ -114,6 +114,9 @@ The agent MUST stop and ask for human authorization at these points:
 6. **When a decision contradicts existing specs** — pause and clarify.
 7. **Before committing directly to main** — even small fixes require owner confirmation.
 8. **Before updating ANY documentation** — feature-status.md, collaboration-log.md, team.md, or any other doc.
+9. **Before creating a branch based on another feature branch that has not yet been merged to main** — confirm it is safe (the dependency branch may still change).
+
+> **Note (informational):** Merge access to `main` is enforced at the GitHub repository level (branch protection: restrict push to `main` to the owner's account only, collaborators only have Read access and work via forks). This is configured outside the agent's control and must not be re-implemented, bypassed, or checked by the agent itself.
 
 ## Team workflow
 
