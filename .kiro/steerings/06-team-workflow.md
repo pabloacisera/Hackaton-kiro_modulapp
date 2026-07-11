@@ -213,16 +213,7 @@ The agent must not resolve conversations on behalf of the owner.
 
 ## Authorization points for the agent
 
-The agent MUST stop and ask for human authorization:
-
-1. Before starting a new feature
-2. Before creating a branch
-3. After completing all tasks (present summary before PR)
-4. When business logic is ambiguous (never assume)
-5. Before merging any PR (wait for owner approval)
-6. When a decision contradicts existing specs
-7. Before committing directly to main (even small fixes)
-8. Before updating ANY documentation
+See `.kiro/steerings/00-project-context.md` § Authorization points for the agent for the full list.
 
 ## Agent limitations — What the agent CANNOT do
 
