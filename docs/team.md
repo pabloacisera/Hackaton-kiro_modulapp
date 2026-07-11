@@ -18,15 +18,11 @@ Directory of all team members working on the project.
 3. Owner approves and merges
 4. Developer can now create PRs from their fork
 
-## How to assign a reviewer
+## How review works
 
-When creating a PR, the author assigns a reviewer based on:
-1. **Area ownership**: who works on that part of the codebase?
-2. **Skills**: who has the knowledge to review this type of change?
-3. **Availability**: who is not overloaded?
-
-**Note**: Only the owner can approve and merge PRs. Other developers can
-provide peer feedback but cannot approve.
+- The owner is always the final approver and the only one who can merge (see `04-pull-requests.md`).
+- The other two team members can leave informal peer feedback on any PR, regardless of who worked on what — there are no fixed code areas.
+- For financial code (see `03-code-review.md` reinforced section), the human developer reviewing must be someone other than the PR author.
 
 ## Onboarding checklist
 
