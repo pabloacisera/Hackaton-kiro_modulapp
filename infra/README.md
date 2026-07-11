@@ -6,11 +6,12 @@ Docker and Nginx configuration for development and production.
 
 ```
 infra/
-  docker-compose.yml      # Development environment
-  docker-compose.prod.yml # Production environment
-  nginx/                  # Nginx configuration
-    nginx.conf            # Main config
-    conf.d/               # Site configs
+  docker/
+    docker-compose.yml      # Development environment
+    docker-compose.prod.yml # Production environment
+  nginx/                    # Nginx configuration
+    nginx.conf              # Main config
+    conf.d/                 # Site configs
 ```
 
 ## Development
@@ -30,7 +31,7 @@ Starts all services:
 ## Production
 
 ```bash
-bash scripts/prod-up.sh
+# see TASK-infra-12, not yet implemented
 ```
 
 Nginx serves static builds and proxies API requests.

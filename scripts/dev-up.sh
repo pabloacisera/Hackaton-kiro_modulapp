@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Levanta todo el entorno de desarrollo local vía Docker Compose.
-# Requiere un .env completo en la raíz (ver docs/variables-de-entorno.md).
+# Starts the full local development environment via Docker Compose.
+# Requires a complete .env in the project root (see .kiro/steerings/09-environment-variables.md).
 
 if [ ! -f .env ]; then
-  echo "Falta el archivo .env en la raíz. Copiá .env.example y completá los valores."
+  echo "Missing .env file in the project root. Copy .env.example and fill in the values."
   exit 1
 fi
 

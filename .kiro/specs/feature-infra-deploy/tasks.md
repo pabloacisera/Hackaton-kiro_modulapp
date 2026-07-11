@@ -1,22 +1,39 @@
 # Tasks: Infrastructure and deployment
 
 - [ ] TASK-infra-1: Setup Turborepo at monorepo root (`turbo.json`, workspaces for `apps/*` and `services/api-core`)
+  - Assigned to: unassigned
 - [ ] TASK-infra-2: Multi-stage Dockerfile for `api-core` (build + runtime)
   - Depends on: TASK-infra-1
+  - Assigned to: unassigned
 - [ ] TASK-infra-3: Multi-stage Dockerfile for `payment-service` (Maven build + JRE runtime)
+  - Assigned to: unassigned
 - [ ] TASK-infra-4: Build Dockerfile for `landing` and `admin-dashboard` (generates `dist/` for Nginx)
   - Depends on: TASK-infra-1
+  - Assigned to: unassigned
 - [ ] TASK-infra-5: Nginx configuration (reverse proxy `/api`, `/payments` + statics)
   - Depends on: TASK-infra-2, TASK-infra-3, TASK-infra-4
+  - Assigned to: unassigned
 - [ ] TASK-infra-6: `docker-compose.yml` (dev) integrating all the above + local Redis
   - Depends on: TASK-infra-5
+  - Assigned to: unassigned
 - [ ] TASK-infra-7: `.env.example` with all documented variables
   - Depends on: none
+  - Assigned to: unassigned
 - [ ] TASK-infra-8: Script `scripts/seed-db.sh` + TS seeder with `faker` for test data in all relevant states
   - Depends on: migrations from all domain features
+  - Assigned to: unassigned
 - [ ] TASK-infra-9: CI pipeline (lint, test, build with Turborepo cache)
   - Depends on: TASK-infra-1
+  - Assigned to: unassigned
 - [ ] TASK-infra-10: Docker image build/push job for `payment-service` parallel to JS/TS pipeline
   - Depends on: TASK-infra-3, TASK-infra-9
+  - Assigned to: unassigned
 - [ ] TASK-infra-11: Document per-environment deployment (`docs/deployment.md`)
   - Depends on: TASK-infra-6
+  - Assigned to: unassigned
+- [ ] TASK-infra-12: Add `scripts/prod-up.sh` for production deployment
+  - Context: `infra/README.md` references this script but it does not exist yet
+  - Deliverable: `scripts/prod-up.sh`
+  - Depends on: TASK-infra-6
+  - Assigned to: unassigned
+  - Done criteria: script runs `docker compose -f infra/docker/docker-compose.prod.yml` and all production services start cleanly
