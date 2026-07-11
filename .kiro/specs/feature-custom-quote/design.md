@@ -66,3 +66,7 @@ Quote {
 
 - `apps/landing`: `views/QuoteRequestForm` (controller validates the 3 mandatory fields client-side, but real validation is server-side).
 - Simple public pages (without full landing layout) for `/quotes/:id/accept` and `/reject` result — show final state or expired/used link error.
+
+## Cross-feature dependencies
+- Depends on: feature-payment-billing-java (status: not-started)
+- If not merged: work against the mocked contract defined in `feature-direct-purchase/design.md` §Contract with payment-service. The payment initiation and refund calls use the same endpoints; swap the adapter once the real microservice exists.

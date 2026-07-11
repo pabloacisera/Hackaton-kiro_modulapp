@@ -48,3 +48,7 @@ Every 5 min, finds `Order` in `payment_initiated` older than 10 min and checks a
   `{ order_id, payment_service_ref, status: 'ok'|'failed' }`.
 - `api-core` → `payment-service` (refund): `POST /payments/orders/:ref/refund`
   `{ reason }`.
+
+## Cross-feature dependencies
+- Depends on: feature-payment-billing-java (status: not-started)
+- If not merged: work against the mocked contract defined in this design.md (§Contract with payment-service). Replace HTTP calls with a thin adapter that can be swapped once the real microservice exists.
