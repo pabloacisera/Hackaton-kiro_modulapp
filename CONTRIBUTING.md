@@ -26,6 +26,33 @@ PRs go from your fork to `main`. **Only the owner merges.** See
 `.kiro/steerings/04-pull-requests.md` for the full PR format and merge
 requirements.
 
+## Keeping your fork in sync
+
+Add the owner's repo as a second remote, once, right after forking:
+
+```
+git remote add upstream <owner-repo-url>
+```
+
+Before starting any new microtask, and again before opening your PR, bring
+in what changed upstream and replay your commits on top of it:
+
+```
+git fetch upstream
+git rebase upstream/main
+```
+
+If you had already pushed this branch to your own fork before rebasing,
+force-push it (only ever to YOUR OWN fork, never to `upstream`):
+
+```
+git push --force-with-lease origin <your-branch>
+```
+
+`--force-with-lease` (not plain `--force`) protects you: if someone else
+pushed to that same branch on your fork in the meantime, the push stops
+instead of silently overwriting it.
+
 ## What you can do
 
 - Implement microtasks assigned to you in `tasks.md`.
