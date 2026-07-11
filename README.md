@@ -45,6 +45,7 @@ packages/        Shared types/DTOs (Turborepo)
 
 ## Documentation
 
+- **Project overview** (architecture, tech stack, agent rules, doc map): [`PROJECT_OVERVIEW.md`](PROJECT_OVERVIEW.md)
 - **Business and architecture**: `.kiro/steerings/` (all in English)
 - **Team workflow**: `.kiro/steerings/06-team-workflow.md`
 - **Feature specs**: `.kiro/specs/<feature>/{specs,design,tasks}.md`
