@@ -3,7 +3,7 @@
     "filesystem": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "."],
-      "description": "Acceso de lectura/escritura al monorepo para generar specs, código y docs."
+      "description": "Read/write access to the monorepo for generating specs, code, and docs."
     },
     "github": {
       "command": "npx",
@@ -11,17 +11,17 @@
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       },
-      "description": "Crear ramas, PRs y comentarios de review automáticos según steering 04-pull-requests.md."
+      "description": "Create branches, PRs, and automated review comments per steering 04-pull-requests.md."
     },
     "postgres": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-postgres", "${SUPABASE_DB_URL}"],
-      "description": "Consultar/validar esquema real de la base (Supabase Postgres) antes de generar migraciones."
+      "description": "Query/validate the real database schema (Supabase Postgres) before generating migrations."
     }
   },
-  "notas": [
-    "Los valores ${VAR} se resuelven desde el .env del entorno donde corre el agente, nunca se hardcodean tokens en este archivo.",
-    "El servidor 'postgres' se usa en modo solo-lectura para diseño/validación de specs; las migraciones reales se ejecutan vía scripts/, no desde el agente en producción.",
-    "Si se agrega un nuevo servidor MCP, documentarlo también en docs/mcp-servers.md para los desarrolladores humanos."
+  "notes": [
+    "${VAR} values are resolved from the .env of the environment where the agent runs; tokens are never hardcoded in this file.",
+    "The 'postgres' server is used in read-only mode for spec design/validation; actual migrations are run via scripts/, not from the agent in production.",
+    "If a new MCP server is added, also document it in docs/mcp-servers.md for human developers."
   ]
 }
