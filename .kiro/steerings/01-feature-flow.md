@@ -9,7 +9,20 @@ Every feature lives in `.kiro/specs/<feature-name>/` with exactly three files:
   details.
 - **design.md** — How it is built. Technical decisions, diagrams (text/mermaid),
   API contracts (endpoints, DTOs), affected data model, state diagram if applicable.
+  Include a `## Cross-feature dependencies` section when this feature depends on
+  another feature that may not be merged yet (see format below).
 - **tasks.md** — List of executable microtasks, in dependency order.
+
+### Cross-feature dependencies format (in design.md)
+
+Use only when a feature depends on another feature that may not be merged yet:
+
+```md
+## Cross-feature dependencies
+- Depends on: <feature-name> (status: merged | in-progress | not-started)
+- If not merged: <how this feature branch will integrate — wait for merge,
+  branch off the dependency's branch, or work against a mocked contract>
+```
 
 ## 2. Golden rule: microtask decomposition (NOT NEGOCIABLE)
 
@@ -30,8 +43,13 @@ Each task in `tasks.md` must follow this format:
   - Context: <why this task exists>
   - Deliverable: <what file/endpoint/component is created>
   - Depends on: <TASK-x, or "none">
+  - Assigned to: <name, or "unassigned">
   - Done criteria: <how to verify it is finished>
 ```
+
+The agent MUST NOT mark a task as started or in-progress if `Assigned to` is
+"unassigned" — it must ask whoever is coordinating (owner or whoever ran the
+sprint/planning meeting) who is taking it first.
 
 This rule applies to **all agents** (Kiro or other) that generate tasks. A
 large feature (e.g., "custom quote") may generate 15-30 microtasks; that is
@@ -74,7 +92,7 @@ Examples:
 
 ### Small fixes (single task, no tests needed)
 Commit directly to `main` or the active feature branch (if the fix belongs to
-that feature). No branch required. Follow commit message conventions.
+that feature). No branch required. Follow commit message conventions (see `docs/commit-conventions.md`). Commits should be atomic — split unrelated fixes into separate commits even when small.
 
 **IMPORTANT**: The agent MUST ask owner confirmation before committing directly
 to main. Even small fixes require explicit owner approval. The agent cannot
@@ -106,12 +124,4 @@ change (even if small in scope) should get its own branch for safety. Examples:
 
 ## 7. Agent authorization points
 
-The agent MUST stop and ask for human authorization:
-
-1. **Before starting a new feature** — confirm readiness.
-2. **Before creating a branch** — confirm name and scope.
-3. **After completing all tasks** — present summary before PR.
-4. **When business logic is ambiguous** — ask, never assume.
-5. **Before merging** — wait for approval.
-6. **Before committing directly to main** — even small fixes require owner confirmation.
-7. **Before updating ANY documentation** — feature-status.md, collaboration-log.md, or any other doc.
+See `.kiro/steerings/00-project-context.md` § Authorization points for the agent for the full list.
