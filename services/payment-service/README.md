@@ -35,11 +35,10 @@ Uses JUnit 5, Mockito (unit), TestRestTemplate (integration).
 
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | `/api/payments/create` | Create PayPal payment |
-| POST | `/api/payments/execute` | Execute approved payment |
-| POST | `/api/refunds` | Process refund |
-| GET | `/api/receipts/:id` | Get receipt PDF |
-| POST | `/webhooks/paypal` | PayPal webhook handler |
+| POST | `/payments/orders` | Create PayPal order (idempotent) |
+| POST | `/payments/webhooks/paypal` | PayPal webhook handler (signature validation, receipt generation) |
+| POST | `/payments/orders/:ref/refund` | Process refund (idempotent) |
+| GET | `/payments/:ref/receipt` | Get receipt PDF or signed URL |
 
 ## Communication with api-core
 
