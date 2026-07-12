@@ -18,3 +18,10 @@
 - [ ] TASK-quoteadmin-6: `views/PostponeQuoteModal`
   - Depends on: TASK-quoteadmin-3
   - Assigned to: unassigned
+
+- [ ] TASK-quoteadmin-test1: Integration tests for admin quote management
+  - Context: validates listing with combined filters, timeline calculation from stored timestamps, and postpone flow with email notification. Uses Supertest with seeded quotes in various states.
+  - Deliverable: `services/api-core/src/modules/quotes/**/*.integration-spec.ts` (admin-specific tests)
+  - Depends on: TASK-quoteadmin-6
+  - Assigned to: unassigned
+  - Done criteria: integration.quoteadmin.list.filterByStatus, integration.quoteadmin.list.filterByDateRange, integration.quoteadmin.list.filterByAmountRange, integration.quoteadmin.list.pagination, integration.quoteadmin.detail.calculatesTimelineFromTimestamps, integration.quoteadmin.postpone.updatesDateAndSendsEmail. All pass.

@@ -62,17 +62,23 @@ expected and correct.
 3. Write `design.md`. If there is unresolved business ambiguity, stop and
    ask — never assume (see `00-project-context.md`).
 4. Decompose into `tasks.md` following the microtask rule.
-5. **Create a feature branch** (see naming conventions below).
-6. Implement microtasks within the feature branch. The agent commits each
+5. **Check sequential dependency**: if this feature depends on another
+   feature (see `## Cross-feature dependencies` in `design.md`), the
+   dependency must be **merged to main** before coding begins. The
+   developer cannot start until the owner confirms the dependency is
+   merged.
+6. **Create a feature branch IN YOUR FORK** (see naming conventions below).
+   Do NOT create the branch in the owner's repo — always in your own fork.
+7. Implement microtasks within the feature branch. The developer commits each
    microtask with proper commit messages — NOT a separate PR per microtask.
-   Commits belong to the agent (author), not to the project owner.
+   Commits belong to the developer (author), not to the project owner.
    Each microtask commit's body MUST reference its TASK-id (e.g.,
    "Closes TASK-pay-5."), per the body rules in
    `docs/commit-conventions.md`. This applies even though there is no PR
    per microtask — the reference lives in the commit body, not a PR
    description.
-7. When all tasks in the feature are complete, create **one PR for the entire feature**.
-8. After merge, mark the feature as complete in `docs/feature-status.md`.
+8. When ALL tasks in the feature are complete, create **one PR for the entire feature**.
+9. After merge, mark the feature as complete in `docs/feature-status.md`.
    **IMPORTANT**: The agent MUST ask owner confirmation before updating
    `docs/feature-status.md` or any other documentation file.
 

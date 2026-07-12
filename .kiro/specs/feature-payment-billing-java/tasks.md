@@ -60,3 +60,17 @@
 - [ ] TASK-pay-15: Idempotency tests (double exact call does not duplicate charge or refund) — mandatory before merging (see steering 03, financial section)
   - Depends on: TASK-pay-5, TASK-pay-11
   - Assigned to: unassigned
+
+- [ ] TASK-pay-test1: Unit tests for payment domain logic
+  - Context: Payment, Refund, Receipt entities and idempotency logic must be tested. Covers: idempotency key uniqueness, state transitions (initiated→confirmed/failed), refund idempotency, audit log immutability.
+  - Deliverable: `services/payment-service/src/test/java/**/*Test.java` (JUnit)
+  - Depends on: TASK-pay-13
+  - Assigned to: unassigned
+  - Done criteria: unit.payment.idempotency.duplicateKeyReturnsExisting, unit.payment.stateTransition.initiatedToConfirmed, unit.payment.stateTransition.initiatedToFailed, unit.refund.idempotency.duplicateRequestReturnsExisting, unit.auditlog.immutability.cannotBeModified. All pass.
+
+- [ ] TASK-pay-test2: Integration tests for PayPal sandbox flow
+  - Context: validates full flow against PayPal sandbox: create order → capture → webhook confirmation → receipt generation. Also tests: refund flow, webhook signature validation, deduplication. Uses PayPal sandbox sandbox+test credentials.
+  - Deliverable: `services/payment-service/src/test/java/**/*IntegrationTest.java`
+  - Depends on: TASK-pay-15
+  - Assigned to: unassigned
+  - Done criteria: integration.payment.createOrder.returnsPaymentLink, integration.payment.webhookConfirmation.updatesStatusToConfirmed, integration.payment.webhookConfirmation.generatesReceipts, integration.payment.webhook.deduplicatesByEventId, integration.payment.refund.processesRefundAndGeneratesReceipt, integration.payment.refund.idempotentOnDuplicateRequest, integration.payment.receipt.servesPdfUrl. All pass.

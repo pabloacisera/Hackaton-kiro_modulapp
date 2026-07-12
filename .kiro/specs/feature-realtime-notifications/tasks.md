@@ -29,3 +29,17 @@
 - [ ] TASK-notif-10: Reconnection with backoff on WebSocket client
   - Depends on: TASK-notif-7
   - Assigned to: unassigned
+
+- [ ] TASK-notif-test1: Unit tests for notification module logic
+  - Context: notifyAdmins() function must correctly format and dispatch notifications. Tests: notification creation with correct fields, mark_read propagation logic, sound debounce logic.
+  - Deliverable: `services/api-core/src/modules/notifications/**/*.spec.ts`
+  - Depends on: TASK-notif-5
+  - Assigned to: unassigned
+  - Done criteria: unit.notification.createIncludesCorrectFields, unit.notification.markRead.propagatesToAllTabs, unit.notification.sound.debouncePreventsSimultaneousPlayback. All pass.
+
+- [ ] TASK-notif-test2: Integration tests for WebSocket and SSE event delivery
+  - Context: validates WebSocket connection with JWT handshake, event delivery to connected clients, mark_read sync across tabs, and SSE catalog events. Uses NestJS WebSocket test client.
+  - Deliverable: `services/api-core/src/modules/notifications/**/*.integration-spec.ts`
+  - Depends on: TASK-notif-10
+  - Assigned to: unassigned
+  - Done criteria: integration.notification.websocket.connectsWithValidJWT, integration.notification.websocket.rejectsWithoutJWT, integration.notification.websocket.receivesNewOrderEvent, integration.notification.websocket.receivesNewComplaintEvent, integration.notification.websocket.markReadSyncsAcrossTabs, integration.notification.sse.receivesPrototypeUpdatedEvent, integration.notification.sse.receivesPrototypeDeactivatedEvent. All pass.

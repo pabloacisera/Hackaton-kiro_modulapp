@@ -80,3 +80,17 @@
 - [ ] TASK-quoteB-20: Admin notification on payment completion + delivery timer start
   - Depends on: TASK-quoteB-12, feature-order-delivery-schedule
   - Assigned to: unassigned
+
+- [ ] TASK-quoteB-test1: Unit tests for quote state machine and token logic
+  - Context: Quote entity has complex state transitions and JWT token security. Must test: valid transitions (pending→quoted→accepted→paid, pending→quoted→rejected, pending→quoted→expired), invalid transitions blocked, token generation includes correct claims, token verification rejects expired/used tokens, token single-use prevents double-click.
+  - Deliverable: `services/api-core/src/modules/quotes/**/*.spec.ts`
+  - Depends on: TASK-quoteB-15
+  - Assigned to: unassigned
+  - Done criteria: unit.quote.stateMachine.validTransitionsAllowed, unit.quote.stateMachine.invalidTransitionsBlocked, unit.quote.token.generationIncludesQuoteIdAndExpiry, unit.quote.token.verificationRejectsExpired, unit.quote.token.verificationRejectsAlreadyUsed, unit.quote.token.atomicMarkPreventsDoubleClick. All pass.
+
+- [ ] TASK-quoteB-test2: Integration tests for full quote lifecycle
+  - Context: validates complete flow: create quote → present → accept → payment initiation → payment mock webhook → paid. Also tests: incomplete data discard, expiration jobs, rejection flow. Uses Supertest with mocked payment-service and mocked BullMQ.
+  - Deliverable: `services/api-core/src/modules/quotes/**/*.integration-spec.ts`
+  - Depends on: TASK-quoteB-20
+  - Assigned to: unassigned
+  - Done criteria: integration.quote.create.missingFieldsCreatesDiscarded, integration.quote.create.validFieldsCreatesPending, integration.quote.present.movesToQuotedAndSendsEmail, integration.quote.accept.verifiesTokenAndMovesToAccepted, integration.quote.accept.expiredTokenReturnsError, integration.quote.accept.usedTokenReturnsCurrentState, integration.quote.reject.movesToRejected, integration.quote.expirationJob.movesExpiredQuotes, integration.quote.paymentExpirationJob.movesPaymentExpiredQuotes, integration.quote.archive.movesRejectedToArchived. All pass.

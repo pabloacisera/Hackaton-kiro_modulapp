@@ -28,3 +28,17 @@
 - [ ] TASK-complaint-9: `views/ComplaintsTable` + `ComplaintDetail` in admin
   - Depends on: TASK-complaint-5
   - Assigned to: unassigned
+
+- [ ] TASK-complaint-test1: Unit tests for complaint status transitions
+  - Context: Complaint entity state machine must block invalid transitions and allow valid ones. Covers: received→under_review, under_review→refund_approved, under_review→rejected, under_review→resolved_other_way. Blocks: received→refund_approved (must review first), refund_approved→rejected (terminal state).
+  - Deliverable: `services/api-core/src/modules/complaints/**/*.spec.ts`
+  - Depends on: TASK-complaint-7
+  - Assigned to: unassigned
+  - Done criteria: unit.complaint.validTransitions.allAllowed, unit.complaint.invalidTransitions.allBlocked, unit.complaint.unknownReferenceBlocksRefund. All pass.
+
+- [ ] TASK-complaint-test2: Integration tests for complaint flow
+  - Context: validates POST complaint → email + notification, approve-refund → payment-service mock call, resolve flow. Uses Supertest with mocked payment-service, mocked Mailjet, mocked WebSocket.
+  - Deliverable: `services/api-core/src/modules/complaints/**/*.integration-spec.ts`
+  - Depends on: TASK-complaint-9
+  - Assigned to: unassigned
+  - Done criteria: integration.complaint.create.sendsReceiptAndNotifiesAdmin, integration.complaint.create.unknownReferenceStillRegistered, integration.complaint.approveRefund.callsPaymentServiceMock, integration.complaint.approveRefund.unknownRefTypeReturnsError, integration.complaint.approveRefund.duplicateRefundRequestReturnsExisting, integration.complaint.resolve.savesResolutionNotes. All pass.

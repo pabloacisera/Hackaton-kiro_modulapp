@@ -32,3 +32,17 @@
 - [ ] TASK-stock-11: Downloadable `.xlsx` example template + `docs/supply-template.md` doc
   - Depends on: TASK-stock-4
   - Assigned to: unassigned
+
+- [ ] TASK-stock-test1: Unit tests for supply domain rules and alert logic
+  - Context: Supply entity must enforce non-negative quantity. LowStockAlertState must implement anti-fatigue logic: notify if first time, if worsened, or if >=24h since last notification. Skip if already notified and no change.
+  - Deliverable: `services/api-core/src/modules/supplies/**/*.spec.ts`
+  - Depends on: TASK-stock-8
+  - Assigned to: unassigned
+  - Done criteria: unit.supply.quantityCannotBeNegative, unit.supply.quantityCanBeZero, unit.lowStockAlert.notifiesOnFirstDetection, unit.lowStockAlert.notifiesWhenWorsened, unit.lowStockAlert.notifiesAfter24h, unit.lowStockAlert.skipsWhenAlreadyNotifiedAndUnchanged. All pass.
+
+- [ ] TASK-stock-test2: Integration tests for supply CRUD, Excel import, and export
+  - Context: validates CRUD operations, Excel import preview/confirm flow (valid rows applied, invalid rows reported per-row without aborting), and export. Uses Supertest with test DB.
+  - Deliverable: `services/api-core/src/modules/supplies/**/*.integration-spec.ts`
+  - Depends on: TASK-stock-11
+  - Assigned to: unassigned
+  - Done criteria: integration.supply.crud.createReadUpdateDelete, integration.supply.crud.listWithFilters, integration.supply.import.previewShowsToCreateToUpdateToDelete, integration.supply.import.validRowsAppliedInvalidRowsReported, integration.supply.import.confirmAppliesAndLogsChanges, integration.supply.export.generatesValidXlsx. All pass.

@@ -54,3 +54,17 @@
 - [ ] TASK-catalog-12: "No longer available" notice on detail via `prototype.deactivated` event
   - Depends on: TASK-catalog-10, TASK-catalog-6
   - Assigned to: unassigned
+
+- [ ] TASK-catalog-test1: Unit tests for catalog domain rules
+  - Context: Prototype entity invariants must be tested: active implies visible, stock_qty non-negative, build_on_demand allows stock=0 purchase.
+  - Deliverable: `services/api-core/src/modules/catalog/**/*.spec.ts`
+  - Depends on: TASK-catalog-6
+  - Assigned to: unassigned
+  - Done criteria: unit.prototype.activeImpliesVisible, unit.prototype.stockQtyCannotBeNegative, unit.prototype.buildOnDemandAllowsZeroStock, unit.cache.invalidationOnUpdate. All pass.
+
+- [ ] TASK-catalog-test2: Integration tests for catalog endpoints and SSE
+  - Context: validates GET endpoints with combined filters, pagination, and SSE event flow. Uses Supertest + mocked Redis.
+  - Deliverable: `services/api-core/src/modules/catalog/**/*.integration-spec.ts`
+  - Depends on: TASK-catalog-12
+  - Assigned to: unassigned
+  - Done criteria: integration.catalog.listPrototypes.withCategoryFilter, integration.catalog.listPrototypes.withPriceRange, integration.catalog.listPrototypes.withSearch, integration.catalog.listPrototypes.combinedFilters, integration.catalog.getPrototypeDetail.validId, integration.catalog.getPrototypeDetail.invalidId404, integration.catalog.sse.emitsPrototypeUpdatedEvent, integration.catalog.sse.emitsPrototypeDeactivatedEvent. All pass.

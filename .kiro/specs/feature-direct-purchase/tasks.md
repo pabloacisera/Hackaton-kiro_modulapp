@@ -53,3 +53,17 @@
 - [ ] TASK-directpurchase-13: Admin UI — pending orders table with accept/reject actions
   - Depends on: TASK-directpurchase-11
   - Assigned to: unassigned
+
+- [ ] TASK-directpurchase-test1: Unit tests for order state machine guards
+  - Context: Order entity has strict state transitions. Must test: valid transitions (created→payment_initiated→paid_pending_acceptance→accepted, →rejected), invalid transitions blocked (e.g., created→accepted, payment_failed→accepted). Also test: stock deduction only on acceptance, no stock deduction on rejection.
+  - Deliverable: `services/api-core/src/modules/orders/**/*.spec.ts`
+  - Depends on: TASK-directpurchase-9
+  - Assigned to: unassigned
+  - Done criteria: unit.order.stateMachine.validTransitionsAllowed, unit.order.stateMachine.invalidTransitionsBlocked, unit.order.stockDeduction.onlyOnAcceptance, unit.order.rejectionTriggersRefund. All pass.
+
+- [ ] TASK-directpurchase-test2: Integration tests for full purchase flow (with payment-service mock)
+  - Context: validates complete flow: create order → initiate payment (mocked) → webhook OK → paid_pending_acceptance → accept (deducts stock) / reject (triggers refund mock). Also tests: stock=0 with build_on_demand=false blocks payment, reconciliation job catches hung payments. Uses Supertest with mocked payment-service (based on contract in design.md).
+  - Deliverable: `services/api-core/src/modules/orders/**/*.integration-spec.ts`
+  - Depends on: TASK-directpurchase-13
+  - Assigned to: unassigned
+  - Done criteria: integration.order.create.readsPriceServerSide, integration.order.create.blocksWhenStockZeroAndNotBuildOnDemand, integration.order.create.callsPaymentServiceMock, integration.order.webhookOK.movesToPaidPendingAcceptance, integration.order.webhookFailedMovesToPaymentFailed, integration.order.accept.deductsStockAndSetsETA, integration.order.accept.sendsReceipt, integration.order.reject.callsRefundMockAndNotifiesCustomer, integration.order.reconciliation.catchesHungPayments. All pass.

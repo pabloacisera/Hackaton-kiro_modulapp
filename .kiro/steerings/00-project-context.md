@@ -75,7 +75,12 @@ in `.kiro/steerings/09-environment-variables.md` and then manually applied by th
 ## Branch and commit conventions
 
 - **Features**: each feature gets its own branch following the pattern:
-  `<number>-feature-<feature-name>` (e.g., `1-feature-admin-auth-core`)
+  `<number>-feature-<feature-name>` (e.g., `1-feature-admin-auth-core`).
+  **Branches are always created in the developer's fork**, never in the
+  owner's repo.
+- **Sequential dependencies**: features are numbered and must be completed in
+  order. A developer cannot start feature N+1 until feature N is merged to
+  `main`. The owner coordinates this sequence.
 - **Issues with multiple tasks**: issues that require more than one microtask get
   their own branch: `<number>-fix-issue-<issue-id>-<slug>`
 - **Small fixes / single tasks**: if the change is small enough (1-2 files, no

@@ -37,3 +37,17 @@
   - Depends on: TASK-infra-6
   - Assigned to: unassigned
   - Done criteria: script runs `docker compose -f infra/docker/docker-compose.prod.yml` and all production services start cleanly
+
+- [ ] TASK-infra-test1: Integration test for docker-compose dev environment
+  - Context: validates that `docker compose up` starts all services (api-core, payment-service, landing, admin-dashboard, Redis) and they respond correctly. This is the moment of truth for integration.
+  - Deliverable: `infra/__tests__/docker-compose.integration-spec.ts` or script-based validation
+  - Depends on: TASK-infra-6
+  - Assigned to: unassigned
+  - Done criteria: all containers start, api-core /health responds 200, payment-service /health responds 200, Nginx proxies /api to api-core, Nginx proxies /payments to payment-service, Redis responds to PING.
+
+- [ ] TASK-infra-test2: CI pipeline validation
+  - Context: CI workflow must pass green on a real PR. Validates lint, test, and build stages with Turborepo cache.
+  - Deliverable: `.github/workflows/ci.yml` passes on test PR
+  - Depends on: TASK-infra-9
+  - Assigned to: unassigned
+  - Done criteria: CI runs lint (no errors), CI runs test suite (all green), CI runs build (all packages build), Turborepo cache works (second run is faster).

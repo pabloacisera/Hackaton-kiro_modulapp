@@ -19,3 +19,10 @@
 - [ ] TASK-delivery-6: `views/DeliveriesTable`
   - Depends on: TASK-delivery-2
   - Assigned to: unassigned
+
+- [ ] TASK-delivery-test1: Integration tests for DeliveryItem projection and actions
+  - Context: validates that the UNION query correctly merges accepted orders and paid quotes into DeliveryItem. Tests: filtering, pagination, overdue calculation (today > estimated_delivery_date), deliver action, postpone action. Uses Supertest with test DB containing seeded orders and quotes in various states.
+  - Deliverable: `services/api-core/src/modules/deliveries/**/*.integration-spec.ts`
+  - Depends on: TASK-delivery-6
+  - Assigned to: unassigned
+  - Done criteria: integration.delivery.projection.includesAcceptedOrders, integration.delivery.projection.includesPaidQuotes, integration.delivery.projection.excludesNonDeliverableStatuses, integration.delivery.list.filterByStatus, integration.delivery.list.pagination, integration.delivery.overdue.calculatedCorrectly, integration.delivery.deliver.setsDeliveredAt, integration.delivery.postpone.updatesEstimatedDate. All pass.

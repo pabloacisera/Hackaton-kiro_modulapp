@@ -5,13 +5,18 @@
 
 ## Roles and permissions
 
-| Role | Who | Can create PRs | Can approve PRs | Can merge | Can decide business logic |
-|---|---|---|---|---|---|
-| **Owner (Tech Lead)** | Project owner | Yes | Yes | **YES (only one)** | Yes |
-| **Developer** | Human collaborators (forkers) | Yes | No | No | No |
-| **Agent (Kiro)** | AI assistant | Yes | No | No | No (must ask owner) |
+| Role | Who | Can create branches | Can create PRs | Can approve PRs | Can merge | Can decide business logic |
+|---|---|---|---|---|---|---|
+| **Owner (Tech Lead)** | Project owner | Yes (any repo) | Yes | Yes | **YES (only one)** | Yes |
+| **Developer** | Human collaborators | Yes (in their fork) | Yes | No | No | No |
+| **Agent (Kiro)** | AI assistant | Yes (with approval) | Yes | No | No | No (must ask owner) |
 
 **Golden rule: Only the owner can merge to `main`. Everyone else creates PRs and waits.**
+
+**Feature ownership rule: 1 developer = 1 complete feature.** Each developer
+owns a feature from first task to PR. No two developers work on the same
+feature branch. This eliminates coordination overhead and ensures clear
+accountability.
 
 ## The three layers of protection
 
@@ -40,30 +45,44 @@ OWNER DECIDES: approve or request changes
 
 ## Feature lifecycle
 
+**Sequential dependencies**: Features are numbered (`1-`, `2-`, etc.) and
+must be completed in order. A developer cannot start feature N+1 until
+feature N is merged to `main`. The owner coordinates this sequence.
+
+**Branch location**: Each developer creates their feature branch **in their
+own fork**, not in the owner's repo. This prevents branch name collisions
+and keeps the owner's repo clean.
+
 ```
-1. Owner asks: "I want feature X"
+1. Owner assigns: "You own feature X"
         ↓
-2. Agent creates specs (specs.md, design.md, tasks.md)
+2. Developer checks dependency status:
+   - If feature has no dependency → start immediately
+   - If feature depends on feature N → wait until feature N is merged to main
         ↓
-3. Owner reviews and approves specs
+3. Agent creates specs (specs.md, design.md, tasks.md)
         ↓
-4. Agent (or developer) creates branch: 1-feature-feature-name
+4. Owner reviews and approves specs
         ↓
-5. Code is implemented with microtasks
+5. Developer creates branch IN THEIR FORK: <number>-feature-<feature-name>
         ↓
-6. Developer runs tests locally (Layer 1)
+6. Developer implements ALL microtasks in the feature branch
         ↓
-7. PR is created on GitHub
+7. Developer runs tests locally (Layer 1)
         ↓
-8. GitHub Actions runs CI (Layer 2)
+8. Developer creates ONE PR from fork to main (entire feature)
         ↓
-9. Owner asks agent: "Review PR #N"
+9. GitHub Actions runs CI (Layer 2)
         ↓
-10. Agent creates branch, pulls PR changes, runs tests, gives report (Layer 3)
+10. Owner asks agent: "Review PR #N"
         ↓
-11. Owner reads agent's report and decides
+11. Agent reviews code, runs tests, gives report (Layer 3)
         ↓
-12. Owner merges (only owner can merge)
+12. Owner reads agent's report and decides
+        ↓
+13. Owner merges (only owner can merge)
+        ↓
+14. Next feature can now begin
 ```
 
 ## Issue lifecycle

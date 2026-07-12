@@ -38,3 +38,17 @@
   - Depends on: TASK-auth-1
   - Assigned to: unassigned
   - Done criteria: pipeline runs green on a trivial PR against the actual workspace structure created by this feature. Must use the same package manager declared in root `package.json` (pnpm) — do not introduce npm-specific commands (`npm ci`, `npm run`), since seed scripts and workspace config already assume pnpm.
+
+- [ ] TASK-auth-test1: Unit tests for auth domain logic
+  - Context: business logic must be tested before integration. Covers password hashing (argon2 verify), JWT generation/verification, token expiration, rate limit counting.
+  - Deliverable: `services/api-core/src/modules/auth/**/*.spec.ts`
+  - Depends on: TASK-auth-8
+  - Assigned to: unassigned
+  - Done criteria: unit.passwordhashing.correctHash verifies, unit.passwordhashing.wrongHash rejects, unit.jwt.generation.includesCorrectClaims, unit.jwt.verification.rejectsExpired, unit.ratelimit.incrementAndBlock. All pass.
+
+- [ ] TASK-auth-test2: Integration tests for auth endpoints and guard
+  - Context: validates full login/refresh/logout flow and JWT guard protection. Uses Supertest against NestJS test app with mocked Redis for rate limiting.
+  - Deliverable: `services/api-core/src/modules/auth/**/*.integration-spec.ts`
+  - Depends on: TASK-auth-11
+  - Assigned to: unassigned
+  - Done criteria: integration.auth.login.successReturnsJWTAndCookie, integration.auth.login.invalidCredentialsReturns401, integration.auth.login.rateLimitBlocksAfter5Attempts, integration.auth.refresh.validTokenReturnsNewJWT, integration.auth.refresh.expiredTokenRedirectsToLogin, integration.auth.logout.revokesRefreshToken, integration.auth.guard.blocksRequestWithoutJWT, integration.auth.guard.allowsRequestWithValidJWT. All pass.

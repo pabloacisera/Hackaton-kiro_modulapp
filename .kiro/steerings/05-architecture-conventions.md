@@ -75,6 +75,8 @@ icon sets (solid, regular, brands).
 - **Frontend controllers** SHOULD have unit tests for complex orchestration.
 - **Infrastructure** (Prisma, Redis, email) is tested via integration tests
   with mocked external services.
+- **Cross-feature integration tests** are written by the calling feature.
+  See `docs/integration-testing-guide.md` for the full guide.
 
 ### Manual testing
 

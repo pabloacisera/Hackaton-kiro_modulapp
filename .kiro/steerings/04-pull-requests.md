@@ -25,12 +25,15 @@ TASK-<feature>-<n> (or FIX-ISSUE-<n>)
 
 ## PR scope rules
 
-- **One PR per feature**: when all microtasks in a feature are complete,
-  create a single PR for the entire feature branch.
+- **One PR per feature**: when ALL microtasks in a feature are complete,
+  create a single PR for the entire feature branch. Do NOT create PRs
+  for individual microtasks — the feature is atomic.
 - **One PR per issue branch**: if the issue required its own branch, create
   one PR when the fix is complete.
 - **No PR for small fixes**: if the change was committed directly (no branch),
   no PR is needed.
+- **Branch lives in your fork**: the PR is created from your fork's branch
+  to the owner's `main`. Do NOT create feature branches in the owner's repo.
 
 ## Merge requirements
 
