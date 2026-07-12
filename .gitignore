@@ -42,3 +42,4 @@ logs/
 
 # Redis / misc local state
 dump.rdb
+flows-*.zip
