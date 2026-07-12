@@ -15,7 +15,7 @@ Postgres **does not** start in compose — always points to Supabase (dev, stagi
 ## Nginx
 
 - `location /api/ { proxy_pass http://api-core:3000; }`
-- `location /payments/ { proxy_pass http://payment-service:8080; }`
+- `location /payments/ { proxy_pass http://payment-service:8081; }`
 - `location / { root /usr/share/nginx/html; try_files $uri /index.html; }`
   (serves `landing` build; `admin-dashboard` on subdomain or separate subpath with its own `server {}` block).
 
