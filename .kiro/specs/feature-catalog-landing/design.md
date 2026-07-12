@@ -7,7 +7,7 @@ Prototype {
   id: uuid
   name: string
   description: text
-  category: enum('mobiliario_modular', 'arcos')
+  category: enum('modular_furniture', 'arches')
   price_usd: decimal(10,2)
   active: boolean
   stock_qty: int            // finished product stock
