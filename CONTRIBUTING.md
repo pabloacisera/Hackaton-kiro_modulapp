@@ -17,10 +17,7 @@ project. For the full agent rules, see `.kiro/steerings/00-project-context.md`.
 
 - **Feature branches**: `<number>-feature-<feature-name>` (e.g.,
   `1-feature-admin-auth-core`). **Always create in your own fork**, not
-  in the owner's repo.
-- **Sequential dependencies**: features are numbered and must be completed
-  in order. You cannot start feature N+1 until feature N is merged to
-  `main`. The owner will tell you when to start.
+  in the owner's repo. Everyone works in parallel.
 - **Issue branches**: `<number>-fix-issue-<id>-<slug>` (e.g.,
   `3-fix-issue-12-stock-double-deduction`).
 - **Small fixes** (1-2 files, no tests): commit directly to `main` or the
@@ -28,7 +25,8 @@ project. For the full agent rules, see `.kiro/steerings/00-project-context.md`.
 
 **One PR per feature**: when ALL microtasks are complete, create a single
 PR from your fork to `main`. Do NOT create PRs for individual microtasks.
-**Only the owner merges.** See
+If your feature depends on another that isn't merged yet, mock it (see
+`docs/integration-testing-guide.md`). **Only the owner merges.** See
 `.kiro/steerings/04-pull-requests.md` for the full PR format and merge
 requirements.
 

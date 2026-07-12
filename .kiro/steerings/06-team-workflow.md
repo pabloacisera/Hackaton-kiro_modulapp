@@ -45,44 +45,35 @@ OWNER DECIDES: approve or request changes
 
 ## Feature lifecycle
 
-**Sequential dependencies**: Features are numbered (`1-`, `2-`, etc.) and
-must be completed in order. A developer cannot start feature N+1 until
-feature N is merged to `main`. The owner coordinates this sequence.
+**Everyone works in parallel.** Each developer owns their feature from
+start to finish. If your feature depends on another that isn't merged
+yet, mock the dependency (see `docs/integration-testing-guide.md`).
 
 **Branch location**: Each developer creates their feature branch **in their
-own fork**, not in the owner's repo. This prevents branch name collisions
-and keeps the owner's repo clean.
+own fork**, not in the owner's repo.
 
 ```
 1. Owner assigns: "You own feature X"
         ↓
-2. Developer checks dependency status:
-   - If feature has no dependency → start immediately
-   - If feature depends on feature N → wait until feature N is merged to main
+2. Agent creates specs (specs.md, design.md, tasks.md)
         ↓
-3. Agent creates specs (specs.md, design.md, tasks.md)
+3. Owner reviews and approves specs
         ↓
-4. Owner reviews and approves specs
+4. Developer creates branch IN THEIR FORK: <number>-feature-<feature-name>
         ↓
-5. Developer creates branch IN THEIR FORK: <number>-feature-<feature-name>
+5. Developer implements ALL microtasks (mocks dependencies if needed)
         ↓
-6. Developer implements ALL microtasks in the feature branch
+6. Developer runs tests locally (Layer 1)
         ↓
-7. Developer runs tests locally (Layer 1)
+7. Developer creates ONE PR from fork to main (entire feature)
         ↓
-8. Developer creates ONE PR from fork to main (entire feature)
+8. GitHub Actions runs CI (Layer 2)
         ↓
-9. GitHub Actions runs CI (Layer 2)
+9. Owner asks agent: "Review PR #N"
         ↓
-10. Owner asks agent: "Review PR #N"
+10. Agent reviews code, runs tests, gives report (Layer 3)
         ↓
-11. Agent reviews code, runs tests, gives report (Layer 3)
-        ↓
-12. Owner reads agent's report and decides
-        ↓
-13. Owner merges (only owner can merge)
-        ↓
-14. Next feature can now begin
+11. Owner decides: merge or request changes
 ```
 
 ## Issue lifecycle

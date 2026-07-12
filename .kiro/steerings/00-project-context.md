@@ -77,10 +77,8 @@ in `.kiro/steerings/09-environment-variables.md` and then manually applied by th
 - **Features**: each feature gets its own branch following the pattern:
   `<number>-feature-<feature-name>` (e.g., `1-feature-admin-auth-core`).
   **Branches are always created in the developer's fork**, never in the
-  owner's repo.
-- **Sequential dependencies**: features are numbered and must be completed in
-  order. A developer cannot start feature N+1 until feature N is merged to
-  `main`. The owner coordinates this sequence.
+  owner's repo. Everyone works in parallel — if your feature depends on
+  another that isn't merged yet, mock the dependency.
 - **Issues with multiple tasks**: issues that require more than one microtask get
   their own branch: `<number>-fix-issue-<issue-id>-<slug>`
 - **Small fixes / single tasks**: if the change is small enough (1-2 files, no
@@ -119,11 +117,8 @@ The agent MUST stop and ask for human authorization at these points:
 6. **When a decision contradicts existing specs** — pause and clarify.
 7. **Before committing directly to main** — even small fixes require owner confirmation.
 8. **Before updating ANY documentation** — feature-status.md, collaboration-log.md, team.md, or any other doc.
-9. **Before creating a branch based on another feature branch that has not yet been merged to main** — confirm it is safe (the dependency branch may still change).
 
 > **Note (informational):** Merge access to `main` is enforced at the GitHub repository level (branch protection: restrict push to `main` to the owner's account only, collaborators only have Read access and work via forks). This is configured outside the agent's control and must not be re-implemented, bypassed, or checked by the agent itself.
-
-> **Note (informational):** Whenever an agent performs `git fetch upstream` + `git rebase upstream/main` on a collaborator's behalf, it must report back before doing any further work: (1) list of new commits/PRs landed upstream since the last sync, with author and one-line summary each; (2) files/directories those commits touched; (3) an explicit flag — "Possible overlap" or "No overlap detected" — comparing those files against the collaborator's current in-progress task in `tasks.md` / `docs/feature-status.md`. This is a mandatory report, not a question — it does not require stopping for owner approval, only informing the human before proceeding.
 
 ## Team workflow
 
