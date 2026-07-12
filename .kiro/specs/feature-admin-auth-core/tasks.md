@@ -39,6 +39,12 @@
   - Assigned to: unassigned
   - Done criteria: pipeline runs green on a trivial PR against the actual workspace structure created by this feature. Must use the same package manager declared in root `package.json` (pnpm) — do not introduce npm-specific commands (`npm ci`, `npm run`), since seed scripts and workspace config already assume pnpm.
 
+- [ ] TASK-auth-13: Notification to affected admin on rate-limit lockout
+  - Context: `specs.md` edge case requires "temporary lockout + notification". TASK-auth-6 implements the lockout itself; this task sends a notification to the affected admin when lockout triggers (via WebSocket if connected, or email as fallback).
+  - Depends on: TASK-auth-6, TASK-notif-3 (feature-realtime-notifications)
+  - Assigned to: unassigned
+  - Done criteria: when rate limit blocks an admin, a notification is sent to that specific admin with a message like "Multiple failed login attempts detected. Account temporarily locked." Notification is persisted in `admin_notifications` table.
+
 - [ ] TASK-auth-test1: Unit tests for auth domain logic
   - Context: business logic must be tested before integration. Covers password hashing (argon2 verify), JWT generation/verification, token expiration, rate limit counting.
   - Deliverable: `services/api-core/src/modules/auth/**/*.spec.ts`
