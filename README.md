@@ -34,7 +34,7 @@ business flows that converge at the same checkout but behave differently:
 ## Repository structure
 
 ```
-kiro/            Rules and specs for the agent (Kiro)
+.kiro/            Agent rules and feature specs
 docs/            Documentation for human developers
 scripts/         Automation (bash)
 apps/            Landing and admin dashboard (React)
