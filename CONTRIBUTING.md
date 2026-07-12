@@ -109,6 +109,90 @@ human developer (not the PR author). See
 - Changing business decisions in `00-project-context.md` without owner
   sign-off.
 
+## Agent prompt templates
+
+Standardized prompts to keep work synchronized and avoid collisions between
+forks. Copy-paste these into your agent session. The sync step is mandatory
+in all three collaborator prompts — it is the primary mechanism to detect
+cross-fork overlaps before they become conflicts.
+
+### 1. Start a new feature
+
+```
+Vamos a comenzar con la feature <nombre>. Antes de nada:
+(1) Sincronizá contra upstream/main y reportame qué llegó desde la última
+    vez y si algo se cruza con lo que vamos a hacer.
+(2) Leé .kiro/steerings/00-project-context.md completo — esas decisiones
+    de negocio no se reinterpretan.
+(3) Leé .kiro/steerings/01-feature-flow.md para el formato de
+    specs/design/tasks.
+(4) Revisá docs/roadmap.md y docs/feature-status.md para ver el orden
+    sugerido y si hay dependencias de otras features no mergeadas.
+
+Si algo de esto es ambiguo o depende de una decisión de negocio que no está
+escrita, parás y preguntás — no asumís nada.
+
+No crees la rama todavía: primero generá specs.md y esperá mi aprobación
+antes de seguir con design.md.
+
+Cuando cierres la tarea, actualizá docs/collaboration-log.md y pedime
+confirmación antes de commitear.
+```
+
+### 2. Register a bug issue
+
+```
+Necesitamos registrar un issue sobre <problema observado>. Antes de nada:
+(1) Sincronizá contra upstream/main y reportá qué cambió.
+(2) Leé .kiro/steerings/02-issues-and-bugs.md y el specs.md de la feature
+    afectada para comparar comportamiento esperado vs observado.
+
+Armá el contenido del issue (severidad, pasos para reproducir, evidencia)
+pero no crees el archivo todavía — mostrámelo primero para que yo confirme
+severidad y que está bien planteado antes de que lo subas como PR.
+```
+
+### 3. Propose a feature from a user story
+
+```
+Quiero proponer una feature nueva a partir de esta historia de usuario:
+<historia>.
+
+(1) Sincronizá contra upstream/main y reportá cambios recientes.
+(2) Leé .kiro/steerings/00-project-context.md completo.
+(3) Si la historia deja algo de negocio sin definir (plazos, quién decide,
+    qué pasa en el caso límite), no lo inventes — hacé una lista de
+    preguntas abiertas antes de escribir specs.md.
+```
+
+### 4. Owner reviews a PR
+
+For routine reviews, the trigger phrase is enough:
+
+```
+Review PR #42.
+```
+
+For sensitive changes (financial, cross-feature), add explicit criteria:
+
+```
+Review PR #42. Además del checklist estándar, chequeá:
+(1) Si toca archivos que otra feature en progreso también está tocando
+    (ver docs/feature-status.md).
+(2) Si algo de lo que cambia ya tenía tests que pasaban y ahora los rompe.
+(3) Si toca services/payment-service o entidades financieras, aplicá la
+    sección reforzada completa de 03-code-review.md.
+
+Al final decime si está en condiciones de mergear, o qué bloquea — vos no
+aprobás ni mergeas, decidís y me das el reporte.
+```
+
+### Universal rule
+
+The sync step — *"Sincronizá contra upstream/main y reportá qué cambió y
+si se cruza con lo que vamos a hacer"* — must always come first. It is the
+single checkpoint that prevents the 90% of fork collision risk.
+
 ## If in doubt, ask the owner
 
 Do not assume. The owner has final say on all business logic, merge
