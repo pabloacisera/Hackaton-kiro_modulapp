@@ -49,12 +49,19 @@
   - Depends on: TASK-quoteB-9
   - Assigned to: unassigned
 
+- [ ] TASK-quoteB-webhook: Webhook endpoint `POST /api/quotes/webhooks/payment-result` (called by payment-service)
+  - Context: payment-service calls this endpoint to confirm payment result for a quote. Without this endpoint, the quote cannot transition from `payment_initiated` to `paid`.
+  - Deliverable: `services/api-core/src/modules/quotes/interface/http/payment-result-webhook.controller.ts`
+  - Depends on: TASK-quoteB-12
+  - Assigned to: unassigned
+  - Done criteria: validates webhook signature/origin (do not trust unvalidated requests), transitions `payment_initiated` → `paid` on success, sends confirmation email to customer, notifies admin via WebSocket. Returns 200 to payment-service.
+
 - [ ] TASK-quoteB-13: BullMQ job `quote-expiration-check` (48h without response)
   - Depends on: TASK-quoteB-6
   - Assigned to: unassigned
 
 - [ ] TASK-quoteB-14: BullMQ job `quote-payment-expiration-check` (24h without payment)
-  - Depends on: TASK-quoteB-12
+  - Depends on: TASK-quoteB-webhook
   - Assigned to: unassigned
 
 - [ ] TASK-quoteB-15: `PATCH /quotes/:id/archive` endpoint
@@ -78,7 +85,7 @@
   - Assigned to: unassigned
 
 - [ ] TASK-quoteB-20: Admin notification on payment completion + delivery timer start
-  - Depends on: TASK-quoteB-12, feature-order-delivery-schedule
+  - Depends on: TASK-quoteB-webhook, feature-order-delivery-schedule
   - Assigned to: unassigned
 
 - [ ] TASK-quoteB-test1: Unit tests for quote state machine and token logic
@@ -89,8 +96,8 @@
   - Done criteria: unit.quote.stateMachine.validTransitionsAllowed, unit.quote.stateMachine.invalidTransitionsBlocked, unit.quote.token.generationIncludesQuoteIdAndExpiry, unit.quote.token.verificationRejectsExpired, unit.quote.token.verificationRejectsAlreadyUsed, unit.quote.token.atomicMarkPreventsDoubleClick. All pass.
 
 - [ ] TASK-quoteB-test2: Integration tests for full quote lifecycle
-  - Context: validates complete flow: create quote → present → accept → payment initiation → payment mock webhook → paid. Also tests: incomplete data discard, expiration jobs, rejection flow. Uses Supertest with mocked payment-service and mocked BullMQ.
+  - Context: validates complete flow: create quote → present → accept → payment initiation → payment webhook → paid. Also tests: incomplete data discard, expiration jobs, rejection flow. Uses Supertest with mocked payment-service and mocked BullMQ.
   - Deliverable: `services/api-core/src/modules/quotes/**/*.integration-spec.ts`
   - Depends on: TASK-quoteB-20
   - Assigned to: unassigned
-  - Done criteria: integration.quote.create.missingFieldsCreatesDiscarded, integration.quote.create.validFieldsCreatesPending, integration.quote.present.movesToQuotedAndSendsEmail, integration.quote.accept.verifiesTokenAndMovesToAccepted, integration.quote.accept.expiredTokenReturnsError, integration.quote.accept.usedTokenReturnsCurrentState, integration.quote.reject.movesToRejected, integration.quote.expirationJob.movesExpiredQuotes, integration.quote.paymentExpirationJob.movesPaymentExpiredQuotes, integration.quote.archive.movesRejectedToArchived. All pass.
+  - Done criteria: integration.quote.create.missingFieldsCreatesDiscarded, integration.quote.create.validFieldsCreatesPending, integration.quote.present.movesToQuotedAndSendsEmail, integration.quote.accept.verifiesTokenAndMovesToAccepted, integration.quote.accept.expiredTokenReturnsError, integration.quote.accept.usedTokenReturnsCurrentState, integration.quote.reject.movesToRejected, integration.quote.expirationJob.movesExpiredQuotes, integration.quote.paymentExpirationJob.movesPaymentExpiredQuotes, integration.quote.archive.movesRejectedToArchived, integration.quote.webhook.paymentResultMovesToPaid, integration.quote.webhook.duplicateWebhookIsIdempotent. All pass.
