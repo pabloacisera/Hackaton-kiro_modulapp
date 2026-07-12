@@ -22,8 +22,9 @@
 - [ ] TASK-infra-8: Script `scripts/seed-db.sh` + TS seeder with `faker` for test data in all relevant states
   - Depends on: migrations from all domain features
   - Assigned to: unassigned
-- [ ] TASK-infra-9: CI pipeline (lint, test, build with Turborepo cache)
-  - Depends on: TASK-infra-1
+- [ ] TASK-infra-9: Extend CI pipeline (add Docker build, Maven parallel job to existing ci.yml)
+  - Context: ci.yml is initially created by TASK-auth-12 (feature-admin-auth-core). This task extends it with Docker image build and Maven build job for payment-service.
+  - Depends on: TASK-infra-1, TASK-auth-12 (feature-admin-auth-core)
   - Assigned to: unassigned
 - [ ] TASK-infra-10: Docker image build/push job for `payment-service` parallel to JS/TS pipeline
   - Depends on: TASK-infra-3, TASK-infra-9
@@ -46,7 +47,7 @@
   - Done criteria: all containers start, api-core /health responds 200, payment-service /health responds 200, Nginx proxies /api to api-core, Nginx proxies /payments to payment-service, Redis responds to PING.
 
 - [ ] TASK-infra-test2: CI pipeline validation
-  - Context: CI workflow must pass green on a real PR. Validates lint, test, and build stages with Turborepo cache.
+  - Context: extended CI workflow (TASK-infra-9) must pass green on a real PR. Validates lint, test, build stages with Turborepo cache, Docker image build, and Maven build for payment-service.
   - Deliverable: `.github/workflows/ci.yml` passes on test PR
   - Depends on: TASK-infra-9
   - Assigned to: unassigned
