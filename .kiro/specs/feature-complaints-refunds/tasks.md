@@ -15,6 +15,11 @@
 - [ ] TASK-complaint-5: `GET /admin/complaints` endpoint with filters/search/pagination
   - Depends on: TASK-complaint-2
   - Assigned to: unassigned
+- [ ] TASK-complaint-review: `PATCH /admin/complaints/:id/review` endpoint (transitions `received` → `under_review`)
+  - Context: the Complaint state machine includes `under_review` but no endpoint triggered it. This task adds the explicit endpoint for admins to mark a complaint as actively reviewed.
+  - Depends on: TASK-complaint-2
+  - Assigned to: unassigned
+  - Done criteria: endpoint transitions `received` → `under_review`, returns 400 for invalid transitions (e.g., `refund_approved` → `under_review`).
 - [ ] TASK-complaint-6: `PATCH /admin/complaints/:id/approve-refund` endpoint
   (payment-service integration, idempotent)
   - Depends on: TASK-complaint-2, TASK-pay-11
