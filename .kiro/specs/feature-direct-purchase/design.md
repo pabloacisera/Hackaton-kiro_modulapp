@@ -42,12 +42,12 @@ Every 5 min, finds `Order` in `payment_initiated` older than 10 min and checks a
 
 ## Contract with payment-service (Java)
 
-- `api-core` → `payment-service`: `POST /payments/orders` `{ order_id, amount_usd, customer_email }`
-  → returns `{ payment_link, payment_service_ref }`.
+- `api-core` → `payment-service`: `POST /payments/orders` `{ reference_id, origin: 'order', amount_usd, customer_email, idempotency_key }`
+  → returns `{ payment_link, payment_service_ref }`. If a `Payment` with that `idempotency_key` already exists, returns the existing one.
 - `payment-service` → `api-core` (webhook): `POST /api/orders/webhooks/payment-result`
-  `{ order_id, payment_service_ref, status: 'ok'|'failed' }`.
+  `{ reference_id, payment_service_ref, status: 'ok'|'failed' }`.
 - `api-core` → `payment-service` (refund): `POST /payments/orders/:ref/refund`
-  `{ reason }`.
+  `{ reason, refund_request_id }`. If a `Refund` with that `refund_request_id` already exists, returns the existing one.
 
 ## Cross-feature dependencies
 - Depends on: feature-payment-billing-java (status: not-started)

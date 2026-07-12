@@ -28,6 +28,7 @@ Quote {
   status: enum(pending, quoted, accepted, rejected, expired, payment_initiated, paid, payment_expired, archived)
   quoted_price_usd: decimal(10,2) | null
   quoted_lead_time_days: int | null
+  estimated_delivery_date: date | null   // set by admin when presenting quote; used by delivery schedule
   quote_sent_at: timestamp | null
   quote_response_deadline: timestamp | null   // quote_sent_at + 48h
   payment_deadline: timestamp | null           // accepted_at + 24h
@@ -51,9 +52,10 @@ Quote {
 ## Endpoints
 
 - `POST /api/quotes` (public) — validates name/email/phone; if anything is missing, does not create a `pending` Quote, creates a `discarded_incomplete_data` record and notifies the admin.
-- `PATCH /api/quotes/:id/present` (admin, JWT) `{ price_usd, lead_time_days }` → moves to `quoted`, generates token, sends email with buttons.
+- `PATCH /api/quotes/:id/present` (admin, JWT) `{ price_usd, lead_time_days, estimated_delivery_date }` → moves to `quoted`, generates token, sends email with buttons.
 - `GET /api/quotes/:id/accept?token=` (public) → moves to `accepted`, calls `payment-service` to generate payment link with `payment_deadline`.
 - `GET /api/quotes/:id/reject?token=` (public) → moves to `rejected`, notifies admin.
+- `POST /api/quotes/webhooks/payment-result` (called by payment-service) → transitions `payment_initiated` → `paid` or `payment_expired`, triggers confirmation email + WebSocket notification to admin.
 - `GET /api/quotes?status=&q=&page=` (admin) — listing with filters.
 - `PATCH /api/quotes/:id/archive` (admin) — from `rejected`/`expired`/`payment_expired`.
 
@@ -69,4 +71,4 @@ Quote {
 
 ## Cross-feature dependencies
 - Depends on: feature-payment-billing-java (status: not-started)
-- If not merged: work against the mocked contract defined in `feature-direct-purchase/design.md` §Contract with payment-service. The payment initiation and refund calls use the same endpoints; swap the adapter once the real microservice exists.
+- If not merged: work against the mocked contract defined in `feature-payment-billing-java/design.md` §Endpoints. The payment initiation call uses `POST /payments/orders { reference_id, origin: 'quote', amount_usd, customer_email, idempotency_key }`. The refund call uses `POST /payments/orders/:ref/refund { reason, refund_request_id }`. Swap the adapter once the real microservice exists.

@@ -88,7 +88,7 @@ Examples:
 
 | Scenario | What to validate |
 |---|---|
-| Initiate payment | POST /payments/orders with correct order_id, amount_usd, customer_email |
+| Initiate payment | POST /payments/orders with correct reference_id, origin: 'order', amount_usd, customer_email, idempotency_key |
 | Payment OK webhook | Order moves to paid_pending_acceptance, email sent, admin notified |
 | Payment failed webhook | Order moves to payment_failed |
 | Reject order | POST /payments/orders/:ref/refund called, refund processed |
@@ -100,8 +100,8 @@ Source: `feature-direct-purchase/design.md` §Contract with payment-service
 
 | Scenario | What to validate |
 |---|---|
-| Accept quote → payment | POST /payments/orders with quote_id, amount, email |
-| Payment OK webhook | Quote moves to paid |
+| Accept quote → payment | POST /payments/orders with reference_id, origin: 'quote', amount_usd, customer_email, idempotency_key |
+| Payment OK webhook | POST /api/quotes/webhooks/payment-result called, Quote moves to paid |
 | Payment expired | Job moves quote to payment_expired |
 
 Source: `feature-custom-quote/design.md` §Cross-feature dependencies
