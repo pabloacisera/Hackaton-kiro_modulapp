@@ -27,7 +27,7 @@
   - Assigned to: unassigned
 
 - [ ] TASK-directpurchase-7: WebSocket notification to admin for new pending purchase
-  - Depends on: TASK-directpurchase-5, TASK-notif-websocket (feature-realtime-notifications)
+  - Depends on: TASK-directpurchase-5, TASK-notif-3 (feature-realtime-notifications)
   - Assigned to: unassigned
 
 - [ ] TASK-directpurchase-8: `PATCH /orders/:id/accept` endpoint (deducts stock, sets ETA)
