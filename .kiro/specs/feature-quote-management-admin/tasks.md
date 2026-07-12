@@ -19,7 +19,14 @@
   - Depends on: TASK-quoteadmin-3
   - Assigned to: unassigned
 
-- [ ] TASK-quoteadmin-test1: Integration tests for admin quote management
+- [ ] TASK-quoteadmin-test1: Unit tests for admin quote management logic
+  - Context: admin quote operations (timeline calculation, postpone validation) must be tested. Covers: timeline calculation from stored timestamps, postpone validates future date, postpone validates quote is in a postponable state.
+  - Deliverable: `services/api-core/src/modules/quotes/**/*.spec.ts` (admin-specific unit tests)
+  - Depends on: TASK-quoteadmin-3
+  - Assigned to: unassigned
+  - Done criteria: unit.quoteadmin.timeline.calculatesFromTimestamps, unit.quoteadmin.postpone.validatesFutureDate, unit.quoteadmin.postpone.blocksOnNonPostponableState. All pass.
+
+- [ ] TASK-quoteadmin-test2: Integration tests for admin quote management
   - Context: validates listing with combined filters, timeline calculation from stored timestamps, and postpone flow with email notification. Uses Supertest with seeded quotes in various states.
   - Deliverable: `services/api-core/src/modules/quotes/**/*.integration-spec.ts` (admin-specific tests)
   - Depends on: TASK-quoteadmin-6
