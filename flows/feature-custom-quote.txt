@@ -1,0 +1,72 @@
+FLUJO: Cotizacion personalizada (Flujo B)
+FUENTE: .kiro/specs/feature-custom-quote/design.md
+
+QUE RESUELVE
+El cliente describe lo que necesita, el admin cotiza con precio y plazo, el
+cliente acepta o rechaza via email (links magicos). Si acepta, tiene 24h
+para pagar. El flujo completo tiene plazos automaticos de expiracion.
+
+ACTORES INVOLUCRADOS
+- Cliente (desde el landing, formulario publico)
+- api-core (NestJS, gestiona cotizacion y estados)
+- payment-service (Java, genera link de pago al aceptar)
+- Admin (desde admin-dashboard, presenta cotizacion)
+- BullMQ jobs (verifican expiracion de respuesta y de pago)
+- Mailjet (emails de cotizacion, aceptacion, rechazo, expiracion)
+
+PASO A PASO
+1. Cliente llena formulario: nombre, email, telefono (obligatorios), descripcion, fecha necesaria.
+2. Si falta algun campo obligatorio: NO se crea Quote pendiente. Se crea registro discarded_incomplete_data y se notifica al admin. Flujo termina.
+3. Si todo OK: se crea Quote con status=pending.
+4. Admin ve la cotizacion en el dashboard, la revisa y presenta: PATCH /api/quotes/:id/present { price_usd, lead_time_days, estimated_delivery_date }.
+5. Status -> quoted. Se genera token firmado JWT (one-time-use, expira en 48h). Se envia email al cliente con botones "Aceptar" y "Rechazar".
+6. Cliente recibe email:
+   a. Hace clic en "Aceptar" (GET /api/quotes/:id/accept?token=...):
+      - Verifica firma y expiracion del token.
+      - Verifica que no haya sido usado ya (action_token_used=false).
+      - Marca token como usado en la misma transaccion que el cambio de estado (previene doble-click).
+      - Status -> accepted.
+      - Se llama a payment-service para generar link de pago con payment_deadline (24h).
+      - Status -> payment_initiated.
+      - Cuando el cliente paga, payment-service llama a webhook POST /api/quotes/webhooks/payment-result.
+      - Status -> paid. Se envia email de confirmacion al cliente. Se notifica al admin.
+   b. Hace clic en "Rechazar" (GET /api/quotes/:id/reject?token=...):
+      - Mismo proceso de verificacion de token.
+      - Status -> rejected. Se notifica al admin.
+7. Si el cliente no responde en 48h:
+   - Job quote-expiration-check detecta quote_response_deadline vencido.
+   - Status -> expired. Se notifica al admin. NO se archiva automaticamente.
+8. Si acepto pero no pago en 24h:
+   - Job quote-payment-expiration-check detecta payment_deadline vencido sin paid_at.
+   - Status -> payment_expired. Se notifica al admin.
+9. Admin puede archivar manualmente quotes en estado rejected, expired o payment_expired.
+
+ESTADOS
+pending -> quoted -> accepted -> payment_initiated -> paid
+                           |-> rejected
+                           |-> expired (48h sin respuesta)
+                           |-> payment_expired (24h sin pago)
+archived / deleted (manual, sobre rejected/expired/payment_expired)
+discarded_incomplete_data (fuera del flujo normal, solo notificacion al admin)
+
+ENDPOINTS INVOLUCRADOS
+POST /api/quotes                           -> crea cotizacion (publico)
+PATCH /api/quotes/:id/present              -> admin presenta precio (JWT)
+GET /api/quotes/:id/accept?token=          -> cliente acepta (publico, link magico)
+GET /api/quotes/:id/reject?token=          -> cliente rechaza (publico, link magico)
+POST /api/quotes/webhooks/payment-result   -> webhook de payment-service (confirma pago)
+GET /api/quotes                            -> listado admin con filtros
+PATCH /api/quotes/:id/archive              -> archiva (admin, JWT)
+
+DEPENDENCIAS CON OTROS FLUJOS
+- feature-payment-billing-java: genera link de pago y ejecuta el cobro real.
+- feature-quote-management-admin: vista admin de cotizaciones con timeline.
+- feature-order-delivery-schedule: una vez pagada, la cotizacion entra en la vista unificada de entregas.
+- feature-realtime-notifications: notifica al admin de nuevas cotizaciones y estados.
+- feature-i18n-localization: idioma del email se guarda con el registro (no depende de sesion futura).
+
+NOTAS / DECISIONES DE DISENO RELEVANTES
+- Tokens de accion son JWT firmados, one-time-use. Previenen race condition de doble-click al usar transaccion atomica (action_token_used=true en la misma DB transaction que el cambio de estado).
+- El admin NO archiva automaticamente. Los jobs solo marcan expired/payment_expired. El admin debe archivar manualmente.
+- La cotizacion descartada por datos incompletos nunca es visible para cotizacion. Solo genera notificacion al admin.
+- El idioma del email se persiste con el registro. Si el cliente creo la cotizacion en ingles, el email de cotizacion va en ingles sin que el admin tenga que elegir nada.

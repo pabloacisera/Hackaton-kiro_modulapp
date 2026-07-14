@@ -1,0 +1,40 @@
+flowchart TD
+    A[Admin opens Supplies section] --> B[GET /api/admin/supplies with filters]
+    B --> C[SuppliesTable - search/filter/pagination]
+    C --> D{Admin action?}
+    D -->|CRUD| E[SupplyForm - create/edit/delete]
+    D -->|Import Excel| F[ExcelImportWizard]
+    D -->|Export Excel| G[GET /api/admin/supplies/export-excel]
+
+    F --> H[Upload .xlsx file]
+    H --> I[Parse + validate row by row]
+    I --> J[Preview: toCreate, toUpdate, toDelete, errors]
+    J --> K{Admin confirms?}
+    K -->|Yes| L[POST /api/admin/supplies/import-excel/confirm]
+    L --> M[Apply valid changes]
+    M --> N[Log changes in SupplyStockChangeLog]
+    K -->|No| O[Cancel import]
+
+    subgraph HourlyJob["BullMQ Job: hourly-low-stock-check"]
+        J1[Iterate Supply where current_qty < min_stock] --> J2{Check LowStockAlertState}
+        J2 -->|last_notified_at = null| J3[Notify admin via WebSocket]
+        J2 -->|current_qty < last_notified_qty| J3
+        J2 -->|>=24h since last notification| J3
+        J2 -->|Already notified, no change| J4[Skip - no alert fatigue]
+        J3 --> J5[Update LowStockAlertState]
+    end
+
+    subgraph StockChangeLog["SupplyStockChangeLog"]
+        SCL1[ supply_id ]
+        SCL2[ previous_qty ]
+        SCL3[ new_qty ]
+        SCL4[ source: manual | excel_import | order_consumption ]
+        SCL5[ actor ]
+        SCL6[ created_at ]
+    end
+
+    E --> N
+    J5 --> N
+
+    style HourlyJob fill:#fce4ec,stroke:#c62828
+    style StockChangeLog fill:#f3e5f5,stroke:#7b1fa2

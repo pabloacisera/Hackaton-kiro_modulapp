@@ -1,0 +1,56 @@
+FLUJO: Notificaciones en tiempo real
+FUENTE: .kiro/specs/feature-realtime-notifications/specs.md
+
+QUE RESUELVE
+Capa transversal que notifica al admin via WebSocket (dashboard) y sincroniza
+el catalogo via SSE (landing). Los admin reciben alertas de: nueva compra,
+nueva cotizacion, respuesta de cotizacion, nuevo reclamo, stock bajo minimo,
+pago confirmado. Los clientes solo reciben eventos del catalogo.
+
+ACTORES INVOLUCRADOS
+- Admin (recibe notificaciones en el dashboard via WebSocket)
+- Landing (recibe eventos SSE del catalogo)
+- api-core (NestJS, emite eventos via WebSocket Gateway y SSE)
+- Redis (pub/sub para WebSocket entre instancias)
+- BullMQ jobs (emiten eventos de stock bajo)
+
+PASO A PASO (ADMIN - WebSocket)
+1. Admin abre el dashboard. Frontend establece conexion WebSocket con autenticacion JWT en el handshake.
+2. Cuando ocurre un evento relevante (nueva compra, cotizacion, reclamo, stock bajo), api-core llama notifyAdmins().
+3. notifyAdmins() emite evento WebSocket a todos los admins conectados.
+4. Frontend recibe el evento: muestra badge en NotificationBell, reproduce sonido (con debounce para eventos simultaneos).
+5. Admin puede abrir NotificationPanel (dropdown) para ver historial reciente.
+6. Marcar como leido: propaga el estado via WebSocket para que otros tabs/dispositivos se actualicen.
+7. Si se cae la conexion, reconexion automatica con backoff.
+
+PASO A PASO (LANDING - SSE)
+1. Landing establece conexion SSE con /api/catalog/stream.
+2. Recibe eventos: prototype.updated (precio/stock/activo), prototype.desactivated.
+3. Frontend fusiona eventos en el estado local del catalogo.
+4. Si la conexion se cae, reconexion con backoff. Se muestra "actualizando..." brevemente.
+
+ESTADOS
+No hay maquina de estados formal. Cada notificacion tiene:
+  unread -> read (marcado por el admin)
+
+ENDPOINTS INVOLUCRADOS
+(get/WebSocket, no REST clásico)
+WebSocket /notifications        -> eventos en tiempo real al admin
+GET /api/admin/notifications    -> historial con filtros (read/unread, paginacion)
+GET /api/catalog/stream         -> SSE de eventos del catalogo para el landing
+
+DEPENDENCIAS CON OTROS FLUJOS
+- feature-admin-auth-core: WebSocket requiere JWT valido en handshake.
+- feature-direct-purchase: notifica nueva compra pendiente.
+- feature-custom-quote: notifica nueva cotizacion y respuestas.
+- feature-complaints-refunds: notifica nuevo reclamo.
+- feature-supply-stock-management: notifica stock bajo minimo (via BullMQ job).
+- feature-catalog-landing: eventos SSE del catalogo.
+
+NOTAS / DECISIONES DE DISENO RELEVANTES
+- Las notificaciones NO reemplazan los emails obligatorios de cada flujo. Son un canal adicional para reaccion inmediata del admin.
+- Sonido no intrusivo (~300-500ms, volumen moderado). Configurable on/off por el admin. Persiste la preferencia.
+- Si el admin tiene dos tabs abiertas, ambas reciben el evento. Marcar leido en una sincroniza via WebSocket.
+- Multiples eventos simultaneos: debounce de sonido (no suenan 3 veces a la vez).
+- Si el admin no tiene el dashboard abierto, no pierde notificaciones criticas: al reabrirlas ve el historial no leido.
+- El modulo notifyAdmins() es centralizado. Cada feature lo llama sin duplicar logica.

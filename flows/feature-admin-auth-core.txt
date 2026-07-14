@@ -1,0 +1,45 @@
+FLUJO: Autenticacion de admin y layout base del dashboard
+FUENTE: .kiro/specs/feature-admin-auth-core/design.md
+
+QUE RESUELVE
+Permite a los administradores autenticarse con email+password via JWT propietario.
+Protege todas las rutas del dashboard. Provee el layout base con navegacion
+a las secciones del admin (catalogo, ordenes, cotizaciones, stock, quejas,
+notificaciones).
+
+ACTORES INVOLUCRADOS
+- Admin (humano, desde el admin-dashboard)
+- api-core (NestJS, maneja auth y sesiones)
+- Redis (rate limiting en login)
+
+PASO A PASO
+1. Admin ingresa email y password en la pagina de login.
+2. api-core valida credenciales (password hasheada con argon2).
+3. Si es correcta: genera access JWT (corta duracion, ~15min) + refresh token (httpOnly cookie, larga duracion).
+4. Si es incorrecta: responde con error. Si hay intentos repetidos, Redis aplica rate limit (5 intentos / 15 min por IP+email). Si se bloquea, se envia notificacion al admin afectado.
+5. Frontend almacena access token en memoria (no en localStorage). Interceptor HTTP renueva automaticamente via /refresh antes de que expire.
+6. Todas las rutas /admin/** requieren JWT valido. Si no lo hay, redirige a /login.
+7. Logout: revoca el refresh token en BD, frontend limpia el token en memoria.
+8. Admin puede crear otros admins (POST /admin/users) o desactivarlos (PATCH /admin/users/:id/deactivate).
+
+ESTADOS
+No hay maquina de estados formal. El ciclo de vida de la sesion es:
+  sin_sesion -> autenticado (con JWT) -> sesion_expirada / logout
+
+ENDPOINTS INVOLUCRADOS
+POST /api/admin/auth/login       -> autentica, retorna JWT + refresh cookie
+POST /api/admin/auth/refresh     -> renueva access JWT si refresh es valido
+POST /api/admin/auth/logout      -> revoca refresh token
+POST /api/admin/users            -> crea nuevo admin (requiere JWT)
+PATCH /api/admin/users/:id/deactivate -> desactiva admin
+
+DEPENDENCIAS CON OTROS FLUJOS
+- feature-realtime-notifications: el DashboardLayout incluye la zona de notificaciones (badge + panel WebSocket).
+- Todos los demas flujos del admin dependen de este (JWT guard global).
+
+NOTAS / DECISIONES DE DISENO RELEVANTES
+- Passwords hasheadas con argon2 (no bcrypt). Nunca se almacenan en texto plano.
+- Rate limiting via Redis, no via middleware generico.
+- Refresh token es httpOnly cookie (no accesible por JS).
+- Todos los admins tienen los mismos permisos (no hay roles diferenciados).
+- Si el refresh token expira mientras el admin tiene el dashboard abierto, se redirige a /login sin perder el borrador si es posible (estado local del formulario).

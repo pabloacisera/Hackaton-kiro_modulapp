@@ -1,0 +1,44 @@
+FLUJO: Gestion de ordenes y cronograma de entregas
+FUENTE: .kiro/specs/feature-order-delivery-schedule/design.md
+
+QUE RESUELVE
+Vista unificada de todo lo pendiente de entregar: ordenes aceptadas (Flow A)
+y cotizaciones pagadas (Flow B) en una sola proyeccion de solo lectura.
+Permite marcar como entregado, postergar fecha, y resaltar visualmente
+las que estan atrasadas.
+
+ACTORES INVOLUCRADOS
+- Admin (desde admin-dashboard)
+- api-core (NestJS, proyeccion DeliveryItem)
+
+PASO A PASO
+1. Admin accede a la seccion de entregas en el dashboard.
+2. api-core construye DeliveryItem con UNION de: Orders (status=accepted) y Quotes (status=paid).
+3. Cada DeliveryItem tiene: id, origin (order/quote), customer_name, customer_email, estimated_delivery_date, status (pending/delivered/overdue), delivered_at.
+4. Frontend muestra DeliveriesBoard (vista calendario/lista ordenada por fecha) o DeliveriesTable (tabla con busqueda/filtros/paginacion).
+5. Los items cuya estimated_delivery_date < hoy y status != delivered se marcan visualmente como "overdue" (resaltado rojo, no bloquea nada).
+6. Admin puede marcar como entregado: PATCH /api/admin/deliveries/:origin/:id/deliver -> sets delivered_at, status -> delivered.
+7. Admin puede postergar fecha: PATCH /api/admin/deliveries/:origin/:id/postpone -> cambia estimated_delivery_date, envia email de notificacion al cliente.
+
+ESTADOS
+pending -> delivered
+pending -> overdue (calculado: today > estimated_delivery_date y no entregado)
+El estado overdue NO es un campo persistido, es calculado al momento de consultar.
+
+ENDPOINTS INVOLUCRADOS
+GET /api/admin/deliveries                           -> proyeccion unificada
+PATCH /api/admin/deliveries/:origin/:id/deliver     -> marca entregado
+PATCH /api/admin/deliveries/:origin/:id/postpone    -> posterga fecha
+
+DEPENDENCIAS CON OTROS FLUJOS
+- feature-direct-purchase: provee Orders con status=accepted.
+- feature-custom-quote: provee Quotes con status=paid.
+- feature-quote-management-admin: mecanismo de postergacion reutilizado para Quotes.
+- feature-i18n-localization: emails de postergacion en idioma del registro.
+
+NOTAS / DECISIONES DE DISENO RELEVANTES
+- DeliveryItem es una proyeccion de solo lectura (SQL view o calculada en el use case), NO una tabla nueva.
+- El UNION entre orders y quotes permite al frontend renderizar todo homogeneamente sin saber el origen.
+- overdue es calculado, no almacenado. Evita jobs que actualicen el campo.
+- El counter de tiempo de entrega empieza en: aceptacion (Flow A) o confirmacion de pago (Flow B).
+- No hay expiracion automatica para Flow A (sin SLA de aceptacion del admin). Pregunta abierta en roadmap.

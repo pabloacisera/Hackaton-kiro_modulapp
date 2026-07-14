@@ -1,0 +1,51 @@
+FLUJO: Infraestructura y despliegue
+FUENTE: .kiro/specs/feature-infra-deploy/tasks.md
+
+QUE RESUELVE
+Dockerfiles para cada servicio, configuracion de Nginx como reverse proxy,
+docker-compose para dev y produccion, extension del pipeline CI existente
+(con Docker build y Maven job para payment-service), seed de base de datos
+y documentacion de deploy.
+
+ACTORES INVOLUCRADOS
+- Owner/developer (configura infraestructura)
+- Docker / Docker Compose (orquestacion de servicios)
+- Nginx (reverse proxy + statics)
+- GitHub Actions (extiende CI existente de feature-scaffold-monorepo)
+- PostgreSQL/Supabase (base de datos)
+- Redis/Upstash (cache y colas)
+
+PASO A PASO
+1. Dockerfiles multi-stage para cada servicio:
+   - api-core: build (compila TS) + runtime (solo Node ejecutable).
+   - payment-service: Maven build + JRE runtime.
+   - landing y admin-dashboard: build (genera dist/) para Nginx.
+2. Nginx sirve los estaticos de React en produccion. Hace reverse proxy de /api a api-core y /payments a payment-service.
+3. docker-compose.yml (dev) integra: api-core, payment-service, landing, admin-dashboard, Nginx, Redis local.
+4. .env.example con todas las variables documentadas.
+5. seed-db.sh + TS seeder con faker para datos de prueba en todos los estados relevantes.
+6. CI pipeline (ci.yml): se extiende el existente (creado por feature-scaffold-monorepo TASK-scaffold-11) con Docker build y Maven job paralelo para payment-service.
+7. Docker image build/push para payment-service en paralelo al pipeline JS/TS.
+8. docs/deployment.md documenta deploy por ambiente.
+9. scripts/prod-up.sh ejecuta docker compose -f docker-compose.prod.yml.
+
+ESTADOS
+No hay maquina de estados. Es infraestructura pura.
+
+ENDPOINTS INVOLUCRADOS
+(No expone endpoints. Configura:)
+- Nginx: proxy /api -> api-core:3000, /payments -> payment-service:8081
+- Turborepo: turbo run build/test/lint con cache
+
+DEPENDENCIAS CON OTROS FLUJOS
+- Todos los features dependen de la infra existente para correr.
+- CI pipeline base se crea en feature-scaffold-monorepo (TASK-scaffold-11). Este feature lo extiende con Docker build y Maven job.
+- seed-db.sh requiere los migrations de todos los domain features.
+
+NOTAS / DECISIONES DE DISENO RELEVANTES
+- Java queda fuera de Turborepo. Solo se orquesta via Docker Compose.
+- CI pipeline base (lint + test + build) se crea en feature-scaffold-monorepo. Este feature lo extiende con Docker build y Maven job para payment-service.
+- CI usa pnpm (no npm) para mantener consistencia con el package.json raiz.
+- seed-db.sh usa faker para crear datos en todos los estados relevantes (orders en distintos status, quotes pendientes, complaints, etc.).
+- docker-compose.prod.yml es separado de docker-compose.yml (dev). No se mezclan ambientes.
+- Nginx sirve los build de React como archivos estaticos en produccion. En dev, los frontends corren en su propio server de desarrollo.

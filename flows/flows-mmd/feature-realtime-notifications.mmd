@@ -1,0 +1,46 @@
+flowchart TD
+    subgraph Admin["Admin Dashboard (WebSocket)"]
+        A1[Admin opens dashboard] --> A2[Establish WebSocket with JWT handshake]
+        A2 --> A3[Connected - listening for events]
+        A3 --> A4{Event received?}
+        A4 -->|new purchase| A5[Update NotificationBell badge]
+        A4 -->|new quote request| A5
+        A4 -->|quote response| A5
+        A4 -->|new complaint| A5
+        A4 -->|low stock alarm| A5
+        A4 -->|payment confirmed| A5
+        A5 --> A6[Play sound with debounce]
+        A6 --> A7[NotificationPanel dropdown - recent history]
+        A7 --> A8{Admin action?}
+        A8 -->|Mark as read| A9[Propagate read state via WebSocket]
+        A8 -->|Click notification| A10[Navigate to resource - order/quote/complaint/supply]
+    end
+
+    subgraph Landing["Landing (SSE)"]
+        L1[Landing loads] --> L2[Establish SSE connection /api/catalog/stream]
+        L2 --> L3[Connected - listening for catalog events]
+        L3 --> L4{SSE event?}
+        L4 -->|prototype.updated| L5[Merge into local catalog state by id]
+        L4 -->|prototype.deactivated| L6[Show unavailable notice]
+        L5 --> L7[UI updates without page reload]
+        L7 --> L8{Connection lost?}
+        L8 -->|yes| L9[Reconnect with exponential backoff]
+        L9 --> L10[Show brief updating indicator]
+        L10 --> L3
+    end
+
+    subgraph Backend["api-core Event Sources"]
+        B1[Direct purchase: new order] --> B2[notifyAdmins - WebSocket]
+        B3[Custom quote: new/presented] --> B2
+        B5[Complaint: new] --> B2
+        B6[Supply: hourly low-stock check] --> B2
+        B7[Payment: confirmed] --> B2
+        B8[Catalog: admin updates prototype] --> B9[Publish SSE event]
+    end
+
+    B2 --> A3
+    B9 --> L3
+
+    style Admin fill:#e8f5e9,stroke:#2e7d32
+    style Landing fill:#e3f2fd,stroke:#1565c0
+    style Backend fill:#fff3e0,stroke:#e65100

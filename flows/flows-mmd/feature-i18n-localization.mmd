@@ -1,0 +1,32 @@
+flowchart TD
+    A[Client accesses Landing] --> B[react-i18next detects Accept-Language header]
+    B --> C{Language detected?}
+    C -->|Spanish| D[Set locale = es]
+    C -->|English| E[Set locale = en]
+    C -->|Other/missing| D
+    D --> F[Landing renders in Spanish]
+    E --> G[Landing renders in English]
+    F --> H[Client can toggle language via header selector]
+    G --> H
+    H --> I[Preference persisted in localStorage]
+
+    I --> J{Client submits form?}
+    J -->|Quote request| K[Send X-Locale header with current locale]
+    J -->|Complaint| K
+    J -->|Purchase| K
+    K --> L[api-core persists locale in record's locale column]
+
+    L --> M{System needs to send email?}
+    M -->|Purchase confirmation| N[Select template by record.locale]
+    M -->|Quote sent| N
+    M -->|Acceptance/Rejection| N
+    M -->|Payment receipt| N
+    M -->|Complaint receipt| N
+    M -->|Expiration notice| N
+    M -->|Postponement| N
+    N --> O[Send email in record's language]
+    O --> P[Language is consistent across all emails for same process]
+
+    style K fill:#fff3e0,stroke:#f57c00
+    style L fill:#fff3e0,stroke:#f57c00
+    style N fill:#e8f5e9,stroke:#388e3c

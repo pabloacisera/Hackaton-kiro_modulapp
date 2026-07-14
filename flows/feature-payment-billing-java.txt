@@ -1,0 +1,53 @@
+FLUJO: Microservicio de pagos y facturacion (Java/Spring Boot)
+FUENTE: .kiro/specs/feature-payment-billing-java/design.md
+
+QUE RESUELVE
+Microservicio aislado que maneja todo lo financiero: pagos via PayPal
+(Orders API), reembolsos (Refunds API), generacion de receipts PDF, y
+log de auditoria. Solo se comunica con api-core via HTTP/webhooks.
+Nunca comparte base de datos.
+
+ACTORES INVOLUCRADOS
+- api-core (NestJS, llama a payment-service para iniciar pagos y reembolsos)
+- payment-service (Java/Spring Boot, orquesta PayPal)
+- PayPal (pasarela de pago externa)
+- Mailjet (envio de receipts por email)
+
+PASO A PASO
+1. api-core llama POST /payments/orders { reference_id, origin, amount_usd, customer_email, idempotency_key }.
+2. payment-service verifica idempotency_key. Si ya existe, retorna el Payment existente (no-op).
+3. Si es nuevo: crea Payment(initiated), llama a PayPal Orders API para crear la orden.
+4. PayPal retorna link de pago. payment-service retorna { payment_link, payment_service_ref } a api-core.
+5. Cliente paga en PayPal. PayPal envia webhook a payment-service POST /payments/webhooks/paypal.
+6. payment-service valida firma del webhook, deduplica por paypal_event_id.
+7. Actualiza Payment a confirmed o failed.
+8. Si confirmed: genera Receipt (customer + admin) como PDF (iText/OpenPDF), lo almacena en Supabase Storage.
+9. Llama a api-core webhook POST /api/orders/webhooks/payment-result o el de quotes correspondiente.
+10. Para reembolsos: api-core llama POST /payments/orders/:ref/refund { reason, refund_request_id }.
+11. payment-service verifica refund_request_id. Si ya existe, retorna el Refund existente.
+12. Si es nuevo: llama a PayPal Refunds API, crea Refund(processed), genera Receipt de reembolso.
+13. Cada operacion financiera se registra en AuditLog (actor, action, reference_id, payload, result).
+
+ESTADOS
+Payment: initiated -> confirmed | failed
+Refund: processed | failed
+Receipt: generado -> enviado (sent_at)
+
+ENDPOINTS INVOLUCRADOS
+POST /payments/orders                      -> inicia pago (recibe de api-core)
+POST /payments/webhooks/paypal             -> webhook de PayPal (pago confirmado/fallido)
+POST /payments/orders/:ref/refund          -> ejecuta reembolso
+GET /payments/:ref/receipt                 -> sirve PDF o URL firmada
+
+DEPENDENCIAS CON OTROS FLUJOS
+- feature-direct-purchase: inicia pago y recibe resultado via webhook.
+- feature-custom-quote: inicia pago al aceptar cotizacion.
+- feature-complaints-refunds: ejecuta reembolsos.
+- feature-order-delivery-schedule: receipt de pago se genera al confirmar.
+
+NOTAS / DECISIONES DE DISENO RELEVANTES
+- Aislamiento total: payment-service tiene su propia base de datos (Payment, Refund, Receipt, AuditLog). Nunca comparte schema con api-core.
+- Idempotencia: cada operacion lleva idempotency_key (pagos) o refund_request_id (reembolsos) proporcionado por api-core. Constraint UNIQUE en DB. Segunda llamada = no-op.
+- Receipts: PDF simple con fecha, concepto, monto USD, referencia interna, aviso de "comprobante interno - no valido como factura fiscal". Almacenado en Supabase Storage antes de enviar por email (no se pierde si el envio falla).
+- AuditLog registra todo: actor, accion, referencia, payload JSON, resultado.
+- Spring Boot elige por su transaccionalidad declarativa (@Transactional), tipado fuerte y ecosistema maduro para idempotencia.

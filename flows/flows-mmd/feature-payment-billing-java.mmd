@@ -1,0 +1,41 @@
+sequenceDiagram
+    participant ApiCore as api-core (NestJS)
+    participant PaymentSvc as payment-service (Java)
+    participant PayPal
+    participant Mailjet
+
+    Note over ApiCore,PaymentSvc: Initiate Payment
+    ApiCore->>PaymentSvc: POST /payments/orders {reference_id, origin, amount_usd, customer_email, idempotency_key}
+    alt Idempotency key already exists
+        PaymentSvc-->>ApiCore: Return existing Payment (no-op)
+    else New payment
+        PaymentSvc->>PaymentSvc: Create Payment(initiated)
+        PaymentSvc->>PayPal: Create PayPal order
+        PayPal-->>PaymentSvc: PayPal order ID + approval URL
+        PaymentSvc-->>ApiCore: {payment_link, payment_service_ref}
+    end
+
+    Note over PayPal,PaymentSvc: PayPal Webhook (payment completed)
+    PayPal->>PaymentSvc: POST /payments/webhooks/paypal
+    PaymentSvc->>PaymentSvc: Validate webhook signature
+    PaymentSvc->>PaymentSvc: Deduplicate by paypal_event_id
+    PaymentSvc->>PaymentSvc: Payment.status = confirmed
+    PaymentSvc->>PaymentSvc: Generate Receipt PDF (customer + admin)
+    PaymentSvc->>Mailjet: Send receipts by email
+    PaymentSvc->>ApiCore: POST /api/orders/webhooks/payment-result {status: ok}
+
+    Note over ApiCore,PaymentSvc: Refund Request
+    ApiCore->>PaymentSvc: POST /payments/orders/:ref/refund {reason, refund_request_id}
+    alt Refund already exists (idempotent)
+        PaymentSvc-->>ApiCore: Return existing Refund
+    else New refund
+        PaymentSvc->>PayPal: POST /v2/refunds/sale/:sale_id
+        PayPal-->>PaymentSvc: Refund confirmed
+        PaymentSvc->>PaymentSvc: Create Refund(processed)
+        PaymentSvc->>PaymentSvc: Generate Refund Receipt PDF
+        PaymentSvc->>Mailjet: Send refund receipt
+        PaymentSvc-->>ApiCore: Refund processed
+    end
+
+    Note over PaymentSvc: Audit Log
+    PaymentSvc->>PaymentSvc: Log all operations in AuditLog (actor, action, reference_id, payload, result)

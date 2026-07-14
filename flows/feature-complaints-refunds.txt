@@ -1,0 +1,56 @@
+FLUJO: Reclamos y reembolsos
+FUENTE: .kiro/specs/feature-complaints-refunds/design.md
+
+QUE RESUELVE
+Permite a clientes abrir reclamos o solicitar reembolsos. El admin revisa y
+decide: aprobar reembolso (automatico via PayPal) o resolver de otra forma.
+Cada reclamo genera un comprobante de recepcion al cliente (email con numero
+de referencia).
+
+ACTORES INVOLUCRADOS
+- Cliente (desde el landing, seccion siempre visible)
+- api-core (NestJS, gestiona reclamos)
+- payment-service (Java, ejecuta reembolsos via PayPal Refunds API)
+- Admin (desde admin-dashboard, revisa y resuelve)
+- Mailjet (envio de emails)
+
+PASO A PASO
+1. Cliente accede a la seccion "Quejas y reembolsos" en el landing (siempre visible en nav).
+2. Completa formulario: referencia (order/quote, opcional si no la tiene), nombre, email, telefono, motivo, descripcion.
+3. Al enviar: api-core crea Complaint con status=received.
+4. Sistema envia email de comprobante de recepcion al cliente con numero de referencia (= id del reclamo).
+5. Sistema notifica al admin (WebSocket + email).
+6. Admin revisa el reclamo desde el dashboard (GET /api/admin/complaints con filtros).
+7. Admin marca como "en revision": PATCH /api/admin/complaints/:id/review
+   - Status -> under_review.
+8. Admin decide:
+   a. Aprobar reembolso: PATCH /api/admin/complaints/:id/approve-refund
+      - Si reference_type es "unknown" o reference_id es null: rechaza con error claro (no hay nada que reembolsar).
+      - Si hay referencia valida: genera refund_request_id unico, llama a payment-service POST /payments/orders/:ref/refund.
+      - Si payment-service responde que ya existe un reembolso para esa referencia: muestra error al admin (no duplicar).
+      - Si exitoso: status -> refund_approved, notifica al cliente.
+   b. Resolver de otra forma: PATCH /api/admin/complaints/:id/resolve { resolution_notes, status }
+      - Status -> resolved_other_way o rejected.
+      - Admin documenta la resolucion.
+
+ESTADOS
+received -> under_review -> refund_approved | resolved_other_way | rejected
+
+ENDPOINTS INVOLUCRADOS
+POST /api/complaints                         -> crea reclamo (publico)
+GET /api/admin/complaints                    -> listado con filtros
+PATCH /api/admin/complaints/:id/review       -> marca como en revision
+PATCH /api/admin/complaints/:id/approve-refund -> aprueba reembolso
+PATCH /api/admin/complaints/:id/resolve      -> resuelve sin reembolso
+
+DEPENDENCIAS CON OTROS FLUJOS
+- feature-payment-billing-java: ejecuta el reembolso real via PayPal.
+- feature-direct-purchase: reference_type=order, reference_id=Order.id.
+- feature-custom-quote: reference_type=quote, reference_id=Quote.id.
+- feature-realtime-notifications: notifica al admin via WebSocket.
+
+NOTAS / DECISIONES DE DISENO RELEVANTES
+- El comprobante de recepcion se envia SIEMPRE, sin importar si luego se aprueba o rechaza el reembolso.
+- Idempotencia: refund_request_id es unico por intento de negocio. Si se reintenta con el mismo key, payment-service retorna el resultado existente (no duplica).
+- Un reclamo sin referencia valida (reference_type=unknown) aun se registra. El admin investiga manualmente. No se puede aprobar reembolso sin referencia.
+- reference_type es enum(order, quote, unknown). Si el cliente no tiene la referencia, se guarda como "unknown".

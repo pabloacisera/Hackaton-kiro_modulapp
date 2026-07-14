@@ -1,0 +1,47 @@
+FLUJO: Internacionalizacion (es/en)
+FUENTE: .kiro/specs/feature-i18n-localization/specs.md
+
+QUE RESUELVE
+Permite al landing y los emails transaccionales funcionar en espanol e ingles.
+El idioma se detecta por preferencia del navegador con fallback a espanol.
+El cliente puede cambiarlo manualmente. El idioma elegido se persiste con el
+registro para que todos los emails futuros de ese proceso sean consistentes.
+
+ACTORES INVOLUCRADOS
+- Cliente (selecciona idioma en el landing)
+- Landing (React, react-i18next)
+- api-core (NestJS, persiste locale con cada registro)
+- Mailjet (selecciona template de email segun locale del registro)
+
+PASO A PASO
+1. Cliente accede al landing. react-i18next detecta Accept-Language del navegador. Fallback: espanol.
+2. Selector de idioma visible en el header del landing.
+3. Cliente puede cambiar idioma en cualquier momento. Cambio persistido en localStorage del landing.
+4. Al enviar un formulario (quote, complaint, purchase), se envia header X-Locale con el idioma vigente al momento del submit.
+5. api-core recibe X-Locale, lo persiste en la columna locale del registro creado (Order, Quote o Complaint).
+6. Cuando el sistema envia un email para ese registro (confirmacion, cotizacion, aceptacion, receipt, etc.), selecciona el template segun el locale guardado en el registro, NO segun la sesion actual del browser.
+7. Admin panel se mantiene en espanol (no es requerimiento de este feature).
+
+ESTADOS
+No hay maquina de estados. Es un corte transversal que afecta:
+- UI del landing (react-i18next)
+- Persistencia de locale en cada registro publico
+- Seleccion de template de email
+
+ENDPOINTS INVOLUCRADOS
+(No tiene endpoints propios. Afecta:)
+POST /api/quotes       -> recibe X-Locale, persiste en Quote.locale
+POST /api/complaints   -> recibe X-Locale, persiste en Complaint.locale
+POST /api/orders       -> recibe X-Locale, persiste en Order.locale
+
+DEPENDENCIAS CON OTROS FLUJOS
+- feature-direct-purchase: agrega locale al Order.
+- feature-custom-quote: agrega locale al Quote.
+- feature-complaints-refunds: agrega locale al Complaint.
+- feature-catalog-landing: react-i18next en el landing.
+
+NOTAS / DECISIONES DE DISENO RELEVANTES
+- El idioma se guarda con el registro, no con la sesion. Si el cliente creo una cotizacion en ingles, el email de cotizacion va en ingles aunque el navegador ahora este en espanol.
+- Si el cliente cambia idioma a mitad de formulario, lo que se persiste es el idioma al momento del submit, no el inicial.
+- Admin no necesita elegir idioma. El sistema envia el email en el idioma del registro automaticamente.
+- Templates de email en ambos idiomas para: confirmacion de compra, cotizacion enviada, aceptacion/rechazo, receipt de pago, receipt de queja, aviso de expiracion, postergacion.

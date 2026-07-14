@@ -1,0 +1,31 @@
+flowchart TD
+    A[Client visits Landing] --> B[Frontend requests GET /api/catalog/prototypes]
+    B --> C{Filters?}
+    C -->|category, price, search| D[api-core queries PostgreSQL with filters]
+    C -->|no filters| D
+    D --> E[Results cached in Redis - short TTL]
+    E --> F[Frontend renders CatalogGrid]
+    F --> G[Client browses prototypes]
+    G --> H{Action?}
+    H -->|Search/Filter| I[Update filters, re-fetch with combined params]
+    I --> D
+    H -->|Click prototype| J[View PrototypeDetail - gallery, specs, delivery estimate]
+    H -->|Buy button| K[Redirect to Direct Purchase - Flow A]
+    H -->|Request custom quote| L[Redirect to Custom Quote - Flow B]
+    H -->|Complaints| M[Redirect to Complaints form]
+
+    subgraph SSE[Real-time Sync via SSE]
+        N[Admin updates prototype] --> O[PostgreSQL updated]
+        O --> P[Redis cache invalidated]
+        O --> Q[Publish SSE event: prototype.updated]
+        Q --> R[Landing receives event]
+        R --> S[Merge into local state by id]
+    end
+
+    Q --> T{Event type?}
+    T -->|prototype.updated| U[Update price/stock/active in UI]
+    T -->|prototype.deactivated| V[Show unavailable notice, disable Buy button]
+
+    S --> U
+
+    style SSE fill:#e1f5fe,stroke:#0288d1

@@ -1,0 +1,56 @@
+sequenceDiagram
+    participant Customer
+    participant Landing as Landing (React)
+    participant ApiCore as api-core (NestJS)
+    participant PaymentSvc as payment-service (Java)
+    participant PayPal
+    participant Admin
+    participant Mailjet
+    participant BullMQ
+
+    Customer->>Landing: Click "Buy" on prototype detail
+    Landing->>ApiCore: POST /api/orders {prototype_id, customer_email}
+    ApiCore->>ApiCore: Re-read price + stock from DB (server-side)
+    alt Stock=0 and build_on_demand=false
+        ApiCore-->>Landing: 400 - Payment blocked (out of stock)
+    else Stock available or build_on_demand=true
+        ApiCore->>ApiCore: Create Order(status=created)
+        ApiCore->>PaymentSvc: POST /payments/orders {order_id, amount_usd, customer_email}
+        PaymentSvc->>PaymentSvc: Verify idempotency_key (unique)
+        PaymentSvc->>PayPal: Create PayPal order
+        PayPal-->>PaymentSvc: PayPal order created
+        PaymentSvc-->>ApiCore: {payment_link, payment_service_ref}
+        ApiCore-->>Landing: Return payment_link
+        Landing-->>Customer: Redirect to PayPal
+        Customer->>PayPal: Complete payment
+        PayPal->>PaymentSvc: Webhook - payment result
+        PaymentSvc->>PaymentSvc: Validate signature, deduplicate
+        PaymentSvc->>PaymentSvc: Payment.status = confirmed
+        PaymentSvc->>PaymentSvc: Generate Receipt (customer + admin)
+        PaymentSvc->>ApiCore: POST /api/orders/webhooks/payment-result {order_id, status: ok}
+        ApiCore->>ApiCore: Order.status = paid_pending_acceptance
+        ApiCore->>Mailjet: Send confirmation email to customer
+        ApiCore->>Admin: WebSocket notification (new purchase pending)
+        Note over ApiCore: Stock NOT deducted yet
+    end
+
+    Admin->>ApiCore: PATCH /api/orders/:id/accept {estimated_delivery_date}
+    ApiCore->>ApiCore: Deduct stock, Order.status = accepted
+    ApiCore->>ApiCore: Generate payment receipt
+    ApiCore->>Mailjet: Send receipt to customer
+
+    Admin->>ApiCore: PATCH /api/orders/:id/reject {reason}
+    ApiCore->>ApiCore: Order.status = rejected
+    ApiCore->>PaymentSvc: POST /payments/orders/:ref/refund {reason}
+    PaymentSvc->>PayPal: POST /v2/refunds/sale/:sale_id
+    PayPal-->>PaymentSvc: Refund confirmed
+    PaymentSvc-->>ApiCore: Refund processed
+    ApiCore->>Mailjet: Notify customer (order rejected, refund issued)
+
+    loop Every 5 minutes
+        BullMQ->>ApiCore: Reconciliation job
+        ApiCore->>ApiCore: Find Orders in payment_initiated >10min
+        ApiCore->>PaymentSvc: Check actual status
+        PaymentSvc->>PayPal: Query order status
+        ApiCore->>ApiCore: Update Order based on PayPal status
+    end

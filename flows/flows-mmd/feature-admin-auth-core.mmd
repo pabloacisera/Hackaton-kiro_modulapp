@@ -1,0 +1,47 @@
+sequenceDiagram
+    participant Admin
+    participant AdminDashboard as Admin Dashboard (React)
+    participant ApiCore as api-core (NestJS)
+    participant Redis
+    participant DB as PostgreSQL
+
+    Admin->>AdminDashboard: Enter email + password
+    AdminDashboard->>ApiCore: POST /api/admin/auth/login {email, password}
+    ApiCore->>Redis: Check rate limit (5 attempts/15min per IP+email)
+    alt Rate limit exceeded
+        ApiCore-->>AdminDashboard: 429 Too Many Requests
+    else Within limit
+        ApiCore->>DB: Lookup AdminUser by email
+        ApiCore->>ApiCore: Verify password (argon2)
+        alt Invalid credentials
+            ApiCore->>Redis: Increment failed attempts
+            ApiCore-->>AdminDashboard: 401 Unauthorized
+        else Valid credentials
+            ApiCore->>DB: Create RefreshToken
+            ApiCore->>DB: Update last_login_at
+            ApiCore-->>AdminDashboard: 200 {accessJWT} + Set-Cookie (refreshToken, httpOnly)
+        end
+    end
+
+    Note over AdminDashboard: Access JWT stored in memory (not localStorage)
+
+    AdminDashboard->>ApiCore: GET /api/admin/** (Authorization: Bearer JWT)
+    alt JWT valid
+        ApiCore-->>AdminDashboard: 200 OK
+    else JWT expired
+        AdminDashboard->>ApiCore: POST /api/admin/auth/refresh
+        ApiCore->>DB: Verify RefreshToken (not revoked, not expired)
+        alt Refresh valid
+            ApiCore-->>AdminDashboard: 200 {newAccessJWT}
+            AdminDashboard->>ApiCore: Retry original request with new JWT
+        else Refresh expired
+            ApiCore-->>AdminDashboard: 401
+            AdminDashboard->>Admin: Redirect to /login
+        end
+    end
+
+    Admin->>AdminDashboard: Click Logout
+    AdminDashboard->>ApiCore: POST /api/admin/auth/logout
+    ApiCore->>DB: Revoke RefreshToken
+    ApiCore-->>AdminDashboard: 200
+    AdminDashboard->>Admin: Redirect to /login

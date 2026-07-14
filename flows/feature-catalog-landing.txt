@@ -1,0 +1,49 @@
+FLUJO: Catalogo publico en landing
+FUENTE: .kiro/specs/feature-catalog-landing/design.md
+
+QUE RESUELVE
+Muestra publicamente los prototipos de muebles modulares (MDF) y arcos para
+eventos. Es el punto de entrada para la Compra Directa (Flujo A). Permite
+filtrar, buscar y ver detalle de cada prototipo. Sincroniza precios y stock
+en tiempo real via SSE.
+
+ACTORES INVOLUCRADOS
+- Cliente (visitante del landing, sin cuenta)
+- api-core (NestJS, sirve catalogo y eventos SSE)
+- Redis (cache de listados, invalidacion)
+- Landing (React, recibe eventos SSE)
+
+PASO A PASO
+1. Cliente accede al landing. Frontend solicita GET /api/catalog/prototypes con filtros opcionales (categoria, precio, busqueda).
+2. api-core retorna listado paginado. Resultados cacheados en Redis (TTL corto).
+3. Frontend renderiza CatalogGrid con tarjetas de prototipos (imagen, nombre, precio, stock o "bajo pedido").
+4. Cliente puede buscar por nombre/descripcion, filtrar por categoria (modular_furniture/arches) y rango de precio.
+5. Cliente hace clic en un prototipo -> vista de detalle con galeria, especificaciones y tiempo estimado de entrega.
+6. Mientras el cliente tiene el catalogo abierto, una conexion SSE activa (/api/catalog/stream) recibe eventos:
+   - prototype.updated: actualiza precio, stock o estado activo en el UI sin recarga.
+   - prototype.deactivated: muestra aviso "ya no esta disponible", bloquea boton de compra.
+7. Si la conexion SSE se cae, reconexion automatica con backoff exponencial. Se muestra "actualizando..." brevemente.
+8. Boton "Comprar" en el detalle lleva al Flujo A (feature-direct-purchase).
+9. Links a "Solicitar cotizacion" (Flujo B) y "Quejas y reembolsos" siempre visibles en la navegacion.
+
+ESTADOS
+No hay maquina de estados. El catalogo es una vista de solo lectura con
+actualizaciones en tiempo real.
+
+ENDPOINTS INVOLUCRADOS
+GET /api/catalog/prototypes          -> listado paginado con filtros
+GET /api/catalog/prototypes/:id      -> detalle de un prototipo
+GET /api/catalog/stream              -> SSE: eventos de actualizacion en vivo
+
+DEPENDENCIAS CON OTROS FLUJOS
+- feature-direct-purchase: el boton "Comprar" lleva al checkout del Flujo A.
+- feature-custom-quote: link a solicitud de cotizacion (Flujo B).
+- feature-complaints-refunds: link a formulario de quejas.
+- feature-realtime-notifications: los eventos SSE son parte de esta capa transversal.
+- feature-i18n-localization: el landing debe soportar es/en.
+
+NOTAS / DECISIONES DE DISENO RELEVANTES
+- El precio mostrado es solo UX. El precio real se re-lee server-side al momento de pagar (feature-direct-purchase). SSE no es fuente de verdad para cobro.
+- Cache en Redis con TTL corto + SSE como fuente de verdad para el UI. Cache solo reduce carga del listado.
+- Cada PUT/PATCH de un prototipo por el admin: (1) actualiza Postgres, (2) invalida Redis key, (3) publica evento SSE.
+- Prototipos con stock=0 pero build_on_demand=true se muestran como "bajo pedido" y permiten compra.

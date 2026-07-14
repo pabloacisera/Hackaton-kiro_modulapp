@@ -1,0 +1,70 @@
+flowchart TD
+    subgraph External["External Services"]
+        PayPal[PayPal - Orders API + Refunds API]
+        Mailjet[Mailjet - Transactional emails]
+        Supabase[Supabase - PostgreSQL + Storage]
+        Upstash[Upstash - Redis]
+    end
+
+    subgraph Infra["Infrastructure Layer"]
+        Nginx[Nginx - Reverse Proxy + Statics]
+        Docker[Docker Compose]
+        CI[GitHub Actions CI - lint + test + build]
+    end
+
+    subgraph Frontend["Frontend (React)"]
+        Landing[apps/landing - Public SPA]
+        AdminDashboard[apps/admin-dashboard - Protected SPA]
+    end
+
+    subgraph Backend["Backend Services"]
+        ApiCore[api-core - NestJS + TypeScript]
+        PaymentService[payment-service - Java/Spring Boot]
+    end
+
+    subgraph DataStores["Data Stores"]
+        PG[(PostgreSQL - api-core domain)]
+        Redis[(Redis - cache, queues, pub/sub)]
+        Storage[(Supabase Storage - receipt PDFs)]
+    end
+
+    subgraph Jobs["Scheduled Jobs (BullMQ)"]
+        QuoteExp[Quote expiration check]
+        PaymentExp[Payment window expiration]
+        LowStock[Hourly low-stock check]
+        Reconciliation[Payment reconciliation - every 5min]
+    end
+
+    Nginx -->|/api| ApiCore
+    Nginx -->|/payments| PaymentService
+    Nginx --> Landing
+    Nginx --> AdminDashboard
+
+    Landing -->|SSE| ApiCore
+    AdminDashboard -->|WebSocket| ApiCore
+
+    ApiCore -->|HTTP sync| PaymentService
+    PaymentService -->|Webhook| ApiCore
+    ApiCore --> PG
+    ApiCore --> Redis
+    PaymentService --> Storage
+    PaymentService --> PayPal
+
+    ApiCore --> Mailjet
+    PaymentService --> Mailjet
+
+    QuoteExp --> ApiCore
+    PaymentExp --> ApiCore
+    LowStock --> ApiCore
+    Reconciliation --> ApiCore
+
+    CI -->|lint + test + build| ApiCore
+    CI -->|lint + test + build| Landing
+    CI -->|lint + test + build| AdminDashboard
+
+    style External fill:#e0f7fa,stroke:#00695c
+    style Infra fill:#fce4ec,stroke:#c62828
+    style Frontend fill:#e8f5e9,stroke:#2e7d32
+    style Backend fill:#e3f2fd,stroke:#1565c0
+    style DataStores fill:#f3e5f5,stroke:#7b1fa2
+    style Jobs fill:#fff3e0,stroke:#e65100

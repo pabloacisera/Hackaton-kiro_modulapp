@@ -1,0 +1,34 @@
+flowchart TD
+    A[Admin opens Deliveries section] --> B[api-core builds DeliveryItem projection]
+    B --> C[UNION: Orders with status=accepted + Quotes with status=paid]
+
+    C --> D{View mode?}
+    D -->|Calendar| E[DeliveriesBoard - sorted by estimated_delivery_date]
+    D -->|Table| F[DeliveriesTable - search/filter/pagination]
+
+    E --> G[Render items with status indicator]
+    F --> G
+
+    G --> H{Status?}
+    H -->|pending| I[Normal display]
+    H -->|delivered| J[Delivered indicator]
+    H -->|overdue - calculated| K[Red highlight - today > estimated_delivery_date]
+
+    G --> L{Admin action?}
+    L -->|Mark delivered| M[PATCH /api/admin/deliveries/:origin/:id/deliver]
+    M --> N[Set delivered_at, status=delivered]
+    L -->|Postpone| O[PATCH /api/admin/deliveries/:origin/:id/postpone]
+    O --> P[Update estimated_delivery_date]
+    P --> Q[Send email notification to customer]
+
+    subgraph Projection["DeliveryItem (read-only projection)"]
+        PI1["id = order_id or quote_id"]
+        PI2["origin = order | quote"]
+        PI3["customer_name, customer_email"]
+        PI4["estimated_delivery_date"]
+        PI5["status = pending | delivered | overdue (calculated)"]
+        PI6["delivered_at"]
+    end
+
+    style Projection fill:#f3e5f5,stroke:#7b1fa2
+    style K fill:#ffebee,stroke:#c62828

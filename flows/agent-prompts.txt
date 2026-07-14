@@ -1,0 +1,90 @@
+FLUJO: Plantillas de prompts para el agente
+FUENTE: CONTRIBUTING.md § Agent prompt templates
+
+QUE RESUELVE
+Estandarizar la forma en que los colaboradores interactuan con el agente
+para mantener el trabajo sincronizado y evitar choques entre forks.
+
+PROMPTS PREFABRICADOS
+
+=== 1. Iniciar una feature nueva ===
+
+Vamos a comenzar con la feature <nombre>. Antes de nada:
+(1) Sincronizá contra upstream/main y reportame qué llegó desde la última
+    vez y si algo se cruza con lo que vamos a hacer.
+(2) Leé .kiro/steerings/00-project-context.md completo — esas decisiones
+    de negocio no se reinterpretan.
+(3) Leé .kiro/steerings/01-feature-flow.md para el formato de
+    specs/design/tasks.
+(4) Revisá docs/roadmap.md y docs/feature-status.md para ver el orden
+    sugerido y si hay dependencias de otras features no mergeadas.
+
+Si algo de esto es ambiguo o depende de una decisión de negocio que no está
+escrita, parás y preguntás — no asumís nada.
+
+No crees la rama todavía: primero generá specs.md y esperá mi aprobación
+antes de seguir con design.md.
+
+Cuando cierres la tarea, actualizá docs/collaboration-log.md y pedime
+confirmación antes de commitear.
+
+
+=== 2. Registrar un bug issue ===
+
+Necesitamos registrar un issue sobre <problema observado>. Antes de nada:
+(1) Sincronizá contra upstream/main y reportá qué cambió.
+(2) Leé .kiro/steerings/02-issues-and-bugs.md y el specs.md de la feature
+    afectada para comparar comportamiento esperado vs observado.
+
+Armá el contenido del issue (severidad, pasos para reproducir, evidencia)
+pero no crees el archivo todavía — mostrámelo primero para que yo confirme
+severidad y que está bien planteado antes de que lo subas como PR.
+
+
+=== 3. Proponer feature desde historia de usuario ===
+
+Quiero proponer una feature nueva a partir de esta historia de usuario:
+<historia>.
+
+(1) Sincronizá contra upstream/main y reportá cambios recientes.
+(2) Leé .kiro/steerings/00-project-context.md completo.
+(3) Si la historia deja algo de negocio sin definir (plazos, quién decide,
+    qué pasa en el caso límite), no lo inventes — hacé una lista de
+    preguntas abiertas antes de escribir specs.md.
+
+
+=== 4. Owner revisa un PR ===
+
+Para revisiones rutinarias, la frase disparadora es suficiente:
+
+Review PR #42.
+
+Para cambios sensibles (financiero, cross-feature), agregar criterios
+explicitos:
+
+Review PR #42. Además del checklist estándar, chequeá:
+(1) Si toca archivos que otra feature en progreso también está tocando
+    (ver docs/feature-status.md).
+(2) Si algo de lo que cambia ya tenía tests que pasaban y ahora los rompe.
+(3) Si toca services/payment-service o entidades financieras, aplicá la
+    sección reforzada completa de 03-code-review.md.
+
+Al final decime si está en condiciones de mergear, o qué bloquea — vos no
+aprobás ni mergeas, decidís y me das el reporte.
+
+
+=== REGLA UNIVERSAL ===
+
+El paso de sync — "Sincronizá contra upstream/main y reportá qué cambió y
+si se cruza con lo que vamos a hacer" — siempre va primero. Es el unico
+checkpoint que previene el 90% del riesgo de choque entre forks.
+
+
+REGLAS DEL AGENTE (resumen)
+- El agente nunca puede crear la rama sin tu confirmacion previa.
+- El agente nunca puede aprobar ni mergear un PR.
+- El agente nunca puede crear archivos de issue sin tu confirmacion.
+- El agente nunca puede assumir logica de negocio — siempre pregunta.
+- El agente debe reportar antes de hacer rebase silencioso.
+- El agente debe pedir confirmacion antes de actualizar docs/feature-status.md,
+  docs/collaboration-log.md, o cualquier otro archivo de documentacion.

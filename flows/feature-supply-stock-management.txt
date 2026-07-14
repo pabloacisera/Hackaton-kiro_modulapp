@@ -1,0 +1,59 @@
+FLUJO: Gestion de stock e insumos
+FUENTE: .kiro/specs/feature-supply-stock-management/design.md
+
+QUE RESUELVE
+CRUD de insumos (materias primas) con importacion/exportacion masiva via Excel.
+Job horario que alerta cuando un insumo esta por debajo del minimo. Log de
+cambios de stock para trazabilidad.
+
+ACTORES INVOLUCRADOS
+- Admin (desde admin-dashboard, gestiona insumos)
+- api-core (NestJS, CRUD y jobs)
+- BullMQ (job horario de verificacion de stock minimo)
+- WebSocket (notificacion de stock bajo al admin)
+
+PASO A PASO
+1. Admin accede a la seccion de insumos en el dashboard.
+2. GET /api/admin/supplies con busqueda, filtros (por proveedor, por "bajo minimo"), paginacion.
+3. CRUD standard: crear, editar, eliminar insumos via endpoints REST.
+4. Importacion Excel:
+   a. Admin sube archivo .xlsx con formato: sku | name | unit | current_qty | min_stock | unit_cost_usd | supplier.
+   b. Sistema parsea y valida fila por fila.
+   c. Retorna preview: { toCreate, toUpdate, toDelete, errors } sin aplicar.
+   d. Admin revisa el preview (colores diferenciados para creaciones/modificaciones/eliminaciones).
+   e. Confirma: POST /api/admin/supplies/import-excel/confirm { previewId } -> aplica cambios validos.
+   f. Filas invalidas (SKU duplicado, cantidad negativa, columnas faltantes) se reportan por fila sin abortar el archivo completo.
+5. Exportacion: GET /api/admin/supplies/export-excel genera .xlsx con el estado actual.
+6. Job horario (hourly-low-stock-check): itera Supply donde current_qty < min_stock.
+   a. Consulta LowStockAlertState para decidir si notificar: notifica si last_notified_at es null, si current_qty < last_notified_qty (empeoro), o si paso >=24h desde la ultima notificacion.
+   b. Si corresponde: emite evento WebSocket con sonido al admin.
+7. Todo cambio de stock (manual o por Excel) se registra en SupplyStockChangeLog con source, actor y timestamp.
+
+ESTADOS
+No hay maquina de estados formal. El ciclo de vida es:
+  creado -> actualizado -> eliminado
+
+LowStockAlertState tiene:
+  last_notified_at, last_notified_qty (para evitar fatiga de alertas)
+
+ENDPOINTS INVOLUCRADOS
+GET /api/admin/supplies                      -> listado con filtros
+GET /api/admin/supplies/:id                  -> detalle
+POST /api/admin/supplies                     -> crear insumo
+PATCH /api/admin/supplies/:id                -> editar insumo
+DELETE /api/admin/supplies/:id               -> eliminar insumo
+POST /api/admin/supplies/import-excel        -> preview de importacion
+POST /api/admin/supplies/import-excel/confirm -> aplicar importacion
+GET /api/admin/supplies/export-excel         -> exportar a Excel
+GET /api/admin/supplies/low-stock            -> insumos bajo minimo
+
+DEPENDENCIAS CON OTROS FLUJOS
+- feature-realtime-notifications: notifica stock bajo via WebSocket.
+- feature-direct-purchase: stock de prototipos (finished goods) es un concepto separado de los insumos (raw materials). La deduction de stock de ordenes afecta Prototype.stock_qty, no Supply.current_qty.
+
+NOTAS / DECISIONES DE DISENO RELEVANTES
+- Supply (insumos/materias primas) es un concepto separado de Prototype.stock_qty (producto terminado). No confundir.
+- Importacion Excel: valida fila por fila. Una fila invalida no bloquea las demas. El preview permite revisar antes de aplicar.
+- Anti-fatiga de alertas: el job horario no re-notifica un insumo que ya fue visto y no empeoro. Solo notifica si: es nuevo, empeoro, o paso >=24h.
+- SupplyStockChangeLog audita todos los cambios: manual desde el panel o via Excel import. Registra actor, cantidades anterior/nueva, source y timestamp.
+- El template .xlsx es descargable desde el panel y documentado en docs/supply-template.md.

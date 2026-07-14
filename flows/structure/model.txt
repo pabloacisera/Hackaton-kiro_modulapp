@@ -1,0 +1,355 @@
+=== FLUJO: Autenticacion de admin (feature-admin-auth-core) ===
+
+ENTIDAD: AdminUser
+campo            tipo              requerido   descripcion
+id               uuid              auto        identificador unico
+email            string            yes         email del admin (unique)
+password_hash    string            yes         hash de password (argon2)
+active           boolean           yes         si el admin esta activo
+created_at       timestamp         auto        fecha de creacion
+last_login_at    timestamp         no          ultimo login exitoso
+
+RELACIONES
+RefreshToken.admin_user_id -> AdminUser.id  (1-N: un admin tiene muchos refresh tokens)
+
+---
+
+ENTIDAD: RefreshToken
+campo            tipo              requerido   descripcion
+id               uuid              auto        identificador unico
+admin_user_id    uuid              yes         FK a AdminUser
+token_hash       string            yes         hash del refresh token
+expires_at       timestamp         yes         fecha de expiracion
+revoked          boolean           yes         si el token fue revocado
+
+RELACIONES
+RefreshToken.admin_user_id -> AdminUser.id  (N-1)
+
+---
+
+=== FLUJO: Catalogo publico (feature-catalog-landing) ===
+
+ENTIDAD: Prototype
+campo            tipo              requerido   descripcion
+id               uuid              auto        identificador unico
+name             string            yes         nombre del prototipo
+description      text              no          descripcion detallada
+category         enum              yes         modular_furniture | arches
+price_usd        decimal(10,2)     yes         precio en USD
+active           boolean           yes         si esta activo en el catalogo
+stock_qty        integer           yes         stock de producto terminado
+build_on_demand  boolean           yes         true = se puede fabricar aunque stock=0
+estimated_delivery_days  integer   no          dias estimados de entrega
+images           ProtoImage[]      yes         imagenes del prototipo
+
+RELACIONES
+Prototype.id <- ProtoImage.prototype_id  (1-N: un prototipo tiene muchas imagenes)
+
+---
+
+ENTIDAD: ProtoImage
+campo            tipo              requerido   descripcion
+id               uuid              auto        identificador unico
+prototype_id     uuid              yes         FK a Prototype
+url              string            yes         URL de la imagen
+order            integer           yes         orden de visualizacion
+
+RELACIONES
+ProtoImage.prototype_id -> Prototype.id  (N-1)
+
+---
+
+=== FLUJO: Compra directa (feature-direct-purchase) ===
+
+ENTIDAD: Order
+campo            tipo              requerido   descripcion
+id               uuid              auto        identificador unico
+prototype_id     uuid              yes         FK a Prototype
+price_usd_snapshot  decimal(10,2)  yes         precio leido server-side al momento de pago
+customer_email   string            yes         email del cliente
+customer_name    string            no          nombre del cliente
+status           enum              yes         created | payment_initiated | paid_pending_acceptance | accepted | rejected | payment_failed
+rejection_reason text              no          motivo de rechazo (si admin rechaza)
+estimated_delivery_date  date      no          fecha estimada de entrega (al aceptar)
+payment_service_ref  string        yes         ID de transaccion retornado por payment-service
+locale           string            no          idioma del cliente (es/en)
+created_at       timestamp         auto        fecha de creacion
+updated_at       timestamp         auto        ultima actualizacion
+
+RELACIONES
+Order.prototype_id -> Prototype.id  (N-1: muchas ordenes de un prototipo)
+Order.payment_service_ref -> Payment.reference_id  (cross-microservicio: api-core -> payment-service)
+
+---
+
+=== FLUJO: Cotizacion personalizada (feature-custom-quote) ===
+
+ENTIDAD: Quote
+campo            tipo              requerido   descripcion
+id               uuid              auto        identificador unico
+customer_name    string            yes         nombre del cliente
+customer_email   string            yes         email del cliente
+customer_phone   string            yes         telefono del cliente
+description      text              yes         descripcion de lo que necesita
+needed_by_date   date              yes         fecha en que lo necesita
+status           enum              yes         pending | quoted | accepted | rejected | expired | payment_initiated | paid | payment_expired | archived
+quoted_price_usd decimal(10,2)     no          precio cotizado por el admin
+quoted_lead_time_days  integer     no          dias de plazo de entrega
+estimated_delivery_date  date       no          fecha estimada de entrega (la setea el admin al presentar)
+quote_sent_at    timestamp         no          cuando se envio la cotizacion
+quote_response_deadline  timestamp  no          quote_sent_at + 48h
+payment_deadline timestamp         no          accepted_at + 24h
+accepted_at      timestamp         no          cuando el cliente acepto
+rejected_at      timestamp         no          cuando el cliente rechazo
+paid_at          timestamp         no          cuando confirmo el pago
+rejection_reason text              no          motivo si el sistema descarto (datos incompletos)
+action_token_hash  string          no          hash del token JWT de aceptar/rechazar
+action_token_used  boolean         yes         si el token ya fue utilizado
+payment_service_ref  string        no          referencia del pago en payment-service
+locale           string            no          idioma del cliente (es/en)
+
+RELACIONES
+Quote.payment_service_ref -> Payment.reference_id  (cross-microservicio: api-core -> payment-service)
+Quote.id <- Complaint.reference_id  (1-N: una cotizacion puede tener varios reclamos)
+Quote.id <- DeliveryItem.id  (proyeccion: Quote con status=paid entra en DeliveryItem)
+
+---
+
+=== FLUJO: Reclamos y reembolsos (feature-complaints-refunds) ===
+
+ENTIDAD: Complaint
+campo            tipo              requerido   descripcion
+id               uuid              auto        identificador unico (usado como numero de referencia)
+reference_type   enum              yes         order | quote | unknown
+reference_id     uuid              no          FK a Order.id o Quote.id (null si unknown)
+customer_name    string            yes         nombre del cliente
+customer_email   string            yes         email del cliente
+customer_phone   string            no          telefono del cliente
+reason           text              yes         motivo del reclamo
+status           enum              yes         received | under_review | refund_approved | resolved_other_way | rejected
+resolution_notes text              no          notas de resolucion del admin
+refund_request_id  string          no          idempotency key para payment-service
+locale           string            no          idioma del cliente (es/en)
+created_at       timestamp         auto        fecha de creacion
+resolved_at      timestamp         no          cuando se resolvio
+
+RELACIONES
+Complaint.reference_id -> Order.id  (N-1: un reclamo apunta a una orden, si reference_type=order)
+Complaint.reference_id -> Quote.id  (N-1: un reclamo apunta a una cotizacion, si reference_type=quote)
+Complaint.refund_request_id -> Refund.refund_request_id  (cross-microservicio: api-core -> payment-service)
+
+---
+
+=== FLUJO: Gestion de ordenes y entregas (feature-order-delivery-schedule) ===
+
+ENTIDAD: DeliveryItem (proyeccion de solo lectura, NO tabla)
+campo            tipo              requerido   descripcion
+id               uuid              auto        order_id o quote_id
+origin           enum              yes         order | quote
+customer_name    string            yes         nombre del cliente
+customer_email   string            yes         email del cliente
+estimated_delivery_date  date      yes         fecha estimada de entrega
+status           enum              yes         pending | delivered | overdue (calculado)
+delivered_at     timestamp         no          cuando se marco como entregado
+
+RELACIONES
+DeliveryItem (origin=order) -> Order.id  (proyeccion UNION de Orders accepted)
+DeliveryItem (origin=quote) -> Quote.id  (proyeccion UNION de Quotes paid)
+
+---
+
+=== FLUJO: Gestion de stock e insumos (feature-supply-stock-management) ===
+
+ENTIDAD: Supply
+campo            tipo              requerido   descripcion
+id               uuid              auto        identificador unico
+sku              string            yes         SKU unico del insumo
+name             string            yes         nombre del insumo (ej: "MDF Sheet 15mm")
+unit             string            yes         unidad de medida (unit, m2, kg, sheet, meter, kilogram)
+current_qty      decimal           yes         cantidad actual en stock
+min_stock        decimal           yes         stock minimo antes de alerta
+unit_cost_usd    decimal           yes         costo por unidad en USD
+supplier         string            no          nombre del proveedor
+updated_at       timestamp         auto        ultima actualizacion
+
+RELACIONES
+Supply.id <- SupplyStockChangeLog.supply_id  (1-N: un insumo tiene muchos cambios)
+Supply.id <- LowStockAlertState.supply_id  (1-1: estado de alerta por insumo)
+
+---
+
+ENTIDAD: SupplyStockChangeLog
+campo            tipo              requerido   descripcion
+id               uuid              auto        identificador unico
+supply_id        uuid              yes         FK a Supply
+previous_qty     decimal           yes         cantidad antes del cambio
+new_qty          decimal           yes         cantidad despues del cambio
+source           enum              yes         manual | excel_import | order_consumption
+actor            string            yes         quien hizo el cambio
+created_at       timestamp         auto        fecha del cambio
+
+RELACIONES
+SupplyStockChangeLog.supply_id -> Supply.id  (N-1)
+
+---
+
+ENTIDAD: LowStockAlertState
+campo            tipo              requerido   descripcion
+supply_id        uuid              yes         FK a Supply (unique)
+last_notified_at timestamp         no          cuando se notifico por ultima vez
+last_notified_qty  decimal         no          stock al momento de la ultima notificacion
+
+RELACIONES
+LowStockAlertState.supply_id -> Supply.id  (1-1)
+
+---
+
+=== FLUJO: Notificaciones en tiempo real (feature-realtime-notifications) ===
+
+ENTIDAD: AdminNotification
+campo            tipo              requerido   descripcion
+id               uuid              auto        identificador unico
+type             string            yes         tipo de notificacion (new_order, new_quote, new_complaint, low_stock, payment_confirmed)
+message          string            yes         mensaje corto
+reference_type   string            yes         order | quote | complaint | supply
+reference_id     uuid              yes         ID del recurso referenciado
+read             boolean           yes         si fue leida
+created_at       timestamp         auto        fecha de creacion
+
+RELACIONES
+AdminNotification.reference_id -> Order.id | Quote.id | Complaint.id | Supply.id  (polimorfica: segun reference_type)
+
+---
+
+=== FLUJO: Microservicio de pagos (feature-payment-billing-java) ===
+=== Base de datos: payment-service (separada de api-core) ===
+
+ENTIDAD: Payment
+campo            tipo              requerido   descripcion
+id               uuid              auto        identificador unico
+reference_id     string            yes         order_id o quote_id de api-core
+origin           enum              yes         order | quote
+amount_usd       decimal           yes         monto en USD
+status           enum              yes         initiated | confirmed | failed | refunded
+paypal_order_id  string            yes         ID de la orden en PayPal
+idempotency_key  string            yes         key de idempotencia (unique, proporcionada por api-core)
+created_at       timestamp         auto        fecha de creacion
+confirmed_at     timestamp         no          cuando se confirmo el pago
+
+RELACIONES
+Payment.id <- Refund.payment_id  (1-N: un pago puede tener varios reembolsos)
+Payment.id <- Receipt.payment_id  (1-N: un pago genera receipts)
+Payment.reference_id <-> Order.payment_service_ref  (cross-microservicio)
+Payment.reference_id <-> Quote.payment_service_ref  (cross-microservicio)
+
+---
+
+ENTIDAD: Refund
+campo            tipo              requerido   descripcion
+id               uuid              auto        identificador unico
+payment_id       uuid              yes         FK a Payment
+refund_request_id  string          yes         idempotency key (unique, proporcionada por api-core)
+paypal_refund_id string            yes         ID del reembolso en PayPal
+reason           text              yes         motivo del reembolso
+status           enum              yes         processed | failed
+created_at       timestamp         auto        fecha de creacion
+
+RELACIONES
+Refund.payment_id -> Payment.id  (N-1)
+Refund.refund_request_id <-> Complaint.refund_request_id  (cross-microservicio)
+Refund.id <- Receipt.refund_id  (1-N: un reembolso genera receipts)
+
+---
+
+ENTIDAD: Receipt
+campo            tipo              requerido   descripcion
+id               uuid              auto        identificador unico
+payment_id       uuid              no          FK a Payment (null si es de reembolso)
+refund_id        uuid              no          FK a Refund (null si es de pago)
+audience         enum              yes         customer | admin
+pdf_url          string            yes         URL del PDF en Supabase Storage
+sent_at          timestamp         no          cuando se envio por email
+
+RELACIONES
+Receipt.payment_id -> Payment.id  (N-1, nullable)
+Receipt.refund_id -> Refund.id  (N-1, nullable)
+
+---
+
+ENTIDAD: AuditLog
+campo            tipo              requerido   descripcion
+id               uuid              auto        identificador unico
+actor            string            yes         quien realizo la accion
+action           string            yes         tipo de accion realizada
+reference_id     string            yes         referencia de la entidad afectada
+payload_json     text              yes         JSON con el payload de la operacion
+result           string            yes         resultado de la operacion
+created_at       timestamp         auto        fecha de la accion
+
+RELACIONES
+AuditLog es independiente. Solo registra, no tiene foreign keys a otras entidades.
+
+---
+
+=== FLUJO: Internacionalizacion (feature-i18n-localization) ===
+
+No tiene entidades propias. Agrega la columna `locale` (string, es/en) a:
+- Order (feature-direct-purchase)
+- Quote (feature-custom-quote)
+- Complaint (feature-complaints-refunds)
+
+El locale se persiste con el registro al momento del submit (header X-Locale)
+y se usa para seleccionar el template de email cuando el sistema envia
+comunicaciones para ese registro.
+
+---
+
+=== RELACIONES CROSS-FLOJO ===
+
+1. Order.payment_service_ref -> Payment.reference_id
+   Relacion cross-microservicio: api-core (PostgreSQL/Supabase) -> payment-service (propia DB).
+   order_id de api-core se usa como reference_id en payment-service.
+
+2. Quote.payment_service_ref -> Payment.reference_id
+   Misma relacion que Order pero para el Flujo B. quote_id de api-core
+   se usa como reference_id en payment-service.
+
+3. Complaint.reference_id -> Order.id | Quote.id
+   Un reclamo puede apuntar a una orden (Flow A) o una cotizacion (Flow B).
+   Si el cliente no tiene la referencia, reference_type=unknown y reference_id=null.
+
+4. Complaint.refund_request_id -> Refund.refund_request_id
+   Relacion cross-microservicio para idempotencia. api-core genera un
+   refund_request_id unico por intento de negocio, payment-service lo
+   usa para evitar reembolsos duplicados.
+
+5. DeliveryItem = UNION de Order (status=accepted) + Quote (status=paid)
+   Proyeccion de solo lectura que unifica ambos flujos en una sola vista
+   de entregas pendientes. No es una tabla, es un SQL view o calculo en
+   el use case.
+
+6. AdminNotification es polimorfica via reference_type + reference_id
+   Puede apuntar a Order, Quote, Complaint o Supply segun el tipo
+   de notificacion.
+
+7. Prototype.stock_qty vs Supply.current_qty
+   Conceptos separados: Prototype.stock_qty es producto terminado
+   (se descuenta al aceptar orden). Supply.current_qty es materia prima
+   (se consume en fabricacion). No estan directamente relacionados en el
+   modelo de datos actual.
+
+8. Receipt.payment_id / Receipt.refund_id -> Payment.id / Refund.id
+   Receipts pueden provenir de un pago o de un reembolso. Ambos FK son
+   nullable. Un receipt siempre es de un tipo o del otro, nunca ambos.
+
+=== RESUMEN DE BASES DE DATOS ===
+
+Base de datos 1: PostgreSQL (Supabase) - api-core
+  Tablas: AdminUser, RefreshToken, Prototype, ProtoImage, Order, Quote,
+          Complaint, Supply, SupplyStockChangeLog, LowStockAlertState,
+          AdminNotification
+  Views/Proyecciones: DeliveryItem (UNION Order accepted + Quote paid)
+
+Base de datos 2: payment-service (propia, separada)
+  Tablas: Payment, Refund, Receipt, AuditLog
+  Comunicacion con api-core: HTTP + Webhooks, nunca comparte DB.

@@ -1,0 +1,40 @@
+sequenceDiagram
+    participant Customer
+    participant Landing as Landing (React)
+    participant ApiCore as api-core (NestJS)
+    participant PaymentSvc as payment-service (Java)
+    participant PayPal
+    participant Admin
+    participant Mailjet
+
+    Customer->>Landing: Fill complaint form (reference, name, email, phone, reason)
+    Landing->>ApiCore: POST /api/complaints {reference_type, reference_id, ...}
+    ApiCore->>ApiCore: Create Complaint(status=received)
+    ApiCore->>Mailjet: Send complaint receipt to customer (email with reference=id)
+    Mailjet-->>Customer: Receipt email with reference number
+    ApiCore->>Admin: WebSocket notification + email
+
+    Admin->>Admin: Review complaint in dashboard
+    alt Approve refund
+        Admin->>ApiCore: PATCH /api/admin/complaints/:id/approve-refund
+        alt reference_type=unknown or reference_id=null
+            ApiCore-->>Admin: 400 Error - no payment to refund
+        else Valid reference
+            ApiCore->>ApiCore: Generate unique refund_request_id
+            ApiCore->>PaymentSvc: POST /payments/orders/:ref/refund {reason, refund_request_id}
+            alt Refund already exists (idempotent)
+                PaymentSvc-->>ApiCore: Return existing Refund
+            else New refund
+                PaymentSvc->>PayPal: POST /v2/refunds/sale/:sale_id
+                PayPal-->>PaymentSvc: Refund confirmed
+                PaymentSvc->>PaymentSvc: Create Refund + Receipt
+                PaymentSvc-->>ApiCore: Refund processed
+            end
+            ApiCore->>ApiCore: Complaint.status = refund_approved
+            ApiCore->>Mailjet: Notify customer (refund approved)
+        end
+    else Resolve other way
+        Admin->>ApiCore: PATCH /api/admin/complaints/:id/resolve {resolution_notes, status}
+        ApiCore->>ApiCore: Complaint.status = resolved_other_way | rejected
+        ApiCore->>Mailjet: Notify customer (resolution)
+    end

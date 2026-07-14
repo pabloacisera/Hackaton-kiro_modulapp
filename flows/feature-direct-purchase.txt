@@ -1,0 +1,72 @@
+FLUJO: Compra directa (Flujo A)
+FUENTE: .kiro/specs/feature-direct-purchase/design.md
+
+QUE RESUELVE
+El cliente elige un prototipo ya fabricado y cotizado, paga via PayPal, y
+luego el admin acepta o rechaza la orden. El stock solo se descuenta si el
+admin acepta. Si rechaza, se ejecuta reembolso automatico.
+
+ACTORES INVOLUCRADOS
+- Cliente (desde el landing, boton "Comprar" en detalle de prototipo)
+- api-core (NestJS, orquesta la compra)
+- payment-service (Java, maneja PayPal Orders API y Refunds API)
+- Admin (desde admin-dashboard, acepta o rechaza)
+- BullMQ job (reconciliacion cada 5 min)
+- Mailjet (emails de confirmacion y reembolso)
+
+PASO A PASO
+1. Cliente hace clic "Comprar" en un prototipo del catalogo.
+2. Frontend envia POST /api/orders { prototype_id, customer_email }.
+3. api-core re-lee precio y stock del DB (no confia en lo que vio el cliente en pantalla).
+4. Si stock=0 y build_on_demand=false: bloquea pago con mensaje claro. No llega a PayPal.
+5. Si stock=0 y build_on_demand=true: permite (queda "bajo pedido").
+6. api-core crea Order en status=created.
+7. api-core llama a payment-service POST /payments/orders { reference_id, origin: 'order', amount_usd, customer_email, idempotency_key }.
+8. payment-service crea Payment(initiated), genera orden en PayPal, retorna { payment_link, payment_service_ref }.
+9. api-core retorna payment_link al frontend. Cliente redirige a PayPal.
+10. Cliente paga en PayPal.
+11. PayPal envia webhook a payment-service POST /payments/webhooks/paypal.
+12. payment-service valida firma, deduplica, actualiza Payment a confirmed/failed.
+13. Si confirmed: genera Receipts (customer + admin), llama a api-core webhook POST /api/orders/webhooks/payment-result { order_id, payment_service_ref, status: 'ok' }.
+14. api-core actualiza Order: status -> paid_pending_acceptance. Envia email de confirmacion al cliente. Notifica al admin via WebSocket.
+15. Stock AUN NO se descuenta.
+16. Admin revisa la orden en el dashboard:
+    a. Acepta: PATCH /api/orders/:id/accept { estimated_delivery_date }
+       - Descuenta stock.
+       - Status -> accepted.
+       - Genera receipt de pago.
+    b. Rechaza: PATCH /api/orders/:id/reject { reason }
+       - Status -> rejected.
+        - Llama a payment-service POST /payments/orders/:ref/refund { reason, refund_request_id }.
+       - Reembolso automatico via PayPal Refunds API.
+       - Notifica al cliente por email. No descuenta stock.
+17. Si el webhook de confirmacion no llega (falla de red):
+    - Job de reconciliacion (cada 5 min) busca Orders en payment_initiated con >10 min.
+    - Consulta status real a payment-service (que consulta PayPal).
+    - Actualiza segun corresponda.
+
+ESTADOS
+created -> payment_initiated -> paid_pending_acceptance -> accepted
+                                              |-> rejected (con reembolso automatico)
+           |-> payment_failed
+
+ENDPOINTS INVOLUCRADOS
+POST /api/orders                                -> inicia compra (publico)
+POST /api/orders/webhooks/payment-result        -> webhook de payment-service
+PATCH /api/orders/:id/accept                    -> admin acepta (JWT)
+PATCH /api/orders/:id/reject                    -> admin rechaza (JWT)
+GET /api/orders                                 -> listado admin con filtros
+
+DEPENDENCIAS CON OTROS FLUJOS
+- feature-payment-billing-java: ejecuta el pago y reembolso real.
+- feature-catalog-landing: el boton de compra viene del detalle del prototipo.
+- feature-order-delivery-schedule: una vez accepted, la orden entra en la vista unificada de entregas.
+- feature-realtime-notifications: notifica al admin de nueva compra pendiente.
+- feature-i18n-localization: idioma del email se guarda con el registro.
+
+NOTAS / DECISIONES DE DISENO RELEVANTES
+- El precio se re-lee server-side al momento de crear la orden. SSE es solo UX, nunca fuente de verdad para cobro.
+- Stock NO se descuenta al pagar. Solo al aceptar el admin. Esto protege contra fraudes y permite al admin rechazar.
+- Idempotencia en payment-service: cada operacion lleva idempotency_key unico. Segunda llamada con mismo key retorna resultado existente.
+- Job de reconciliacion cubre webhooks perdidos. Verifica contra PayPal cada 5 min para orders en payment_initiated.
+- No hay expiracion automatica para Flow A. La orden queda pendiente indefinidamente hasta que el admin actue (pregunta abierta en roadmap).

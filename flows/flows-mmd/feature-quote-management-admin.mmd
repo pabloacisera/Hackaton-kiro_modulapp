@@ -1,0 +1,29 @@
+flowchart TD
+    A[Admin opens Quotes section] --> B[GET /api/admin/quotes with filters]
+    B --> C[QuotesTable - tabs by status + search + pagination]
+    C --> D{Admin action?}
+    D -->|Click quote| E[QuoteDetail with TimelineStatus]
+    D -->|Filter by status| F[Update filters, re-fetch]
+    F --> B
+
+    E --> G[Show calculated timeline from timestamps]
+    G --> G1[quote_sent_at]
+    G --> G2[accepted_at]
+    G --> G3[rejected_at]
+    G --> G4[paid_at]
+
+    D -->|Postpone delivery| H[PostponeQuoteModal]
+    H --> I[PATCH /api/quotes/:id/postpone {new_delivery_date, reason}]
+    I --> J[Send email notification to customer]
+    I --> K[Quote remains in current state - complaint/refund still available]
+
+    subgraph Timeline["TimelineStatus Component"]
+        T1[pending] --> T2[quoted - with timestamp]
+        T2 --> T3[accepted - with timestamp]
+        T2 --> T4[rejected - with timestamp]
+        T2 --> T5[expired - calculated by job]
+        T3 --> T6[paid - with timestamp]
+        T3 --> T7[payment_expired - calculated by job]
+    end
+
+    style Timeline fill:#e8eaf6,stroke:#283593

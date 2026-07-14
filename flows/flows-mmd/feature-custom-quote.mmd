@@ -1,0 +1,56 @@
+sequenceDiagram
+    participant Customer
+    participant Landing as Landing (React)
+    participant ApiCore as api-core (NestJS)
+    participant PaymentSvc as payment-service (Java)
+    participant Admin
+    participant Mailjet
+    participant BullMQ
+
+    Customer->>Landing: Fill quote form (name, email, phone, description, needed_by_date)
+    Landing->>ApiCore: POST /api/quotes {name, email, phone, ...}
+    alt Missing required fields
+        ApiCore->>ApiCore: Create discarded_incomplete_data record
+        ApiCore->>Admin: Notify admin of discarded quote
+        ApiCore-->>Customer: Error - incomplete data
+    else All fields present
+        ApiCore->>ApiCore: Create Quote(status=pending)
+        ApiCore-->>Customer: Quote submitted confirmation
+        ApiCore->>Admin: WebSocket + email notification
+    end
+
+    Admin->>ApiCore: PATCH /api/quotes/:id/present {price_usd, lead_time_days}
+    ApiCore->>ApiCore: Quote.status = quoted, generate signed JWT token (48h expiry)
+    ApiCore->>Mailjet: Send quote email with Accept/Reject buttons
+    Mailjet-->>Customer: Quote email with magic links
+
+    alt Customer clicks Accept (within 48h)
+        Customer->>ApiCore: GET /api/quotes/:id/accept?token=...
+        ApiCore->>ApiCore: Verify JWT signature + expiration
+        ApiCore->>ApiCore: Verify action_token_used=false
+        ApiCore->>ApiCore: Set action_token_used=true + status=accepted (atomic)
+        ApiCore->>PaymentSvc: POST /payments/orders {reference_id, amount_usd, ...}
+        PaymentSvc->>PaymentSvc: Create Payment(initiated), create PayPal order
+        PaymentSvc-->>ApiCore: {payment_link, payment_service_ref}
+        ApiCore->>ApiCore: Quote.status = payment_initiated
+        ApiCore-->>Customer: Redirect to PayPal payment link
+        Note over Customer: 24h to complete payment
+    else Customer clicks Reject
+        Customer->>ApiCore: GET /api/quotes/:id/reject?token=...
+        ApiCore->>ApiCore: Verify token, set used=true, status=rejected
+        ApiCore->>Admin: Notify admin (quote rejected)
+    else No response in 48h
+        BullMQ->>ApiCore: quote-expiration-check job
+        ApiCore->>ApiCore: Quote.status = expired
+        ApiCore->>Admin: Notify admin (quote expired)
+    end
+
+    alt Payment completed within 24h
+        PaymentSvc->>ApiCore: Webhook - payment confirmed
+        ApiCore->>ApiCore: Quote.status = paid
+        ApiCore->>Mailjet: Send payment receipt
+    else Payment not completed in 24h
+        BullMQ->>ApiCore: quote-payment-expiration-check job
+        ApiCore->>ApiCore: Quote.status = payment_expired
+        ApiCore->>Admin: Notify admin (payment expired)
+    end

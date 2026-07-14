@@ -1,0 +1,52 @@
+flowchart TD
+    subgraph Turborepo["Turborepo (JS/TS only)"]
+        T1[turbo.json - workspaces: apps/*, services/api-core]
+        T2[apps/landing - React build]
+        T3[apps/admin-dashboard - React build]
+        T4[services/api-core - NestJS build]
+    end
+
+    subgraph Docker["Docker Compose"]
+        D1[api-core Dockerfile - multi-stage: build + runtime]
+        D2[payment-service Dockerfile - Maven build + JRE runtime]
+        D3[landing + admin-dashboard Dockerfile - dist for Nginx]
+        D4[Nginx - reverse proxy + statics]
+        D5[Redis - local for dev]
+        D6[PostgreSQL/Supabase]
+    end
+
+    subgraph CI["GitHub Actions CI (extended)"]
+        C1[ci.yml base - lint, test, build (created by scaffold-monorepo)]
+        C2[Docker image build/push for payment-service (this feature)]
+        C3[Maven build job for payment-service]
+    end
+
+    subgraph Scripts["Scripts"]
+        S1[dev-up.sh - starts docker-compose for dev]
+        S2[prod-up.sh - runs docker-compose.prod.yml]
+        S3[seed-db.sh - TS seeder with faker]
+    end
+
+    T1 --> T2
+    T1 --> T3
+    T1 --> T4
+    T2 --> D3
+    T3 --> D3
+    T4 --> D1
+    D1 --> D4
+    D2 --> D4
+    D3 --> D4
+    D4 -->|/api| D1
+    D4 -->|/payments| D2
+    D1 --> D6
+    D1 --> D5
+    C1 --> T1
+    C2 --> D2
+    C3 --> D2
+    C1 -.->|extended by| C2
+    C1 -.->|extended by| C3
+
+    style Turborepo fill:#e3f2fd,stroke:#1565c0
+    style Docker fill:#fce4ec,stroke:#c62828
+    style CI fill:#e8f5e9,stroke:#2e7d32
+    style Scripts fill:#fff3e0,stroke:#e65100

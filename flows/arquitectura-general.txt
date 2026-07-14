@@ -1,0 +1,91 @@
+FLUJO: Arquitectura general
+FUENTE: PROJECT_OVERVIEW.md
+
+QUE RESUELVE
+Diagrama completo de la arquitectura del sistema: como se conectan todos
+los servicios, bases de datos, y canales de comunicacion. Punto de referencia
+para entender el sistema como un todo antes de entrar a cada flujo individual.
+
+ACTORES INVOLUCRADOS
+- Nginx (reverse proxy, sirve estaticos de React en produccion)
+- Landing (React, SPA publica)
+- Admin-dashboard (React, SPA protegida)
+- api-core (NestJS, backend principal, Clean Architecture)
+- payment-service (Java/Spring Boot, microservicio financiero aislado)
+- PostgreSQL/Supabase (base de datos principal de api-core)
+- Redis/Upstash (cache, colas BullMQ, rate limiting, pub/sub WebSocket)
+- PayPal (pasarela de pago externa)
+- Mailjet (servicio de email transaccional)
+
+COMUNICACION ENTRE SERVICIOS
+
+api-core -> payment-service
+  HTTP sincronico: POST /payments/orders (iniciar pago)
+                   POST /payments/orders/:ref/refund (ejecutar reembolso)
+
+payment-service -> api-core
+  Webhook: POST /api/orders/webhooks/payment-result (confirmar/fallar pago de Order)
+           POST /api/quotes/webhooks/payment-result (confirmar/fallar pago de Quote)
+
+api-core -> Landing
+  SSE: /api/catalog/stream (eventos de precio/stock/availability en vivo)
+
+api-core -> Admin-dashboard
+  WebSocket: eventos de notificacion (nueva compra, cotizacion, reclamo, stock bajo)
+
+api-core -> Redis
+  BullMQ: jobs programados (expiracion de cotizaciones, verificacion de stock, reconciliacion de pagos)
+
+payment-service -> PayPal
+  PayPal Orders API: crear orden de pago
+  PayPal Refunds API: ejecutar reembolsos
+  PayPal Webhooks: recibir confirmaciones de pago
+
+api-core -> Mailjet
+  Emails transaccionales (confirmacion, cotizacion, aceptacion, receipt, etc.)
+
+ESTRUCTURA DEL MONOREPO
+
+.kiro/              Agent rules and feature specs
+docs/              Documentacion para desarrolladores humanos
+scripts/           Automatizacion (bash)
+apps/              Landing y admin-dashboard (React)
+services/          api-core (NestJS) y payment-service (Java/Spring Boot)
+infra/             Docker y Nginx
+packages/          Tipos/DTOs compartidos (Turborepo)
+.github/           CI pipeline (GitHub Actions)
+
+DEV TOOLING (configurado en feature-scaffold-monorepo)
+- ESLint + Prettier: configs compartidos en raiz (.eslintrc.js, .prettierrc).
+  Cada workspace extiende la config raiz. pnpm lint / pnpm format.
+- Testing: Vitest para React apps (landing, admin-dashboard), Jest para
+  NestJS (api-core). pnpm test corre en todos los workspaces JS/TS.
+- Git hooks: husky + lint-staged. Pre-commit hook corre ESLint + Prettier
+  solo en archivos staged. Bloquea commits con errores de lint.
+- CI pipeline: .github/workflows/ci.yml (creado por feature-scaffold-monorepo).
+  lint + test + build para todos los workspaces JS/TS. Corre en PR y push a main.
+  Usa Turborepo cache. payment-service (Java) NO esta en este pipeline aun.
+- README.md raiz con: prerequisitos, quick-start, arquitectura, links a docs.
+
+ESTADOS
+No hay maquina de estados. Es una descripcion estructural del sistema.
+
+ENDPOINTS INVOLUCRADOS
+(Todos los endpoints de todos los flujos. Ver archivos individuales.)
+
+DEPENDENCIAS CON OTROS FLUJOS
+- Todos los flujos existen dentro de esta arquitectura.
+- feature-admin-auth-core: protege todas las rutas /admin/**.
+- feature-scaffold-monorepo: crea la base del monorepo, dev tooling (ESLint, Prettier, husky, testing) y el pipeline CI minimo (lint + test + build).
+- feature-infra-deploy: extiende CI con Docker build y Maven job para payment-service. Configura Docker, Nginx, deploy.
+- feature-realtime-notifications: provee WebSocket y SSE.
+
+NOTAS / DECISIONES DE DISENO RELEVANTES
+- Golden rule: nunca perder sincronia entre landing y admin. Cualquier cambio de precio/stock/activos en el admin DEBE propagarse al landing via SSE antes de que el cliente pueda pagar algo desactualizado.
+- payment-service es un "caja fuerte" aislado. Solo se comunica via HTTP, nunca comparte base de datos con api-core.
+- Turborepo orquesta JS/TS. Java queda fuera del grafo, solo orquestado por Docker Compose.
+- CI pipeline se crea en feature-scaffold-monorepo (lint + test + build). feature-infra-deploy lo extiende con Docker build y Maven job para payment-service.
+- Dev tooling compartido: ESLint + Prettier en raiz, husky + lint-staged en pre-commit, Vitest/Jest segun workspace.
+- Customer identity: sin cuentas de usuario. Todo se resuelve via email + tokens firmados (magic links).
+- PayPal es la unica pasarela de pago. Currency: USD unico.
+- Moneda: USD unico en toda la plataforma.
