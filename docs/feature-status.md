@@ -18,4 +18,4 @@ feature's `tasks.md` are marked as done.
 | `feature-order-delivery-schedule` | Pending | 0/6 | — |
 | `feature-complaints-refunds` | Pending | 0/9 | — |
 | `feature-i18n-localization` | Pending | 0/10 | — |
-| `feature-infra-deploy` | Pending | 0/8 | — |
+| `feature-infra-deploy` | Pending | 0/7 | — |

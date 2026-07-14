@@ -12,10 +12,10 @@
   - Depends on: none
   - Assigned to: unassigned
   - Done criteria:
-    - Migration creates `complaints` table with columns: id, order_reference (nullable), customer_email, customer_name, reason, description, status (enum: received, under_review, refund_approved, rejected, resolved_other_way), resolution_notes, payment_reference (nullable), created_at, updated_at.
+    - Migration creates `complaints` table with columns: id, reference_type (enum: order, quote, unknown), reference_id (nullable uuid), customer_email, customer_name, customer_phone (nullable), reason, description, status (enum: received, under_review, refund_approved, rejected, resolved_other_way), resolution_notes, payment_reference (nullable), created_at, updated_at.
     - `Complaint` entity maps to table, includes state machine with valid transitions: received→under_review, under_review→refund_approved, under_review→rejected, under_review→resolved_other_way.
-    - `POST /complaints` accepts `{ orderReference?, customerEmail, customerName, reason, description }`, persists complaint with status `received`, returns complaint with generated reference number.
-    - Unit tests embedded: valid transitions allowed, invalid transitions (received→refund_approved, refund_approved→rejected) blocked, unknown order reference still creates complaint. All pass.
+    - `POST /complaints` accepts `{ referenceType?, referenceId?, customerEmail, customerName, customerPhone?, reason, description }`, persists complaint with status `received`, returns complaint with generated reference number.
+    - Unit tests embedded: valid transitions allowed, invalid transitions (received→refund_approved, refund_approved→rejected) blocked, unknown reference type still creates complaint. All pass.
 
 - [ ] TASK-complaint-2: Complaint receipt email + admin notification
   - Context: FR2 — On submission, admin is notified and a complaint receipt is sent to customer. FR (non-functional): receipt is always sent regardless of later refund decision — it is proof of receipt, not resolution.

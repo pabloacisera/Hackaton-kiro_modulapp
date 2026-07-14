@@ -31,14 +31,14 @@
 - [ ] TASK-notif-5: Integrate `notifyAdmins()` — direct-purchase flow
   - Context: FR1 — admin receives new purchase event (Flow A) without page reload. Calls `notifyAdmins()` from the direct-purchase module when an order is confirmed.
   - Deliverable: `services/api-core/src/modules/direct-purchase/` (updated service file calling `notifyAdmins`)
-  - Depends on: TASK-notif-1, TASK-directpurchase-7
+  - Depends on: TASK-notif-1, TASK-directpurchase-4
   - Assigned to: unassigned
   - Done criteria: after order confirmation, a notification of type `NEW_PURCHASE` is created with correct reference link (FR2); notification is delivered via WebSocket to connected admins.
 
 - [ ] TASK-notif-6: Integrate `notifyAdmins()` — quotes flow
   - Context: FR1 — admin receives new quote request/response event (Flow B) without page reload. Calls `notifyAdmins()` from the quotes module on new request and response.
   - Deliverable: `services/api-core/src/modules/quotes/` (updated service file calling `notifyAdmins`)
-  - Depends on: TASK-notif-1, TASK-quoteB-11
+  - Depends on: TASK-notif-1, TASK-quoteB-9
   - Assigned to: unassigned
   - Done criteria: after a quote request or response, a notification of type `NEW_QUOTE` or `QUOTE_RESPONSE` is created with correct reference link (FR2); notification is delivered via WebSocket to connected admins.
 

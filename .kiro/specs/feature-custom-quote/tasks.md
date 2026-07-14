@@ -68,7 +68,7 @@
   - Deliverable: `services/api-core/src/modules/quotes/infrastructure/jobs/quote-expiration-check.job.ts`, `services/api-core/src/modules/quotes/infrastructure/jobs/quote-payment-expiration-check.job.ts`, `services/api-core/src/modules/quotes/infrastructure/jobs/quote-expiration-check.spec.ts`, `services/api-core/src/modules/quotes/infrastructure/jobs/quote-payment-expiration-check.spec.ts`
   - Depends on: TASK-quoteB-1, TASK-quoteB-9
   - Assigned to: unassigned
-  - Done criteria: `quote-expiration-check` job finds `quoted` quotes past 48h and transitions to `expired`; `quote-payment-expiration-check` job finds `payment_initiated` quotes past payment_deadline and transitions to `expired`; neither job touches quotes in other states; expired quotes are not processed twice; unit tests cover expiration of quoted quotes, expiration of payment-initiated quotes, skipping non-eligible quotes, and idempotent re-runs. All tests pass.
+  - Done criteria: `quote-expiration-check` job finds `quoted` quotes past 48h and transitions to `expired`; `quote-payment-expiration-check` job finds `payment_initiated` quotes past payment_deadline and transitions to `payment_expired`; neither job touches quotes in other states; expired quotes are not processed twice; unit tests cover expiration of quoted quotes, expiration of payment-initiated quotes, skipping non-eligible quotes, and idempotent re-runs. All tests pass.
 
 - [ ] TASK-quoteB-11: Archive endpoint + admin listing with filters/search/pagination
   - Context: FR5 requires admin to archive rejected quotes. FR7 requires admin to manually archive expired quotes. Admin needs a listing view to manage all quotes.
