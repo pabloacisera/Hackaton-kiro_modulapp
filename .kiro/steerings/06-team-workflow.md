@@ -28,7 +28,7 @@
 │     └── CI green → Agent reviews → Owner merges                             │
 │                                                                             │
 │  5. Dev2 syncs from main (pulls the merged PR)                              │
-│     └── git fetch upstream && git rebase upstream/main                       │
+│     └── git pull upstream main                                               │
 │                                                                             │
 │  6. Dev2 executes microtask                                                 │
 │     └── Implements task, runs tests, creates PR                             │
@@ -54,7 +54,7 @@
 
 1. **Owner creates the branch** — developers do NOT create branches in their forks
 2. **Each microtask = 1 PR** — no PRs for individual microtasks, no PRs for the entire feature
-3. **Sync before starting** — always `git fetch upstream && git rebase upstream/main` (never from feature branch)
+3. **Sync before starting** — always `git pull upstream main` (never from feature branch)
 4. **Owner merges** — only the owner can merge PRs to `main`
 5. **PR title format** — `[feature/<name>] TASK-<n>: <short imperative summary>`
 
@@ -64,28 +64,12 @@ If your repository gets out of sync, always pull from **main**:
 
 ```bash
 # Always sync from main (this brings all merged PRs)
-git fetch upstream
-git rebase upstream/main
+git pull upstream main
 ```
 
-**If you have uncommitted local changes:**
-```bash
-git fetch upstream
-git stash                              # save your changes temporarily
-git rebase upstream/main               # sync with main
-git stash pop                          # restore your changes
-```
+If you have conflicts, ask the owner for help resolving them.
 
-**If rebase has conflicts:**
-```bash
-# Resolve conflicts in the files, then:
-git add <resolved-files>
-git rebase --continue
-# If you want to abort:
-git rebase --abort
-```
-
-**The rule**: always `git fetch upstream` first, then `git rebase upstream/main`. Never pull from the feature branch — main always has the latest merged PRs.
+**The rule**: always `git pull upstream main`. Never pull from the feature branch — main always has the latest merged PRs.
 
 ---
 

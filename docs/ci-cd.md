@@ -28,7 +28,7 @@ Lint → Test → Build (Turborepo cache) → Docker image build → Deploy
 ## Payment service (Java)
 
 `payment-service` has its own Maven build job that runs in parallel to the
-Turborepo pipeline. It is added by `TASK-infra-10`.
+Turborepo pipeline. It is added by `TASK-infra-5`.
 
 ## Branch protection
 
