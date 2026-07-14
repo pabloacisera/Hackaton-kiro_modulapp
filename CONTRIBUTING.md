@@ -3,6 +3,94 @@
 Guidelines for human collaborators and their coding agents working on this
 project. For the full agent rules, see `.kiro/steerings/00-project-context.md`.
 
+---
+
+## ⚡ COLLABORATIVE FLOW — THE PRIMARY WORKFLOW
+
+**This is how we work. Multiple developers, one feature, microtask PRs.**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         COLLABORATIVE FEATURE FLOW                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  1. Owner creates branch in repo                                            │
+│     └── <number>-feature-<feature-name>                                     │
+│                                                                             │
+│  2. Dev1 syncs                                                              │
+│     └── git fetch upstream && git checkout <branch>                         │
+│                                                                             │
+│  3. Dev1 executes microtask                                                 │
+│     └── Implements task, runs tests, creates PR                             │
+│         PR title: [feature/X] TASK-1: <title>                               │
+│                                                                             │
+│  4. Owner reviews + merges PR                                               │
+│     └── CI green → Agent reviews → Owner merges                             │
+│                                                                             │
+│  5. Dev2 syncs                                                              │
+│     └── git fetch upstream && git pull upstream <branch>                     │
+│                                                                             │
+│  6. Dev2 executes microtask                                                 │
+│     └── Implements task, runs tests, creates PR                             │
+│         PR title: [feature/X] TASK-2: <title>                               │
+│                                                                             │
+│  7. Repeat until all microtasks complete                                    │
+│     └── Feature done — no final PR needed (all already merged)              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Why this flow?
+
+| Benefit | Explanation |
+|---|---|
+| **No fork coordination** | Everyone works from the same upstream branch |
+| **Fast feedback** | Each microtask is reviewed immediately |
+| **Easy rollback** | Revert one small PR if something breaks |
+| **Clear ownership** | Each microtask has a single author |
+| **No "passing the baton"** | Next developer just syncs and continues |
+
+### Key rules
+
+1. **Owner creates the branch** — developers do NOT create branches in their forks
+2. **Each microtask = 1 PR** — no PRs for individual microtasks, no PRs for the entire feature
+3. **Sync before starting** — always `git fetch upstream && git pull upstream <branch>`
+4. **Owner merges** — only the owner can merge PRs to `main`
+5. **PR title format** — `[feature/<name>] TASK-<n>: <short imperative summary>`
+
+### Recovery: What if my repo falls behind?
+
+If your repository gets out of sync, just pull the latest from upstream:
+
+```bash
+# Bring latest changes from the feature branch
+git fetch upstream
+git pull upstream <feature-branch>
+
+# Or bring latest changes from main
+git fetch upstream
+git pull upstream main
+```
+
+**If you have uncommitted local changes:**
+```bash
+git fetch upstream
+git stash                          # save your changes temporarily
+git pull upstream <feature-branch>
+git stash pop                      # restore your changes
+```
+
+**If you have commits in your fork not in upstream:**
+```bash
+git fetch upstream
+git rebase upstream/<feature-branch>
+git push --force-with-lease origin <feature-branch>  # push to your fork
+```
+
+**The rule**: always `git fetch upstream` first to see what changed, then `git pull` to integrate. If there are merge conflicts, resolve them before continuing.
+
+---
+
 ## Getting started
 
 1. **Fork** the repository (collaborators work via forks — only the owner
@@ -16,19 +104,33 @@ project. For the full agent rules, see `.kiro/steerings/00-project-context.md`.
 ## Branching and PRs
 
 - **Feature branches**: `<number>-feature-<feature-name>` (e.g.,
-  `1-feature-admin-auth-core`). **Always create in your own fork**, not
-  in the owner's repo. Everyone works in parallel.
+  `1-feature-admin-auth-core`). **Owner creates in the repo**, developers
+  sync via upstream. Multiple developers can work on the same feature.
 - **Issue branches**: `<number>-fix-issue-<id>-<slug>` (e.g.,
   `3-fix-issue-12-stock-double-deduction`).
 - **Small fixes** (1-2 files, no tests): commit directly to `main` or the
   active feature branch — but ask the owner first.
 
-**One PR per feature**: when ALL microtasks are complete, create a single
-PR from your fork to `main`. Do NOT create PRs for individual microtasks.
-If your feature depends on another that isn't merged yet, mock it (see
-`docs/integration-testing-guide.md`). **Only the owner merges.** See
-`.kiro/steerings/04-pull-requests.md` for the full PR format and merge
-requirements.
+### PR model options
+
+| Model | When to use | PR count per feature |
+|---|---|---|
+| **1 microtask = 1 PR** | Collaborative features, pair programming | N microtasks = N PRs |
+| **1 feature = 1 PR** | Single developer, feature complete | 1 PR per feature |
+
+**Default**: Use "1 microtask = 1 PR" for collaborative work. Use "1 feature = 1 PR" when a single developer owns the entire feature.
+
+**PR title format for microtasks**:
+```
+[feature/<feature-name>] TASK-<n>: <short imperative summary>
+```
+
+Examples:
+- `[feature/admin-auth] TASK-auth-1: create User entity and migration`
+- `[feature/admin-auth] TASK-auth-2: implement login endpoint`
+
+**Only the owner merges.** See `.kiro/steerings/04-pull-requests.md` for the
+full PR format and merge requirements.
 
 ## Keeping your fork in sync
 
@@ -38,8 +140,16 @@ Add the owner's repo as a second remote, once, right after forking:
 git remote add upstream <owner-repo-url>
 ```
 
-Before starting any new microtask, and again before opening your PR, bring
-in what changed upstream and replay your commits on top of it:
+### Before starting a new microtask
+
+```
+git fetch upstream
+git checkout <feature-branch>  # if branch exists
+# OR
+git checkout -b <feature-branch> upstream/<feature-branch>  # if first time
+```
+
+### Before opening your PR (single developer model)
 
 ```
 git fetch upstream
@@ -57,6 +167,16 @@ git push --force-with-lease origin <your-branch>
 pushed to that same branch on your fork in the meantime, the push stops
 instead of silently overwriting it.
 
+### After someone else's PR is merged (collaborative model)
+
+When working on the same feature with other developers, after their PR is merged:
+
+```
+git fetch upstream
+git pull upstream <feature-branch>
+# Continue with your microtask
+```
+
 **If your agent runs this sync for you**, it must report back first: what
 landed upstream since your last sync (commits/PRs, author, one-line
 summary), which files those commits touched, and whether any of them
@@ -68,10 +188,20 @@ your next step without showing you this first.
 
 - Implement microtasks assigned to you in `tasks.md`.
 - Run tests locally before opening a PR.
-- Open PRs from your fork.
+- Open PRs from your fork (one per microtask, or one per feature).
 - Leave informal peer feedback on any PR (regardless of who worked on what).
 - Create issue files in your fork and submit them as PRs (see
-  `.kiro/steerings/02-issues-y-bugs.md`).
+  `.kiro/steerings/02-issues-and-bugs.md`).
+
+### Working on the same feature with multiple developers
+
+When multiple developers work on the same feature:
+
+1. Owner creates the feature branch in the repo
+2. Each developer syncs via upstream before starting their microtask
+3. Each microtask generates its own PR
+4. After PR is merged, next developer syncs and continues
+5. No "passing the baton" between forks — everyone works from the same upstream branch
 
 ## What your agent can do (and cannot)
 
@@ -128,6 +258,9 @@ Vamos a comenzar con la feature <nombre>. Antes de nada:
     specs/design/tasks.
 (4) Revisá docs/roadmap.md y docs/feature-status.md para ver el orden
     sugerido y si hay dependencias de otras features no mergeadas.
+(5) Fijate en docs/feature-status.md si feature-scaffold-monorepo está
+    completada — si no lo está, esa es la que hay que hacer primero.
+    Nada funciona sin scaffolding.
 
 Si algo de esto es ambiguo o depende de una decisión de negocio que no está
 escrita, parás y preguntás — no asumís nada.
@@ -185,6 +318,23 @@ Review PR #42. Además del checklist estándar, chequeá:
 
 Al final decime si está en condiciones de mergear, o qué bloquea — vos no
 aprobás ni mergeas, decidís y me das el reporte.
+```
+
+### 5. Continue working on a collaborative feature
+
+When you need to continue working on a feature where someone else already
+merged their microtask:
+
+```
+Necesito continuar con la feature <nombre>. Antes de nada:
+(1) Sincronizá contra upstream/<feature-branch> y reportame qué llegó
+    desde la última vez y si algo se cruza con lo que voy a hacer.
+(2) Leé el tasks.md de la feature para ver qué microtasks quedan pendientes
+    y cuáles ya están completadas.
+(3) Asigná la microtask que voy a ejecutar.
+
+Si hay conflictos de merge o algo se cruza con lo que ya está hecho, parás
+y preguntás — no asumís nada.
 ```
 
 ### Universal rule

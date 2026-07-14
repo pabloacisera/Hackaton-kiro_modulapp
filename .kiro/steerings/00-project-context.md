@@ -105,6 +105,26 @@ Commits belong to whoever made them (the author), not to the project owner.
 - The agent owns its commits in branches it created
 - **NOBODY** can commit directly to `main` without owner approval
 
+## Feature execution order
+
+The file `docs/roadmap.md` defines the **suggested implementation order** with
+phases and dependency notes. Before starting any feature, the agent MUST:
+
+1. Read `docs/roadmap.md` to see the numbered order and phases.
+2. Read `docs/feature-status.md` to check which features are already done.
+3. Propose the next feature to work on based on:
+   - The roadmap order (respect phases — don't skip ahead).
+   - Dependencies (check `design.md` `## Cross-feature dependencies` sections).
+   - What the human (owner) asks for.
+
+The agent MUST NOT自主地 skip to a later feature unless the owner explicitly
+directs it. If the owner asks to start a feature that depends on unmerged
+features, the agent MUST flag the dependency and ask how to proceed (mock,
+wait, or reorder).
+
+`feature-scaffold-monorepo` is Phase 0 — it MUST complete before any other
+feature can start. No app or service code can be executed without it.
+
 ## Authorization points for the agent
 
 The agent MUST stop and ask for human authorization at these points:

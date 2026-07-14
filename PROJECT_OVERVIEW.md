@@ -100,7 +100,7 @@ Copilot, etc.). Full details in `.kiro/steerings/00-project-context.md`.
 |---|---|
 | `steerings/00-project-context.md` | Business decisions, architecture, authorization points |
 | `steerings/01-feature-flow.md` | Feature lifecycle, microtask format, branch naming |
-| `steerings/02-issues-y-bugs.md` | Issue registration and fix planning |
+| `steerings/02-issues-and-bugs.md` | Issue registration and fix planning |
 | `steerings/03-code-review.md` | Code review checklist (financial reinforced section) |
 | `steerings/04-pull-requests.md` | PR format and merge requirements |
 | `steerings/05-architecture-conventions.md` | MVC frontend, Clean Architecture backend, testing |
@@ -146,6 +146,7 @@ packages/           Shared types/DTOs (Turborepo)
 - **New developer**: read this file, then `docs/roadmap.md`, then
   `docs/team.md`.
 - **New coding agent**: read `.kiro/steerings/00-project-context.md` first,
-  then the relevant feature's `tasks.md` in `.kiro/specs/<feature>/`.
+  then `docs/roadmap.md` for execution order, then `docs/feature-status.md`
+  for current progress. The owner will direct which feature to work on.
 - **Reviewing a feature**: check `docs/feature-status.md` for current
   progress, then the feature's `design.md` for architectural decisions.

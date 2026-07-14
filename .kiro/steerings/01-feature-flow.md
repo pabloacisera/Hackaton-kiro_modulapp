@@ -1,5 +1,93 @@
 # How to create a feature
 
+---
+
+## ⚡ COLLABORATIVE FEATURE FLOW — THE PRIMARY WORKFLOW
+
+**This is how we build features. Multiple developers, microtask PRs.**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         COLLABORATIVE FEATURE FLOW                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  1. Owner creates branch in repo                                            │
+│     └── <number>-feature-<feature-name>                                     │
+│                                                                             │
+│  2. Dev1 syncs                                                              │
+│     └── git fetch upstream && git checkout <branch>                         │
+│                                                                             │
+│  3. Dev1 executes microtask                                                 │
+│     └── Implements task, runs tests, creates PR                             │
+│         PR title: [feature/X] TASK-1: <title>                               │
+│                                                                             │
+│  4. Owner reviews + merges PR                                               │
+│     └── CI green → Agent reviews → Owner merges                             │
+│                                                                             │
+│  5. Dev2 syncs                                                              │
+│     └── git fetch upstream && git pull upstream <branch>                     │
+│                                                                             │
+│  6. Dev2 executes microtask                                                 │
+│     └── Implements task, runs tests, creates PR                             │
+│         PR title: [feature/X] TASK-2: <title>                               │
+│                                                                             │
+│  7. Repeat until all microtasks complete                                    │
+│     └── Feature done — no final PR needed (all already merged)              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Why this flow?
+
+| Benefit | Explanation |
+|---|---|
+| **No fork coordination** | Everyone works from the same upstream branch |
+| **Fast feedback** | Each microtask is reviewed immediately |
+| **Easy rollback** | Revert one small PR if something breaks |
+| **Clear ownership** | Each microtask has a single author |
+| **No "passing the baton"** | Next developer just syncs and continues |
+
+### Key rules
+
+1. **Owner creates the branch** — developers do NOT create branches in their forks
+2. **Each microtask = 1 PR** — no PRs for individual microtasks, no PRs for the entire feature
+3. **Sync before starting** — always `git fetch upstream && git pull upstream <branch>`
+4. **Owner merges** — only the owner can merge PRs to `main`
+5. **PR title format** — `[feature/<name>] TASK-<n>: <short imperative summary>`
+
+### Recovery: What if my repo falls behind?
+
+If your repository gets out of sync, just pull the latest from upstream:
+
+```bash
+# Bring latest changes from the feature branch
+git fetch upstream
+git pull upstream <feature-branch>
+
+# Or bring latest changes from main
+git fetch upstream
+git pull upstream main
+```
+
+**If you have uncommitted local changes:**
+```bash
+git fetch upstream
+git stash                          # save your changes temporarily
+git pull upstream <feature-branch>
+git stash pop                      # restore your changes
+```
+
+**If you have commits in your fork not in upstream:**
+```bash
+git fetch upstream
+git rebase upstream/<feature-branch>
+git push --force-with-lease origin <feature-branch>  # push to your fork
+```
+
+**The rule**: always `git fetch upstream` first to see what changed, then `git pull` to integrate. If there are merge conflicts, resolve them before continuing.
+
+---
+
 ## 1. Mandatory structure
 
 Every feature lives in `.kiro/specs/<feature-name>/` with exactly three files:
@@ -62,15 +150,27 @@ expected and correct.
 3. Write `design.md`. If there is unresolved business ambiguity, stop and
    ask — never assume (see `00-project-context.md`).
 4. Decompose into `tasks.md` following the microtask rule.
-5. **Create a feature branch IN YOUR FORK** (see naming conventions below).
-   Do NOT create the branch in the owner's repo — always in your own fork.
-6. Implement microtasks within the feature branch. If your feature depends
-   on another feature that isn't merged yet, **mock the dependency** (see
-   `docs/integration-testing-guide.md`). Do NOT wait for the dependency.
-7. When ALL tasks in the feature are complete, create **one PR for the entire feature**.
-8. After merge, mark the feature as complete in `docs/feature-status.md`.
+5. **Owner creates feature branch in the repo** (see naming conventions below).
+   Developers sync via upstream.
+6. Implement microtasks. Each microtask generates its own PR:
+   - Developer syncs: `git fetch upstream && git checkout <branch>`
+   - Developer implements microtask
+   - Developer creates PR: `[feature/<name>] TASK-<n>: <title>`
+   - Owner reviews + merges PR
+   - Next developer syncs and continues
+7. After all microtasks are merged, the feature is complete.
+8. Mark the feature as complete in `docs/feature-status.md`.
    **IMPORTANT**: The agent MUST ask owner confirmation before updating
    `docs/feature-status.md` or any other documentation file.
+
+### PR model options
+
+| Model | When to use | PR count per feature |
+|---|---|---|
+| **1 microtask = 1 PR** | Collaborative features, pair programming | N microtasks = N PRs |
+| **1 feature = 1 PR** | Single developer, feature complete | 1 PR per feature |
+
+**Default**: Use "1 microtask = 1 PR" for collaborative work. Use "1 feature = 1 PR" when a single developer owns the entire feature.
 
 ## 4. Branch naming conventions
 

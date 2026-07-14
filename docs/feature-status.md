@@ -6,6 +6,7 @@ feature's `tasks.md` are marked as done.
 
 | Feature | Status | Tasks | PR |
 |---|---|---|---|
+| `feature-scaffold-monorepo` | Pending | 0/10 | — |
 | `feature-admin-auth-core` | Pending | 0/13 | — |
 | `feature-catalog-landing` | Pending | 0/12 | — |
 | `feature-supply-stock-management` | Pending | 0/11 | — |

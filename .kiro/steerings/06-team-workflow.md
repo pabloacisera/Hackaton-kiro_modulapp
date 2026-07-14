@@ -3,6 +3,94 @@
 > This document explains in simple terms how the entire development process works.
 > Every team member (human or agent) must read this before starting work.
 
+---
+
+## ⚡ COLLABORATIVE FLOW — THE PRIMARY WORKFLOW
+
+**This is how we work. Multiple developers, one feature, microtask PRs.**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         COLLABORATIVE FEATURE FLOW                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  1. Owner creates branch in repo                                            │
+│     └── <number>-feature-<feature-name>                                     │
+│                                                                             │
+│  2. Dev1 syncs                                                              │
+│     └── git fetch upstream && git checkout <branch>                         │
+│                                                                             │
+│  3. Dev1 executes microtask                                                 │
+│     └── Implements task, runs tests, creates PR                             │
+│         PR title: [feature/X] TASK-1: <title>                               │
+│                                                                             │
+│  4. Owner reviews + merges PR                                               │
+│     └── CI green → Agent reviews → Owner merges                             │
+│                                                                             │
+│  5. Dev2 syncs                                                              │
+│     └── git fetch upstream && git pull upstream <branch>                     │
+│                                                                             │
+│  6. Dev2 executes microtask                                                 │
+│     └── Implements task, runs tests, creates PR                             │
+│         PR title: [feature/X] TASK-2: <title>                               │
+│                                                                             │
+│  7. Repeat until all microtasks complete                                    │
+│     └── Feature done — no final PR needed (all already merged)              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Why this flow?
+
+| Benefit | Explanation |
+|---|---|
+| **No fork coordination** | Everyone works from the same upstream branch |
+| **Fast feedback** | Each microtask is reviewed immediately after completion |
+| **Easy rollback** | If something breaks, revert one small PR |
+| **Clear ownership** | Each microtask has a single author |
+| **No "passing the baton"** | Next developer just syncs and continues |
+
+### Key rules for this flow
+
+1. **Owner creates the branch** — developers do NOT create branches in their forks
+2. **Each microtask = 1 PR** — no PRs for individual microtasks, no PRs for the entire feature
+3. **Sync before starting** — always `git fetch upstream && git pull upstream <branch>` before implementing
+4. **Owner merges** — only the owner can merge PRs to `main`
+5. **PR title format** — `[feature/<name>] TASK-<n>: <short imperative summary>`
+
+### Recovery: What if my repo falls behind?
+
+If your repository gets out of sync, just pull the latest from upstream:
+
+```bash
+# Bring latest changes from the feature branch
+git fetch upstream
+git pull upstream <feature-branch>
+
+# Or bring latest changes from main
+git fetch upstream
+git pull upstream main
+```
+
+**If you have uncommitted local changes:**
+```bash
+git fetch upstream
+git stash                          # save your changes temporarily
+git pull upstream <feature-branch>
+git stash pop                      # restore your changes
+```
+
+**If you have commits in your fork not in upstream:**
+```bash
+git fetch upstream
+git rebase upstream/<feature-branch>
+git push --force-with-lease origin <feature-branch>  # push to your fork
+```
+
+**The rule**: always `git fetch upstream` first to see what changed, then `git pull` to integrate. If there are merge conflicts, resolve them before continuing.
+
+---
+
 ## Roles and permissions
 
 | Role | Who | Can create branches | Can create PRs | Can approve PRs | Can merge | Can decide business logic |
@@ -13,10 +101,10 @@
 
 **Golden rule: Only the owner can merge to `main`. Everyone else creates PRs and waits.**
 
-**Feature ownership rule: 1 developer = 1 complete feature.** Each developer
-owns a feature from first task to PR. No two developers work on the same
-feature branch. This eliminates coordination overhead and ensures clear
-accountability.
+**Feature collaboration rule: Multiple developers can work on the same feature.**
+Each microtask generates its own PR. When a developer finishes their microtask,
+they create a PR, and after merge, the next developer syncs and continues.
+This enables pair programming and flexible team coordination.
 
 ## The three layers of protection
 
@@ -45,12 +133,14 @@ OWNER DECIDES: approve or request changes
 
 ## Feature lifecycle
 
-**Everyone works in parallel.** Each developer owns their feature from
-start to finish. If your feature depends on another that isn't merged
-yet, mock the dependency (see `docs/integration-testing-guide.md`).
+### Primary: Collaborative flow (multiple developers)
 
-**Branch location**: Each developer creates their feature branch **in their
-own fork**, not in the owner's repo.
+See the **COLLABORATIVE FLOW** section at the top of this document for the
+complete visual representation. This is the default workflow for features.
+
+### Alternative: Single developer flow
+
+When a single developer owns an entire feature:
 
 ```
 1. Owner assigns: "You own feature X"
@@ -59,7 +149,7 @@ own fork**, not in the owner's repo.
         ↓
 3. Owner reviews and approves specs
         ↓
-4. Developer creates branch IN THEIR FORK: <number>-feature-<feature-name>
+4. Owner creates branch in repo: <number>-feature-<feature-name>
         ↓
 5. Developer implements ALL microtasks (mocks dependencies if needed)
         ↓
@@ -149,10 +239,29 @@ Commits belong to whoever made them (the author), not to the project owner.
 
 ## PR process
 
+### PR scope options
+
+| Model | When to use | PR count per feature |
+|---|---|---|
+| **1 microtask = 1 PR** | Collaborative features, pair programming | N microtasks = N PRs |
+| **1 feature = 1 PR** | Single developer, feature complete | 1 PR per feature |
+
+**Default**: Use "1 microtask = 1 PR" for collaborative work. Use "1 feature = 1 PR" when a single developer owns the entire feature.
+
 ### Who creates PRs?
-- **Developers**: create PRs from their forks
+- **Developers**: create PRs from their forks (one per microtask)
 - **Agent**: creates PRs from branches in the repo
 - **Owner**: can also create PRs, but will mostly review/merge
+
+### PR title format for microtasks
+
+```
+[feature/<feature-name>] TASK-<n>: <short imperative summary>
+```
+
+Examples:
+- `[feature/admin-auth] TASK-auth-1: create User entity and migration`
+- `[feature/admin-auth] TASK-auth-2: implement login endpoint`
 
 ### What does the owner see?
 The owner does NOT read line-by-line code. The owner sees:
@@ -187,7 +296,7 @@ The agent will:
 ## Code review checklist (what the agent checks)
 
 ### General (every PR)
-- [ ] Resolves a single microtask
+- [ ] Resolves a single microtask (PR title matches task in tasks.md)
 - [ ] Variable names in English, clear
 - [ ] Unit tests present
 - [ ] Error handling present
@@ -205,8 +314,9 @@ The agent will:
 
 | Situation | What to do |
 |---|---|
-| New business functionality | **Feature** → specs → branch → PR |
-| Bug with 3+ tasks | **Issue** → branch → PR |
+| New business functionality (single dev) | **Feature** → specs → branch → 1 PR per feature |
+| New business functionality (collaborative) | **Feature** → specs → branch → 1 PR per microtask |
+| Bug with 3+ microtasks | **Issue** → branch → 1 PR per microtask |
 | Bug with 1-2 small tasks | **Issue** → commit directly |
 | High-impact change (payments, security) | **Issue** → branch always |
 | Cosmetic fix (typo, spacing) | **Commit directly** to main |
@@ -264,13 +374,14 @@ The agent is a tool to assist, not to decide. Here is what the agent
 
 | Concept | Standard GitHub | Our system |
 |---|---|---|
-| PR scope | One per feature, branch, or fix | One per feature OR issue branch. Small fixes = direct commit |
+| PR scope | One per feature, branch, or fix | One per microtask (collaborative) OR one per feature (single dev) |
 | Issue tracking | GitHub Issues | Markdown files in `docs/issues/` (created via PR by collaborators) |
 | Branch naming | Free-form | Strict: `<n>-feature-<name>` or `<n>-fix-issue-<id>-<slug>` |
 | Code review | Anyone can review | Owner reviews everything. Agent assists. |
 | Merge authority | Whoever approves can merge | **Only owner can merge** |
 | Tests | May not exist | Branch is only complete if tests pass |
 | Decisions | Discussed in issues | Agent never assumes — always asks owner |
+| Feature collaboration | Usually single developer | Multiple developers via microtask PRs |
 
 ### Why markdown files instead of GitHub Issues?
 

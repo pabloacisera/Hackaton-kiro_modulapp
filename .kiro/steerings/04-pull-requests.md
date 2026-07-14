@@ -1,9 +1,100 @@
 # How to create a PR and what requirements it must meet
 
+---
+
+## ⚡ COLLABORATIVE FLOW — THE PRIMARY WORKFLOW
+
+**This is how we work. Multiple developers, one feature, microtask PRs.**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         COLLABORATIVE FEATURE FLOW                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  1. Owner creates branch in repo                                            │
+│     └── <number>-feature-<feature-name>                                     │
+│                                                                             │
+│  2. Dev1 syncs                                                              │
+│     └── git fetch upstream && git checkout <branch>                         │
+│                                                                             │
+│  3. Dev1 executes microtask                                                 │
+│     └── Implements task, runs tests, creates PR                             │
+│         PR title: [feature/X] TASK-1: <title>                               │
+│                                                                             │
+│  4. Owner reviews + merges PR                                               │
+│     └── CI green → Agent reviews → Owner merges                             │
+│                                                                             │
+│  5. Dev2 syncs                                                              │
+│     └── git fetch upstream && git pull upstream <branch>                     │
+│                                                                             │
+│  6. Dev2 executes microtask                                                 │
+│     └── Implements task, runs tests, creates PR                             │
+│         PR title: [feature/X] TASK-2: <title>                               │
+│                                                                             │
+│  7. Repeat until all microtasks complete                                    │
+│     └── Feature done — no final PR needed (all already merged)              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Why this flow?
+
+| Benefit | Explanation |
+|---|---|
+| **No fork coordination** | Everyone works from the same upstream branch |
+| **Fast feedback** | Each microtask is reviewed immediately |
+| **Easy rollback** | Revert one small PR if something breaks |
+| **Clear ownership** | Each microtask has a single author |
+| **No "passing the baton"** | Next developer just syncs and continues |
+
+### Key rules
+
+1. **Owner creates the branch** — developers do NOT create branches in their forks
+2. **Each microtask = 1 PR** — no PRs for individual microtasks, no PRs for the entire feature
+3. **Sync before starting** — always `git fetch upstream && git pull upstream <branch>`
+4. **Owner merges** — only the owner can merge PRs to `main`
+5. **PR title format** — `[feature/<name>] TASK-<n>: <short imperative summary>`
+
+### Recovery: What if my repo falls behind?
+
+If your repository gets out of sync, just pull the latest from upstream:
+
+```bash
+# Bring latest changes from the feature branch
+git fetch upstream
+git pull upstream <feature-branch>
+
+# Or bring latest changes from main
+git fetch upstream
+git pull upstream main
+```
+
+**If you have uncommitted local changes:**
+```bash
+git fetch upstream
+git stash                          # save your changes temporarily
+git pull upstream <feature-branch>
+git stash pop                      # restore your changes
+```
+
+**If you have commits in your fork not in upstream:**
+```bash
+git fetch upstream
+git rebase upstream/<feature-branch>
+git push --force-with-lease origin <feature-branch>  # push to your fork
+```
+
+**The rule**: always `git fetch upstream` first to see what changed, then `git pull` to integrate. If there are merge conflicts, resolve them before continuing.
+
+---
+
 ## Title and description
 
 - Title: `[<feature-or-issue>] <short imperative summary>`
-  Example: `[feature-admin-auth-core] Add JWT login endpoint`
+  Examples:
+  - `[feature/admin-auth] TASK-auth-1: create User entity and migration`
+  - `[feature/admin-auth] TASK-auth-2: implement login endpoint`
+  - `[feature-admin-auth-core] Add JWT login endpoint` (for feature-level PRs)
 - Mandatory description with this format:
 
 ```md
@@ -25,15 +116,26 @@ TASK-<feature>-<n> (or FIX-ISSUE-<n>)
 
 ## PR scope rules
 
-- **One PR per feature**: when ALL microtasks in a feature are complete,
-  create a single PR for the entire feature branch. Do NOT create PRs
-  for individual microtasks — the feature is atomic.
+### PR model options
+
+| Model | When to use | PR count per feature |
+|---|---|---|
+| **1 microtask = 1 PR** | Collaborative features, pair programming | N microtasks = N PRs |
+| **1 feature = 1 PR** | Single developer, feature complete | 1 PR per feature |
+
+**Default**: Use "1 microtask = 1 PR" for collaborative work. Use "1 feature = 1 PR" when a single developer owns the entire feature.
+
+- **One PR per microtask (collaborative model)**: each microtask generates
+  its own PR. After merge, next developer syncs and continues. This enables
+  pair programming and flexible team coordination.
+- **One PR per feature (single developer model)**: when ALL microtasks in a
+  feature are complete, create a single PR for the entire feature branch.
 - **One PR per issue branch**: if the issue required its own branch, create
   one PR when the fix is complete.
 - **No PR for small fixes**: if the change was committed directly (no branch),
   no PR is needed.
-- **Branch lives in your fork**: the PR is created from your fork's branch
-  to the owner's `main`. Do NOT create feature branches in the owner's repo.
+- **Branch lives in the repo**: the owner creates the feature branch in the
+  repo. Developers sync via upstream.
 
 ## Merge requirements
 
@@ -69,6 +171,9 @@ This ensures complete control over what enters the main branch.
 Examples:
 - `1-feature-admin-auth-core`
 - `3-fix-issue-12-stock-double-deduction`
+
+**Note**: For collaborative features, the owner creates the branch in the repo.
+Developers sync via upstream, not by creating branches in their forks.
 
 ## PR size
 
