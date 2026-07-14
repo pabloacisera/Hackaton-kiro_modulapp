@@ -1,49 +1,136 @@
 # Tasks: Complaints and refunds
 
-- [ ] TASK-complaint-1: Migration for `complaints` table
+- [ ] TASK-complaint-1: Migration + Complaint entity + `POST /complaints` endpoint
+  - Context: FR1 — Public form where customer requests a refund or files a complaint with order/quote reference, reason, description. This task covers database schema, entity definition with state machine, and the submission endpoint.
+  - Deliverable:
+    - `services/api-core/src/modules/complaints/migrations/<timestamp>-create-complaints.ts`
+    - `services/api-core/src/modules/complaints/complaint.entity.ts`
+    - `services/api-core/src/modules/complaints/complaint.service.ts`
+    - `services/api-core/src/modules/complaints/complaint.controller.ts`
+    - `services/api-core/src/modules/complaints/complaint.module.ts`
+    - `services/api-core/src/modules/complaints/dto/create-complaint.dto.ts`
   - Depends on: none
   - Assigned to: unassigned
-- [ ] TASK-complaint-2: `Complaint` entity + `POST /complaints` endpoint
+  - Done criteria:
+    - Migration creates `complaints` table with columns: id, order_reference (nullable), customer_email, customer_name, reason, description, status (enum: received, under_review, refund_approved, rejected, resolved_other_way), resolution_notes, payment_reference (nullable), created_at, updated_at.
+    - `Complaint` entity maps to table, includes state machine with valid transitions: received→under_review, under_review→refund_approved, under_review→rejected, under_review→resolved_other_way.
+    - `POST /complaints` accepts `{ orderReference?, customerEmail, customerName, reason, description }`, persists complaint with status `received`, returns complaint with generated reference number.
+    - Unit tests embedded: valid transitions allowed, invalid transitions (received→refund_approved, refund_approved→rejected) blocked, unknown order reference still creates complaint. All pass.
+
+- [ ] TASK-complaint-2: Complaint receipt email + admin notification
+  - Context: FR2 — On submission, admin is notified and a complaint receipt is sent to customer. FR (non-functional): receipt is always sent regardless of later refund decision — it is proof of receipt, not resolution.
+  - Deliverable:
+    - `services/api-core/src/modules/complaints/complaint-email.service.ts`
+    - `services/api-core/src/modules/complaints/complaint-notification.service.ts`
+    - `services/api-core/src/modules/complaints/complaint.service.ts` (update: hook email/notification into creation flow)
   - Depends on: TASK-complaint-1
   - Assigned to: unassigned
-- [ ] TASK-complaint-3: Complaint receipt email to customer (with reference number)
-  - Depends on: TASK-complaint-2
-  - Assigned to: unassigned
-- [ ] TASK-complaint-4: WebSocket/email notification to admin for new complaint
-  - Depends on: TASK-complaint-2
-  - Assigned to: unassigned
-- [ ] TASK-complaint-5: `GET /admin/complaints` endpoint with filters/search/pagination
-  - Depends on: TASK-complaint-2
-  - Assigned to: unassigned
-- [ ] TASK-complaint-review: `PATCH /admin/complaints/:id/review` endpoint (transitions `received` → `under_review`)
-  - Context: the Complaint state machine includes `under_review` but no endpoint triggered it. This task adds the explicit endpoint for admins to mark a complaint as actively reviewed.
-  - Depends on: TASK-complaint-2
-  - Assigned to: unassigned
-  - Done criteria: endpoint transitions `received` → `under_review`, returns 400 for invalid transitions (e.g., `refund_approved` → `under_review`).
-- [ ] TASK-complaint-6: `PATCH /admin/complaints/:id/approve-refund` endpoint
-  (payment-service integration, idempotent)
-  - Depends on: TASK-complaint-2, TASK-pay-11
-  - Assigned to: unassigned
-- [ ] TASK-complaint-7: `PATCH /admin/complaints/:id/resolve` endpoint
-  - Depends on: TASK-complaint-2
-  - Assigned to: unassigned
-- [ ] TASK-complaint-8: `views/ComplaintForm` in landing
-  - Depends on: TASK-complaint-2
-  - Assigned to: unassigned
-- [ ] TASK-complaint-9: `views/ComplaintsTable` + `ComplaintDetail` in admin
-  - Depends on: TASK-complaint-5
-  - Assigned to: unassigned
+  - Done criteria:
+    - After `POST /complaints` succeeds, complaint receipt email is sent to customer containing reference number, complaint details, and acknowledgment text.
+    - After `POST /complaints` succeeds, admin is notified via WebSocket event (and/or email) with complaint summary.
+    - Receipt is sent even if customer has no valid order reference (edge case: complaint still registered with contact data).
+    - Unit tests embedded: receipt email always fires on creation, admin notification fires on creation, receipt includes reference number. All pass.
 
-- [ ] TASK-complaint-test1: Unit tests for complaint status transitions
-  - Context: Complaint entity state machine must block invalid transitions and allow valid ones. Covers: received→under_review, under_review→refund_approved, under_review→rejected, under_review→resolved_other_way. Blocks: received→refund_approved (must review first), refund_approved→rejected (terminal state).
-  - Deliverable: `services/api-core/src/modules/complaints/**/*.spec.ts`
-  - Depends on: TASK-complaint-7
+- [ ] TASK-complaint-3: `GET /admin/complaints` endpoint with filters/search/pagination
+  - Context: FR4 — Complaint history per customer/order visible in the admin.
+  - Deliverable:
+    - `services/api-core/src/modules/complaints/complaint.controller.ts` (add GET endpoint)
+    - `services/api-core/src/modules/complaints/complaint.service.ts` (add list/query method)
+    - `services/api-core/src/modules/complaints/dto/list-complaints.dto.ts`
+  - Depends on: TASK-complaint-1
   - Assigned to: unassigned
-  - Done criteria: unit.complaint.validTransitions.allAllowed, unit.complaint.invalidTransitions.allBlocked, unit.complaint.unknownReferenceBlocksRefund. All pass.
+  - Done criteria:
+    - `GET /admin/complaints` returns paginated list with total count.
+    - Supports filters: status, date range, customer email, order reference.
+    - Supports search across customer name, email, order reference, reason.
+    - Supports pagination via `page` and `limit` query params.
+    - Unit tests embedded: filtering by status returns only matching, pagination respects limit, search matches across fields, empty filters return all. All pass.
 
-- [ ] TASK-complaint-test2: Integration tests for complaint flow
-  - Context: validates POST complaint → email + notification, approve-refund → payment-service mock call, resolve flow. Uses Supertest with mocked payment-service, mocked Mailjet, mocked WebSocket.
+- [ ] TASK-complaint-4: `PATCH /admin/complaints/:id/review` endpoint
+  - Context: Complaint state machine includes `under_review` but no endpoint triggers it. Adds explicit endpoint for admins to mark a complaint as actively reviewed.
+  - Deliverable:
+    - `services/api-core/src/modules/complaints/complaint.controller.ts` (add PATCH endpoint)
+    - `services/api-core/src/modules/complaints/complaint.service.ts` (add review transition method)
+  - Depends on: TASK-complaint-1
+  - Assigned to: unassigned
+  - Done criteria:
+    - `PATCH /admin/complaints/:id/review` transitions status from `received` → `under_review`.
+    - Returns 400 for invalid transitions (e.g., `refund_approved` → `under_review`).
+    - Returns 404 for non-existent complaint ID.
+    - Unit tests embedded: valid transition succeeds, invalid transition returns 400, non-existent ID returns 404. All pass.
+
+- [ ] TASK-complaint-5: `PATCH /admin/complaints/:id/approve-refund` endpoint
+  - Context: FR3 — Admin reviews and decides: approve refund triggers automatic refund via `feature-payment-billing-java`. Edge case: duplicate refund on already-refunded payment must be rejected (idempotency in payment-service).
+  - Deliverable:
+    - `services/api-core/src/modules/complaints/complaint.controller.ts` (add PATCH endpoint)
+    - `services/api-core/src/modules/complaints/complaint.service.ts` (add approve-refund method with payment-service call)
+    - `services/api-core/src/modules/complaints/complaint-payment.adapter.ts`
+  - Depends on: TASK-complaint-1, TASK-pay-11
+  - Assigned to: unassigned
+  - Done criteria:
+    - `PATCH /admin/complaints/:id/approve-refund` transitions `under_review` → `refund_approved` and calls `payment-service` to execute refund.
+    - Returns 400 if status is not `under_review` (must review first).
+    - Returns 400 with clear error if payment-service rejects duplicate refund (already refunded via another path).
+    - Stores `payment_reference` on complaint after successful refund.
+    - Unit tests embedded: valid approve transitions and calls payment, invalid transition (received→refund_approved) blocked, duplicate refund returns error. All pass.
+
+- [ ] TASK-complaint-6: `PATCH /admin/complaints/:id/resolve` endpoint
+  - Context: FR3 — Admin decides to resolve another way (replacement, contacting customer) with a record of the resolution.
+  - Deliverable:
+    - `services/api-core/src/modules/complaints/complaint.controller.ts` (add PATCH endpoint)
+    - `services/api-core/src/modules/complaints/complaint.service.ts` (add resolve method)
+    - `services/api-core/src/modules/complaints/dto/resolve-complaint.dto.ts`
+  - Depends on: TASK-complaint-1
+  - Assigned to: unassigned
+  - Done criteria:
+    - `PATCH /admin/complaints/:id/resolve` accepts `{ resolutionNotes }` and transitions `under_review` → `resolved_other_way`.
+    - Returns 400 if status is not `under_review`.
+    - Persists `resolution_notes` on complaint.
+    - Unit tests embedded: valid resolve transitions and saves notes, invalid transition blocked. All pass.
+
+- [ ] TASK-complaint-7: `views/ComplaintForm` in landing
+  - Context: FR1 — Public form on the landing (always visible section) where customer requests a refund or files a complaint.
+  - Deliverable:
+    - `services/web/src/views/ComplaintForm/ComplaintForm.tsx`
+    - `services/web/src/views/ComplaintForm/ComplaintForm.test.tsx`
+    - `services/web/src/views/ComplaintForm/index.ts`
+  - Depends on: TASK-complaint-1
+  - Assigned to: unassigned
+  - Done criteria:
+    - Form renders in landing page as always-visible section.
+    - Fields: order/quote reference (optional), customer name, customer email, reason (select), description (textarea).
+    - Submits via `POST /complaints`, shows success message with reference number on completion.
+    - Client-side validation: required fields enforced, email format validated.
+    - Unit tests embedded: form renders all fields, submission calls API, validation blocks empty required fields, success state shows reference number. All pass.
+
+- [ ] TASK-complaint-8: `views/ComplaintsTable` + `ComplaintDetail` in admin
+  - Context: FR4 — Complaint history per customer/order visible in the admin.
+  - Deliverable:
+    - `services/web/src/views/admin/ComplaintsTable/ComplaintsTable.tsx`
+    - `services/web/src/views/admin/ComplaintsTable/ComplaintsTable.test.tsx`
+    - `services/web/src/views/admin/ComplaintDetail/ComplaintDetail.tsx`
+    - `services/web/src/views/admin/ComplaintDetail/ComplaintDetail.test.tsx`
+    - `services/web/src/views/admin/ComplaintsTable/index.ts`
+    - `services/web/src/views/admin/ComplaintDetail/index.ts`
+  - Depends on: TASK-complaint-3
+  - Assigned to: unassigned
+  - Done criteria:
+    - `ComplaintsTable` displays list from `GET /admin/complaints` with status filters, search input, and pagination controls.
+    - `ComplaintDetail` shows full complaint info, status badge, timeline of state transitions, and action buttons (Review, Approve Refund, Resolve) based on current status.
+    - Action buttons call respective PATCH endpoints and update view on success.
+    - Error state from `approve-refund` (duplicate refund) is displayed clearly, not as success.
+    - Unit tests embedded: table renders rows, filters update list, detail shows complaint info, action buttons appear conditionally, error displays for failed refund. All pass.
+
+- [ ] TASK-complaint-integration: Integration tests for complaint flow
+  - Context: Validates end-to-end flow across all FRs: POST complaint → email + notification, approve-refund → payment-service mock call, resolve flow. Covers edge cases: unknown order reference still registers complaint, duplicate refund returns clear error.
   - Deliverable: `services/api-core/src/modules/complaints/**/*.integration-spec.ts`
-  - Depends on: TASK-complaint-9
+  - Depends on: TASK-complaint-1, TASK-complaint-2, TASK-complaint-3, TASK-complaint-4, TASK-complaint-5, TASK-complaint-6, TASK-complaint-7, TASK-complaint-8
   - Assigned to: unassigned
-  - Done criteria: integration.complaint.create.sendsReceiptAndNotifiesAdmin, integration.complaint.create.unknownReferenceStillRegistered, integration.complaint.approveRefund.callsPaymentServiceMock, integration.complaint.approveRefund.unknownRefTypeReturnsError, integration.complaint.approveRefund.duplicateRefundRequestReturnsExisting, integration.complaint.resolve.savesResolutionNotes. All pass.
+  - Done criteria:
+    - `POST /complaints` sends receipt email and notifies admin.
+    - `POST /complaints` with unknown order reference still registers complaint.
+    - `PATCH /admin/complaints/:id/approve-refund` calls payment-service mock.
+    - `PATCH /admin/complaints/:id/approve-refund` returns error for unknown reference type.
+    - `PATCH /admin/complaints/:id/approve-refund` returns existing complaint for duplicate refund request.
+    - `PATCH /admin/complaints/:id/resolve` saves resolution notes.
+    - All integration tests pass.

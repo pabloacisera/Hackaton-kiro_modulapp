@@ -143,6 +143,33 @@ This rule applies to **all agents** (Kiro or other) that generate tasks. A
 large feature (e.g., "custom quote") may generate 15-30 microtasks; that is
 expected and correct.
 
+### Microtask quality rules (DoD)
+
+Every task in `tasks.md` MUST include all five fields:
+- **Context**: why this task exists, referencing the spec section (e.g., "FR3: customer must provide email")
+- **Deliverable**: specific file paths or endpoints created
+- **Depends on**: TASK-x or "none"
+- **Assigned to**: name or "unassigned"
+- **Done criteria**: verifiable, testable condition (e.g., "unit test X passes", "curl returns 200")
+
+**Tests are embedded, not separate.** Each implementation task includes its
+unit test as part of the Done criteria. There are NO standalone unit test
+tasks. The only exception is ONE integration test task at the end of each
+feature that covers cross-cutting scenarios.
+
+**Group tightly coupled tasks.** If two tasks depend on each other to produce
+standalone value (e.g., migration + entity, accept + reject endpoints with
+shared token logic), merge them into one task. A PR that only creates a
+migration file without the entity that uses it produces no "valuable" code.
+
+**Don't go too small.** A task that creates a single email template, a single
+modal component, or a single config file is too small to justify a PR. Group
+it with the task that gives it context.
+
+**Don't go too big.** A task that touches 4+ unrelated modules (e.g.,
+integrating notifications across direct-purchase, quotes, complaints, AND
+low-stock) should be split into one task per integration point.
+
 ## 3. Feature lifecycle
 
 1. Create the folder `.kiro/specs/<feature>/` with `specs.md` first.

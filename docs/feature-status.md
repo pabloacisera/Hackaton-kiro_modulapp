@@ -6,16 +6,16 @@ feature's `tasks.md` are marked as done.
 
 | Feature | Status | Tasks | PR |
 |---|---|---|---|
-| `feature-scaffold-monorepo` | Pending | 0/10 | — |
-| `feature-admin-auth-core` | Pending | 0/13 | — |
-| `feature-catalog-landing` | Pending | 0/12 | — |
-| `feature-supply-stock-management` | Pending | 0/11 | — |
-| `feature-realtime-notifications` | Pending | 0/10 | — |
+| `feature-scaffold-monorepo` | Pending | 0/8 | — |
+| `feature-admin-auth-core` | Pending | 0/9 | — |
+| `feature-catalog-landing` | Pending | 0/9 | — |
+| `feature-supply-stock-management` | Pending | 0/10 | — |
+| `feature-realtime-notifications` | Pending | 0/13 | — |
 | `feature-direct-purchase` | Pending | 0/13 | — |
-| `feature-custom-quote` | Pending | 0/21 | — |
+| `feature-custom-quote` | Pending | 0/15 | — |
 | `feature-payment-billing-java` | Pending | 0/15 | — |
 | `feature-quote-management-admin` | Pending | 0/6 | — |
 | `feature-order-delivery-schedule` | Pending | 0/6 | — |
-| `feature-complaints-refunds` | Pending | 0/10 | — |
-| `feature-i18n-localization` | Pending | 0/8 | — |
-| `feature-infra-deploy` | Pending | 0/12 | — |
+| `feature-complaints-refunds` | Pending | 0/9 | — |
+| `feature-i18n-localization` | Pending | 0/10 | — |
+| `feature-infra-deploy` | Pending | 0/8 | — |
