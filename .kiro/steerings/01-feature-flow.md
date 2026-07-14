@@ -14,18 +14,18 @@
 │  1. Owner creates branch in repo                                            │
 │     └── <number>-feature-<feature-name>                                     │
 │                                                                             │
-│  2. Dev1 syncs                                                              │
+│  2. Dev1 syncs from main                                                    │
 │     └── git fetch upstream && git checkout <branch>                         │
 │                                                                             │
 │  3. Dev1 executes microtask                                                 │
 │     └── Implements task, runs tests, creates PR                             │
 │         PR title: [feature/X] TASK-1: <title>                               │
 │                                                                             │
-│  4. Owner reviews + merges PR                                               │
+│  4. Owner reviews + merges PR to main                                       │
 │     └── CI green → Agent reviews → Owner merges                             │
 │                                                                             │
-│  5. Dev2 syncs                                                              │
-│     └── git fetch upstream && git pull upstream <branch>                     │
+│  5. Dev2 syncs from main (pulls the merged PR)                              │
+│     └── git fetch upstream && git rebase upstream/main                       │
 │                                                                             │
 │  6. Dev2 executes microtask                                                 │
 │     └── Implements task, runs tests, creates PR                             │
@@ -45,46 +45,44 @@
 | **Fast feedback** | Each microtask is reviewed immediately |
 | **Easy rollback** | Revert one small PR if something breaks |
 | **Clear ownership** | Each microtask has a single author |
-| **No "passing the baton"** | Next developer just syncs and continues |
+| **No "passing the baton"** | Next developer just syncs from main and continues |
 
 ### Key rules
 
 1. **Owner creates the branch** — developers do NOT create branches in their forks
 2. **Each microtask = 1 PR** — no PRs for individual microtasks, no PRs for the entire feature
-3. **Sync before starting** — always `git fetch upstream && git pull upstream <branch>`
+3. **Sync before starting** — always `git fetch upstream && git rebase upstream/main` (never from feature branch)
 4. **Owner merges** — only the owner can merge PRs to `main`
 5. **PR title format** — `[feature/<name>] TASK-<n>: <short imperative summary>`
 
 ### Recovery: What if my repo falls behind?
 
-If your repository gets out of sync, just pull the latest from upstream:
+If your repository gets out of sync, always pull from **main**:
 
 ```bash
-# Bring latest changes from the feature branch
+# Always sync from main (this brings all merged PRs)
 git fetch upstream
-git pull upstream <feature-branch>
-
-# Or bring latest changes from main
-git fetch upstream
-git pull upstream main
+git rebase upstream/main
 ```
 
 **If you have uncommitted local changes:**
 ```bash
 git fetch upstream
-git stash                          # save your changes temporarily
-git pull upstream <feature-branch>
-git stash pop                      # restore your changes
+git stash                              # save your changes temporarily
+git rebase upstream/main               # sync with main
+git stash pop                          # restore your changes
 ```
 
-**If you have commits in your fork not in upstream:**
+**If rebase has conflicts:**
 ```bash
-git fetch upstream
-git rebase upstream/<feature-branch>
-git push --force-with-lease origin <feature-branch>  # push to your fork
+# Resolve conflicts in the files, then:
+git add <resolved-files>
+git rebase --continue
+# If you want to abort:
+git rebase --abort
 ```
 
-**The rule**: always `git fetch upstream` first to see what changed, then `git pull` to integrate. If there are merge conflicts, resolve them before continuing.
+**The rule**: always `git fetch upstream` first, then `git rebase upstream/main`. Never pull from the feature branch — main always has the latest merged PRs.
 
 ---
 
@@ -180,11 +178,11 @@ low-stock) should be split into one task per integration point.
 5. **Owner creates feature branch in the repo** (see naming conventions below).
    Developers sync via upstream.
 6. Implement microtasks. Each microtask generates its own PR:
-   - Developer syncs: `git fetch upstream && git checkout <branch>`
+   - Developer syncs from main: `git fetch upstream && git rebase upstream/main`
    - Developer implements microtask
    - Developer creates PR: `[feature/<name>] TASK-<n>: <title>`
-   - Owner reviews + merges PR
-   - Next developer syncs and continues
+   - Owner reviews + merges PR to main
+   - Next developer syncs from main and continues
 7. After all microtasks are merged, the feature is complete.
 8. Mark the feature as complete in `docs/feature-status.md`.
    **IMPORTANT**: The agent MUST ask owner confirmation before updating
