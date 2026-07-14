@@ -30,6 +30,21 @@ and provides a Docker Compose environment that starts the full local stack.
   keys, no extra unused keys).
 - FR10. `scripts/dev-up.sh` works: `docker compose up` starts all services and
   they respond on their ports.
+- FR11. ESLint + Prettier configured at monorepo root with shared configs that
+  all workspaces inherit. `pnpm lint` passes in every workspace. `pnpm format`
+  formats consistently.
+- FR12. Testing frameworks configured: Vitest for React apps (landing,
+  admin-dashboard), Jest for NestJS (api-core). `pnpm test` runs in every
+  JS/TS workspace (even with zero tests). Test scripts in each `package.json`.
+- FR13. Minimum CI pipeline via GitHub Actions (`.github/workflows/ci.yml`):
+  lint + test + build for all JS/TS workspaces. Runs on every PR and push to
+  `main`. Turborepo cache leveraged. No deploy stage yet (added later by
+  `feature-infra-deploy`).
+- FR14. Git hooks via husky + lint-staged: pre-commit hook runs ESLint + Prettier
+  on staged files. Prevents commits with lint errors.
+- FR15. Root `README.md` with: prerequisites (Node, pnpm, Java, Docker),
+  quick-start setup (clone, .env, dev-up.sh), architecture overview, links to
+  `docs/` and `.kiro/steerings/00-project-context.md`.
 
 ## Non-functional requirements
 
@@ -52,6 +67,11 @@ and provides a Docker Compose environment that starts the full local stack.
 - Developers without Docker must still be able to run each service individually
   via `npm run dev` (or `mvn spring-boot:run` for payment-service) against
   remote Supabase/Upstash.
+- ESLint config is shared from root — individual workspaces can extend but
+  not override the base rules.
+- CI must complete in under 5 minutes using Turborepo cache.
+- Git hooks must not block commits for non-JS files (e.g., .md, .yml).
+- README must be in English (per working language convention).
 
 ## Acceptance criteria
 
@@ -64,3 +84,9 @@ and provides a Docker Compose environment that starts the full local stack.
 - Redis responds to PING inside the Docker network.
 - Each service can also start independently without Docker (except
   payment-service which needs Java).
+- `pnpm lint` passes in all workspaces with zero errors.
+- `pnpm test` runs in all JS/TS workspaces (even with zero tests).
+- `git commit` with a linted file succeeds; commit with unlinted file is
+  blocked by pre-commit hook.
+- CI pipeline runs on a test PR: lint passes, tests run, build succeeds.
+- Root README exists and documents setup steps.

@@ -39,9 +39,9 @@
   - Done criteria: `npm run seed` (or `scripts/seed-db.sh`) populates Supabase/Postgres with fake data; at least 10 prototypes, 20 supplies, 15 orders, 10 quotes, 10 complaints across multiple states; script is idempotent (running twice does not duplicate data); seed data is realistic (faker-based names, emails, amounts, dates).
 
 - [ ] TASK-infra-5: Extend CI pipeline with Docker build and Maven job
-  - Context: The CI pipeline (`ci.yml`) is initially created by TASK-auth-12. This task extends it with Docker image builds and a parallel Maven build for `payment-service`. The non-functional requirements state Turborepo cache must be leveraged in CI.
+  - Context: The CI pipeline (`ci.yml`) is initially created by TASK-scaffold-11 (feature-scaffold-monorepo) with lint + test + build. This task extends it with Docker image builds and a parallel Maven build for `payment-service`. The non-functional requirements state Turborepo cache must be leveraged in CI.
   - Deliverable: `.github/workflows/ci.yml` (extended)
-  - Depends on: TASK-infra-1, TASK-auth-12 (feature-admin-auth-core)
+  - Depends on: TASK-infra-1, TASK-scaffold-11 (feature-scaffold-monorepo)
   - Assigned to: unassigned
   - Done criteria: CI runs lint (zero errors), CI runs test suite (all green), CI runs build (all packages build via Turborepo), Turborepo cache works (second run is faster), Docker image build job produces images for `api-core`, `landing`, `admin-dashboard`, Maven build job compiles `payment-service` independently; all jobs pass green on a test PR.
 

@@ -99,10 +99,11 @@ Examples:
 
 ### CI note
 
-CI (`ci.yml`) is created as part of `feature-admin-auth-core`, once the
-monorepo workspaces exist — not before. Branch protection's "require status
-checks" should only be enabled after this task is merged and the pipeline has
-run green at least once.
+CI (`ci.yml`) is initially created as part of `feature-scaffold-monorepo`
+(TASK-scaffold-11) with lint + test + build. It is extended by
+`feature-infra-deploy` with Docker image builds and Maven job. Branch
+protection's "require status checks" should only be enabled after the
+scaffold pipeline has run green at least once.
 
 ## Environment variables
 

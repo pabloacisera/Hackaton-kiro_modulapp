@@ -7,6 +7,10 @@ modobiliario-eventos-monorepo/
 ├── turbo.json                    # pipeline: dev, build, lint, test
 ├── package.json                  # root: pnpm workspaces + turbo scripts
 ├── pnpm-workspace.yaml           # apps/*, services/api-core, packages/*
+├── .eslintrc.js                  # shared ESLint config (root)
+├── .prettierrc                   # shared Prettier config (root)
+├── .husky/
+│   └── pre-commit                # lint-staged on commit
 ├── apps/
 │   ├── landing/                  # React + Vite, port 3000
 │   └── admin-dashboard/          # React + Vite, port 3001
@@ -24,7 +28,11 @@ modobiliario-eventos-monorepo/
 ├── scripts/
 │   ├── dev-up.sh                 # docker compose up --build
 │   └── seed-db.sh                # (existing, runs pnpm seed in api-core)
-└── .env.example                  # All variables documented
+├── .github/
+│   └── workflows/
+│       └── ci.yml                # Lint + Test + Build pipeline
+├── .env.example                  # All variables documented
+└── README.md                     # Project overview + setup instructions
 ```
 
 ## React apps (landing + admin-dashboard)
@@ -169,3 +177,207 @@ http {
 
 - None. This feature has zero dependencies on any other feature.
 - It is the prerequisite for ALL other features.
+
+---
+
+## ESLint + Prettier configuration
+
+Root-level config shared across all JS/TS workspaces:
+
+```
+# .eslintrc.js (root)
+module.exports = {
+  root: true,
+  extends: ['eslint:recommended'],
+  parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint'],
+  env: { node: true, es2022: true },
+  ignorePatterns: ['node_modules/', 'dist/', 'build/', '.turbo/'],
+};
+
+# .prettierrc (root)
+{
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "printWidth": 100,
+  "tabWidth": 2
+}
+```
+
+Each workspace extends the root config:
+- React apps: add `plugin:react/recommended`, `plugin:react-hooks/recommended`
+- NestJS: no additional plugins needed (TypeScript support from root)
+
+Dev dependencies at root: `eslint`, `@typescript-eslint/parser`,
+`@typescript-eslint/eslint-plugin`, `prettier`, `eslint-config-prettier`.
+
+Each workspace `package.json` scripts:
+```json
+{
+  "lint": "eslint . --ext .ts,.tsx",
+  "lint:fix": "eslint . --ext .ts,.tsx --fix",
+  "format": "prettier --write .",
+  "format:check": "prettier --check ."
+}
+```
+
+## Testing framework setup
+
+| Workspace | Framework | Config file | Notes |
+|---|---|---|---|
+| `apps/landing` | Vitest | `vitest.config.ts` | React Testing Library for components |
+| `apps/admin-dashboard` | Vitest | `vitest.config.ts` | React Testing Library for components |
+| `services/api-core` | Jest | `jest.config.ts` | @nestjs/testing for unit tests |
+| `packages/shared-types` | none | — | Types only, no runtime code to test |
+
+Root `package.json` test script: `turbo run test` (propagates to all workspaces).
+
+Each workspace `package.json`:
+```json
+{
+  "test": "vitest run",          // React apps
+  "test": "jest --config jest.config.ts",  // NestJS
+  "test:watch": "vitest"         // or "jest --watch"
+}
+```
+
+Vitest config for React apps:
+```ts
+// vitest.config.ts
+import { defineConfig } from 'vitest/config';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/test-setup.ts',
+  },
+});
+```
+
+Jest config for NestJS:
+```ts
+// jest.config.ts
+export default {
+  moduleFileExtensions: ['js', 'json', 'ts'],
+  rootDir: 'src',
+  testRegex: '.*\\.spec\\.ts$',
+  transform: { '^.+\\.ts$': 'ts-jest' },
+  collectCoverageFrom: ['**/*.(t|j)s'],
+  coverageDirectory: '../coverage',
+  testEnvironment: 'node',
+};
+```
+
+## CI pipeline (minimum viable)
+
+`.github/workflows/ci.yml` — runs on PR and push to `main`:
+
+```yaml
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-test-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with: { version: 8 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo lint --cache-dir=.turbo/cache
+      - run: pnpm turbo test --cache-dir=.turbo/cache
+      - run: pnpm turbo build --cache-dir=.turbo/cache
+```
+
+Notes:
+- `payment-service` (Java) is NOT in this pipeline yet — added by
+  `feature-infra-deploy`.
+- Turborepo remote cache can be enabled later via `TURBO_TOKEN`.
+- Branch protection ("require status checks") is enabled manually after
+  this pipeline runs green at least once.
+
+## Git hooks (husky + lint-staged)
+
+Root dev dependencies: `husky`, `lint-staged`.
+
+Setup:
+```json
+// package.json (root)
+{
+  "scripts": {
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": ["eslint --fix", "prettier --write"],
+    "*.{json,md,yml}": ["prettier --write"]
+  }
+}
+```
+
+```
+# .husky/pre-commit
+#!/bin/sh
+npx lint-staged
+```
+
+Behavior:
+- Pre-commit hook runs lint-staged on staged files only.
+- TypeScript files: ESLint fix + Prettier format.
+- Non-JS files (markdown, YAML): Prettier format only.
+- If ESLint finds unfixable errors, commit is blocked.
+
+## Root README.md
+
+Structure:
+```markdown
+# Modula — Modular Furniture & Events Platform
+
+## Prerequisites
+- Node.js 20+
+- pnpm 8+
+- Java 17+ (for payment-service)
+- Docker + Docker Compose
+
+## Quick Start
+1. Clone the repo
+2. Copy `.env.example` to `.env` and fill in your keys
+3. Run `bash scripts/dev-up.sh`
+4. Open http://localhost:3000 (landing) and http://localhost:3001 (admin)
+
+## Architecture
+- Monorepo: Turborepo (apps/* + services/api-core + packages/*)
+- Frontend: React + Vite + Tailwind (MVC pattern)
+- Backend: NestJS + Prisma (Clean Architecture)
+- Payments: Spring Boot (isolated microservice)
+- Database: PostgreSQL via Supabase
+- Cache/Queues: Redis via Upstash
+
+## Project Structure
+<directory tree from design.md>
+
+## Development
+- `pnpm dev` — start all JS/TS workspaces
+- `pnpm lint` — lint all workspaces
+- `pnpm test` — run all tests
+- `pnpm build` — build all workspaces
+
+## Documentation
+- [Feature Roadmap](docs/roadmap.md)
+- [Feature Status](docs/feature-status.md)
+- [Commit Conventions](docs/commit-conventions.md)
+- [CI/CD](docs/ci-cd.md)
+- [Project Context (Agent)](.kiro/steerings/00-project-context.md)
+- [Team Workflow](.kiro/steerings/06-team-workflow.md)
+```

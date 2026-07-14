@@ -103,15 +103,13 @@
   - Assigned to: unassigned
   - Done criteria: When rate limit blocks an admin, a notification is sent with message "Multiple failed login attempts detected. Account temporarily locked." Notification is persisted in `admin_notifications` table. Unit tests pass: `unit.notify-lockout.sendsWebSocketNotification`, `unit.notify-lockout.fallsBackToEmail`, `unit.notify-lockout.persistsNotification`.
 
-## Group G — CI workflow
+## Group G — CI verification
 
-- [ ] TASK-auth-8: CI workflow (lint/test/build) matching the monorepo structure
-  - Context: no CI exists yet; this task creates it once apps/services/packages are scaffolded by earlier tasks in this feature. Must use pnpm (the package manager declared in root `package.json`).
-  - Deliverable:
-    - `.github/workflows/ci.yml`
-  - Depends on: TASK-auth-1
+- [ ] TASK-auth-8: Verify CI pipeline runs correctly with auth module code
+  - Context: CI is already created by TASK-scaffold-11 (feature-scaffold-monorepo) with lint + test + build for all workspaces. This task verifies that the auth module's code (entities, services, controllers, guards) passes CI cleanly. No new CI file is created — the existing pipeline must work with auth code.
+  - Depends on: TASK-scaffold-11 (feature-scaffold-monorepo), TASK-auth-1
   - Assigned to: unassigned
-  - Done criteria: Pipeline runs green on a trivial PR against the actual workspace structure created by this feature. Uses pnpm exclusively (no `npm ci` or `npm run` commands). Workflow runs lint, test, and build for `services/api-core` and `apps/admin-dashboard`.
+  - Done criteria: Push a branch with auth module code triggers CI. Lint passes (auth module files have zero ESLint errors). Tests pass (auth unit tests run and pass). Build succeeds (api-core compiles with auth module). CI status shows green on the PR. If any auth code fails CI, fix it before marking this task done.
 
 ## Group H — Integration tests (cross-cutting)
 
