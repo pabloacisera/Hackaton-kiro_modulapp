@@ -51,8 +51,7 @@ project. For the full agent rules, see `.kiro/steerings/00-project-context.md`.
 | **No "passing the baton"** | Next developer just syncs and continues |
 
 ### Key rules
-
-1. **Owner creates the branch** — developers do NOT create branches in their forks
+**Owner creates the branch** — developers do NOT create branches in their forks
 2. **Each microtask = 1 PR** — no PRs for individual microtasks, no PRs for the entire feature
 3. **Sync before starting** — always `git fetch upstream && git pull upstream <branch>`
 4. **Owner merges** — only the owner can merge PRs to `main`
