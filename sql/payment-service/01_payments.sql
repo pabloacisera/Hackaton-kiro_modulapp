@@ -6,7 +6,7 @@
 CREATE TABLE payments (
     id                  UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     reference_id        VARCHAR(255) NOT NULL,
-    origin              VARCHAR(20) NOT NULL,
+    origin              payment_origin NOT NULL,
     amount_usd          DECIMAL(12,2) NOT NULL,
     status              payment_status NOT NULL DEFAULT 'initiated',
     paypal_order_id     VARCHAR(255) NOT NULL,
@@ -30,4 +30,3 @@ COMMENT ON COLUMN payments.deleted_at IS 'Soft-delete timestamp: null = active, 
 -- Indexes
 CREATE INDEX idx_payments_reference_id ON payments(reference_id);
 CREATE INDEX idx_payments_status ON payments(status);
-CREATE INDEX idx_payments_idempotency_key ON payments(idempotency_key);

@@ -33,7 +33,6 @@ SELECT
     q.estimated_delivery_date,
     CASE
         WHEN q.estimated_delivery_date < CURRENT_DATE THEN 'overdue'
-        WHEN q.paid_at IS NOT NULL THEN 'pending'
         ELSE 'pending'
     END AS status,
     NULL AS delivered_at,

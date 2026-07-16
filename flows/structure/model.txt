@@ -75,6 +75,7 @@ customer_name    string            no          nombre del cliente
 status           enum              yes         created | payment_initiated | paid_pending_acceptance | accepted | rejected | payment_failed
 rejection_reason text              no          motivo de rechazo (si admin rechaza)
 estimated_delivery_date  date      no          fecha estimada de entrega (al aceptar)
+delivered_at     timestamp         no          cuando se marco como entregado
 payment_service_ref  string        yes         ID de transaccion retornado por payment-service
 locale           string            no          idioma del cliente (es/en)
 created_at       timestamp         auto        fecha de creacion

@@ -14,6 +14,7 @@ CREATE TABLE orders (
     estimated_delivery_date DATE,
     payment_service_ref     VARCHAR(255) NOT NULL,
     locale                  VARCHAR(10),
+    delivered_at            TIMESTAMPTZ,
     created_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at              TIMESTAMPTZ NOT NULL DEFAULT now(),
     deleted_at              TIMESTAMPTZ
@@ -29,6 +30,7 @@ COMMENT ON COLUMN orders.rejection_reason IS 'Reason if admin rejects the order'
 COMMENT ON COLUMN orders.estimated_delivery_date IS 'Set when admin accepts the order';
 COMMENT ON COLUMN orders.payment_service_ref IS 'Transaction reference from payment-service';
 COMMENT ON COLUMN orders.locale IS 'Customer language: es or en';
+COMMENT ON COLUMN orders.delivered_at IS 'When the order was marked as delivered';
 COMMENT ON COLUMN orders.created_at IS 'Order creation timestamp';
 COMMENT ON COLUMN orders.updated_at IS 'Last update timestamp';
 COMMENT ON COLUMN orders.deleted_at IS 'Soft-delete timestamp: null = active, non-null = deleted';

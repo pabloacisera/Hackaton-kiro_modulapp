@@ -25,4 +25,3 @@ COMMENT ON COLUMN refunds.deleted_at IS 'Soft-delete timestamp: null = active, n
 
 -- Indexes
 CREATE INDEX idx_refunds_payment_id ON refunds(payment_id);
-CREATE INDEX idx_refunds_refund_request_id ON refunds(refund_request_id);

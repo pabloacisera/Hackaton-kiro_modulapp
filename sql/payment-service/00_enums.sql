@@ -25,3 +25,9 @@ CREATE TYPE receipt_audience AS ENUM (
     'customer',
     'admin'
 );
+
+-- Payment origin (matches api-core: order or quote)
+CREATE TYPE payment_origin AS ENUM (
+    'order',
+    'quote'
+);
