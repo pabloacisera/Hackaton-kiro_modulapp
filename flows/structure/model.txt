@@ -8,6 +8,7 @@ password_hash    string            yes         hash de password (argon2)
 active           boolean           yes         si el admin esta activo
 created_at       timestamp         auto        fecha de creacion
 last_login_at    timestamp         no          ultimo login exitoso
+deleted_at       timestamp         no          soft-delete: null = activo, timestamp = eliminado
 
 RELACIONES
 RefreshToken.admin_user_id -> AdminUser.id  (1-N: un admin tiene muchos refresh tokens)
@@ -21,6 +22,7 @@ admin_user_id    uuid              yes         FK a AdminUser
 token_hash       string            yes         hash del refresh token
 expires_at       timestamp         yes         fecha de expiracion
 revoked          boolean           yes         si el token fue revocado
+deleted_at       timestamp         no          soft-delete: null = activo, timestamp = eliminado
 
 RELACIONES
 RefreshToken.admin_user_id -> AdminUser.id  (N-1)
@@ -41,6 +43,7 @@ stock_qty        integer           yes         stock de producto terminado
 build_on_demand  boolean           yes         true = se puede fabricar aunque stock=0
 estimated_delivery_days  integer   no          dias estimados de entrega
 images           ProtoImage[]      yes         imagenes del prototipo
+deleted_at       timestamp         no          soft-delete: null = activo, timestamp = eliminado
 
 RELACIONES
 Prototype.id <- ProtoImage.prototype_id  (1-N: un prototipo tiene muchas imagenes)
@@ -53,6 +56,7 @@ id               uuid              auto        identificador unico
 prototype_id     uuid              yes         FK a Prototype
 url              string            yes         URL de la imagen
 order            integer           yes         orden de visualizacion
+deleted_at       timestamp         no          soft-delete: null = activo, timestamp = eliminado
 
 RELACIONES
 ProtoImage.prototype_id -> Prototype.id  (N-1)
@@ -75,6 +79,7 @@ payment_service_ref  string        yes         ID de transaccion retornado por p
 locale           string            no          idioma del cliente (es/en)
 created_at       timestamp         auto        fecha de creacion
 updated_at       timestamp         auto        ultima actualizacion
+deleted_at       timestamp         no          soft-delete: null = activo, timestamp = eliminado
 
 RELACIONES
 Order.prototype_id -> Prototype.id  (N-1: muchas ordenes de un prototipo)
@@ -107,6 +112,7 @@ action_token_hash  string          no          hash del token JWT de aceptar/rec
 action_token_used  boolean         yes         si el token ya fue utilizado
 payment_service_ref  string        no          referencia del pago en payment-service
 locale           string            no          idioma del cliente (es/en)
+deleted_at       timestamp         no          soft-delete: null = activo, timestamp = eliminado
 
 RELACIONES
 Quote.payment_service_ref -> Payment.reference_id  (cross-microservicio: api-core -> payment-service)
@@ -132,6 +138,7 @@ refund_request_id  string          no          idempotency key para payment-serv
 locale           string            no          idioma del cliente (es/en)
 created_at       timestamp         auto        fecha de creacion
 resolved_at      timestamp         no          cuando se resolvio
+deleted_at       timestamp         no          soft-delete: null = activo, timestamp = eliminado
 
 RELACIONES
 Complaint.reference_id -> Order.id  (N-1: un reclamo apunta a una orden, si reference_type=order)
@@ -171,6 +178,7 @@ min_stock        decimal           yes         stock minimo antes de alerta
 unit_cost_usd    decimal           yes         costo por unidad en USD
 supplier         string            no          nombre del proveedor
 updated_at       timestamp         auto        ultima actualizacion
+deleted_at       timestamp         no          soft-delete: null = activo, timestamp = eliminado
 
 RELACIONES
 Supply.id <- SupplyStockChangeLog.supply_id  (1-N: un insumo tiene muchos cambios)
@@ -187,6 +195,7 @@ new_qty          decimal           yes         cantidad despues del cambio
 source           enum              yes         manual | excel_import | order_consumption
 actor            string            yes         quien hizo el cambio
 created_at       timestamp         auto        fecha del cambio
+deleted_at       timestamp         no          soft-delete: null = activo, timestamp = eliminado
 
 RELACIONES
 SupplyStockChangeLog.supply_id -> Supply.id  (N-1)
@@ -198,6 +207,7 @@ campo            tipo              requerido   descripcion
 supply_id        uuid              yes         FK a Supply (unique)
 last_notified_at timestamp         no          cuando se notifico por ultima vez
 last_notified_qty  decimal         no          stock al momento de la ultima notificacion
+deleted_at       timestamp         no          soft-delete: null = activo, timestamp = eliminado
 
 RELACIONES
 LowStockAlertState.supply_id -> Supply.id  (1-1)
@@ -215,6 +225,7 @@ reference_type   string            yes         order | quote | complaint | suppl
 reference_id     uuid              yes         ID del recurso referenciado
 read             boolean           yes         si fue leida
 created_at       timestamp         auto        fecha de creacion
+deleted_at       timestamp         no          soft-delete: null = activo, timestamp = eliminado
 
 RELACIONES
 AdminNotification.reference_id -> Order.id | Quote.id | Complaint.id | Supply.id  (polimorfica: segun reference_type)
@@ -235,6 +246,7 @@ paypal_order_id  string            yes         ID de la orden en PayPal
 idempotency_key  string            yes         key de idempotencia (unique, proporcionada por api-core)
 created_at       timestamp         auto        fecha de creacion
 confirmed_at     timestamp         no          cuando se confirmo el pago
+deleted_at       timestamp         no          soft-delete: null = activo, timestamp = eliminado
 
 RELACIONES
 Payment.id <- Refund.payment_id  (1-N: un pago puede tener varios reembolsos)
@@ -253,6 +265,7 @@ paypal_refund_id string            yes         ID del reembolso en PayPal
 reason           text              yes         motivo del reembolso
 status           enum              yes         processed | failed
 created_at       timestamp         auto        fecha de creacion
+deleted_at       timestamp         no          soft-delete: null = activo, timestamp = eliminado
 
 RELACIONES
 Refund.payment_id -> Payment.id  (N-1)
@@ -269,6 +282,7 @@ refund_id        uuid              no          FK a Refund (null si es de pago)
 audience         enum              yes         customer | admin
 pdf_url          string            yes         URL del PDF en Supabase Storage
 sent_at          timestamp         no          cuando se envio por email
+deleted_at       timestamp         no          soft-delete: null = activo, timestamp = eliminado
 
 RELACIONES
 Receipt.payment_id -> Payment.id  (N-1, nullable)
@@ -285,6 +299,7 @@ reference_id     string            yes         referencia de la entidad afectada
 payload_json     text              yes         JSON con el payload de la operacion
 result           string            yes         resultado de la operacion
 created_at       timestamp         auto        fecha de la accion
+deleted_at       timestamp         no          soft-delete: null = activo, timestamp = eliminado
 
 RELACIONES
 AuditLog es independiente. Solo registra, no tiene foreign keys a otras entidades.
@@ -341,6 +356,18 @@ comunicaciones para ese registro.
 8. Receipt.payment_id / Receipt.refund_id -> Payment.id / Refund.id
    Receipts pueden provenir de un pago o de un reembolso. Ambos FK son
    nullable. Un receipt siempre es de un tipo o del otro, nunca ambos.
+
+=== SOFT-DELETE CONVENTION ===
+
+Todas las tablas (excepto DeliveryItem que es una vista) incluyen la columna:
+  deleted_at: timestamp, nullable
+
+Reglas:
+- null = registro activo
+- timestamp = registro logicamente eliminado
+- Todas las queries deben filtrar WHERE deleted_at IS NULL por defecto
+- El admin puede ver registros eliminados en una vista especial
+- No se realizan DELETE fisicos, solo SET deleted_at = now()
 
 === RESUMEN DE BASES DE DATOS ===
 
