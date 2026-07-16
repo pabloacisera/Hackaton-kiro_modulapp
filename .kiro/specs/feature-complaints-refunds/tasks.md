@@ -3,12 +3,12 @@
 - [ ] TASK-complaint-1: Migration + Complaint entity + `POST /complaints` endpoint
   - Context: FR1 — Public form where customer requests a refund or files a complaint with order/quote reference, reason, description. This task covers database schema, entity definition with state machine, and the submission endpoint.
   - Deliverable:
-    - `services/api-core/src/modules/complaints/migrations/<timestamp>-create-complaints.ts`
-    - `services/api-core/src/modules/complaints/complaint.entity.ts`
-    - `services/api-core/src/modules/complaints/complaint.service.ts`
-    - `services/api-core/src/modules/complaints/complaint.controller.ts`
-    - `services/api-core/src/modules/complaints/complaint.module.ts`
-    - `services/api-core/src/modules/complaints/dto/create-complaint.dto.ts`
+    - `apps/api-core/src/modules/complaints/migrations/<timestamp>-create-complaints.ts`
+    - `apps/api-core/src/modules/complaints/complaint.entity.ts`
+    - `apps/api-core/src/modules/complaints/complaint.service.ts`
+    - `apps/api-core/src/modules/complaints/complaint.controller.ts`
+    - `apps/api-core/src/modules/complaints/complaint.module.ts`
+    - `apps/api-core/src/modules/complaints/dto/create-complaint.dto.ts`
   - Depends on: none
   - Assigned to: unassigned
   - Done criteria:
@@ -20,9 +20,9 @@
 - [ ] TASK-complaint-2: Complaint receipt email + admin notification
   - Context: FR2 — On submission, admin is notified and a complaint receipt is sent to customer. FR (non-functional): receipt is always sent regardless of later refund decision — it is proof of receipt, not resolution.
   - Deliverable:
-    - `services/api-core/src/modules/complaints/complaint-email.service.ts`
-    - `services/api-core/src/modules/complaints/complaint-notification.service.ts`
-    - `services/api-core/src/modules/complaints/complaint.service.ts` (update: hook email/notification into creation flow)
+    - `apps/api-core/src/modules/complaints/complaint-email.service.ts`
+    - `apps/api-core/src/modules/complaints/complaint-notification.service.ts`
+    - `apps/api-core/src/modules/complaints/complaint.service.ts` (update: hook email/notification into creation flow)
   - Depends on: TASK-complaint-1
   - Assigned to: unassigned
   - Done criteria:
@@ -34,9 +34,9 @@
 - [ ] TASK-complaint-3: `GET /admin/complaints` endpoint with filters/search/pagination
   - Context: FR4 — Complaint history per customer/order visible in the admin.
   - Deliverable:
-    - `services/api-core/src/modules/complaints/complaint.controller.ts` (add GET endpoint)
-    - `services/api-core/src/modules/complaints/complaint.service.ts` (add list/query method)
-    - `services/api-core/src/modules/complaints/dto/list-complaints.dto.ts`
+    - `apps/api-core/src/modules/complaints/complaint.controller.ts` (add GET endpoint)
+    - `apps/api-core/src/modules/complaints/complaint.service.ts` (add list/query method)
+    - `apps/api-core/src/modules/complaints/dto/list-complaints.dto.ts`
   - Depends on: TASK-complaint-1
   - Assigned to: unassigned
   - Done criteria:
@@ -49,8 +49,8 @@
 - [ ] TASK-complaint-4: `PATCH /admin/complaints/:id/review` endpoint
   - Context: Complaint state machine includes `under_review` but no endpoint triggers it. Adds explicit endpoint for admins to mark a complaint as actively reviewed.
   - Deliverable:
-    - `services/api-core/src/modules/complaints/complaint.controller.ts` (add PATCH endpoint)
-    - `services/api-core/src/modules/complaints/complaint.service.ts` (add review transition method)
+    - `apps/api-core/src/modules/complaints/complaint.controller.ts` (add PATCH endpoint)
+    - `apps/api-core/src/modules/complaints/complaint.service.ts` (add review transition method)
   - Depends on: TASK-complaint-1
   - Assigned to: unassigned
   - Done criteria:
@@ -62,9 +62,9 @@
 - [ ] TASK-complaint-5: `PATCH /admin/complaints/:id/approve-refund` endpoint
   - Context: FR3 — Admin reviews and decides: approve refund triggers automatic refund via `feature-payment-billing-java`. Edge case: duplicate refund on already-refunded payment must be rejected (idempotency in payment-service).
   - Deliverable:
-    - `services/api-core/src/modules/complaints/complaint.controller.ts` (add PATCH endpoint)
-    - `services/api-core/src/modules/complaints/complaint.service.ts` (add approve-refund method with payment-service call)
-    - `services/api-core/src/modules/complaints/complaint-payment.adapter.ts`
+    - `apps/api-core/src/modules/complaints/complaint.controller.ts` (add PATCH endpoint)
+    - `apps/api-core/src/modules/complaints/complaint.service.ts` (add approve-refund method with payment-service call)
+    - `apps/api-core/src/modules/complaints/complaint-payment.adapter.ts`
   - Depends on: TASK-complaint-1, TASK-pay-11
   - Assigned to: unassigned
   - Done criteria:
@@ -77,9 +77,9 @@
 - [ ] TASK-complaint-6: `PATCH /admin/complaints/:id/resolve` endpoint
   - Context: FR3 — Admin decides to resolve another way (replacement, contacting customer) with a record of the resolution.
   - Deliverable:
-    - `services/api-core/src/modules/complaints/complaint.controller.ts` (add PATCH endpoint)
-    - `services/api-core/src/modules/complaints/complaint.service.ts` (add resolve method)
-    - `services/api-core/src/modules/complaints/dto/resolve-complaint.dto.ts`
+    - `apps/api-core/src/modules/complaints/complaint.controller.ts` (add PATCH endpoint)
+    - `apps/api-core/src/modules/complaints/complaint.service.ts` (add resolve method)
+    - `apps/api-core/src/modules/complaints/dto/resolve-complaint.dto.ts`
   - Depends on: TASK-complaint-1
   - Assigned to: unassigned
   - Done criteria:
@@ -91,9 +91,9 @@
 - [ ] TASK-complaint-7: `views/ComplaintForm` in landing
   - Context: FR1 — Public form on the landing (always visible section) where customer requests a refund or files a complaint.
   - Deliverable:
-    - `services/web/src/views/ComplaintForm/ComplaintForm.tsx`
-    - `services/web/src/views/ComplaintForm/ComplaintForm.test.tsx`
-    - `services/web/src/views/ComplaintForm/index.ts`
+    - `apps/landing/src/views/ComplaintForm/ComplaintForm.tsx`
+    - `apps/landing/src/views/ComplaintForm/ComplaintForm.test.tsx`
+    - `apps/landing/src/views/ComplaintForm/index.ts`
   - Depends on: TASK-complaint-1
   - Assigned to: unassigned
   - Done criteria:
@@ -106,12 +106,12 @@
 - [ ] TASK-complaint-8: `views/ComplaintsTable` + `ComplaintDetail` in admin
   - Context: FR4 — Complaint history per customer/order visible in the admin.
   - Deliverable:
-    - `services/web/src/views/admin/ComplaintsTable/ComplaintsTable.tsx`
-    - `services/web/src/views/admin/ComplaintsTable/ComplaintsTable.test.tsx`
-    - `services/web/src/views/admin/ComplaintDetail/ComplaintDetail.tsx`
-    - `services/web/src/views/admin/ComplaintDetail/ComplaintDetail.test.tsx`
-    - `services/web/src/views/admin/ComplaintsTable/index.ts`
-    - `services/web/src/views/admin/ComplaintDetail/index.ts`
+    - `apps/admin-dashboard/src/views/ComplaintsTable/ComplaintsTable.tsx`
+    - `apps/admin-dashboard/src/views/ComplaintsTable/ComplaintsTable.test.tsx`
+    - `apps/admin-dashboard/src/views/ComplaintDetail/ComplaintDetail.tsx`
+    - `apps/admin-dashboard/src/views/ComplaintDetail/ComplaintDetail.test.tsx`
+    - `apps/admin-dashboard/src/views/ComplaintsTable/index.ts`
+    - `apps/admin-dashboard/src/views/ComplaintDetail/index.ts`
   - Depends on: TASK-complaint-3
   - Assigned to: unassigned
   - Done criteria:
@@ -123,7 +123,7 @@
 
 - [ ] TASK-complaint-integration: Integration tests for complaint flow
   - Context: Validates end-to-end flow across all FRs: POST complaint → email + notification, approve-refund → payment-service mock call, resolve flow. Covers edge cases: unknown order reference still registers complaint, duplicate refund returns clear error.
-  - Deliverable: `services/api-core/src/modules/complaints/**/*.integration-spec.ts`
+  - Deliverable: `apps/api-core/src/modules/complaints/**/*.integration-spec.ts`
   - Depends on: TASK-complaint-1, TASK-complaint-2, TASK-complaint-3, TASK-complaint-4, TASK-complaint-5, TASK-complaint-6, TASK-complaint-7, TASK-complaint-8
   - Assigned to: unassigned
   - Done criteria:

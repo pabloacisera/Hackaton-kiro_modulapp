@@ -9,14 +9,14 @@ and provides a Docker Compose environment that starts the full local stack.
 ## Functional requirements
 
 - FR1. Turborepo configured at monorepo root with workspaces for `apps/*`,
-  `services/api-core`, and `packages/*`.
+  `apps/api-core`, and `packages/*`.
 - FR2. `apps/landing` scaffolded as a React + Vite app. `npm run dev` starts
   on port 3000 with a placeholder page.
 - FR3. `apps/admin-dashboard` scaffolded as a React + Vite app. `npm run dev`
   starts on port 3001 with a placeholder page.
-- FR4. `services/api-core` scaffolded as a NestJS app. `npm run dev` starts
+- FR4. `apps/api-core` scaffolded as a NestJS app. `npm run dev` starts
   on port 8080 with a `/health` endpoint returning 200.
-- FR5. `services/payment-service` scaffolded as a Spring Boot app.
+- FR5. `apps/payment-service` scaffolded as a Spring Boot app.
   `mvn spring-boot:run` starts on port 8081 with a `/health` endpoint.
 - FR6. `packages/shared-types` created with initial TypeScript types for auth
   DTOs (`LoginRequest`, `LoginResponse`, `RefreshResponse`).

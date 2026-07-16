@@ -1,6 +1,6 @@
 # Hook: on-financial-change
 
-**Trigger**: a diff/PR includes files within `services/payment-service/**` or `services/api-core/**` that touch entities `Order`, `Quote` (paid/accepted status), `Stock`, `Refund`, or `Receipt`.
+**Trigger**: a diff/PR includes files within `apps/payment-service/**` or `apps/api-core/**` that touch entities `Order`, `Quote` (paid/accepted status), `Stock`, `Refund`, or `Receipt`.
 
 **Actions the agent must execute automatically:**
 

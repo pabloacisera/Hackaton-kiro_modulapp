@@ -10,7 +10,7 @@
 ## Non-functional requirements
 
 - Clear environment separation: `development`, `staging`, `production` (files `.env.development`, `.env.staging`, `.env.production`, none committed except `.env.example`).
-- Turborepo caches builds for `apps/*` and `services/api-core` — the CI pipeline must leverage that cache.
+- Turborepo caches builds for `apps/*` and `apps/api-core` — the CI pipeline must leverage that cache.
 
 ## Edge cases
 

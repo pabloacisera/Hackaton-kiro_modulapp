@@ -1,7 +1,7 @@
 # packages/shared-types
 
 Shared types/DTOs between `apps/landing`, `apps/admin-dashboard`, and
-`services/api-core` (via Turborepo). Examples: `Prototype`, `Order`, `Quote`,
+`apps/api-core` (via Turborepo). Examples: `Prototype`, `Order`, `Quote`,
 `Complaint`, `Supply` and their respective request/response DTOs.
 
 Does not include types from the Java microservice — that contract is

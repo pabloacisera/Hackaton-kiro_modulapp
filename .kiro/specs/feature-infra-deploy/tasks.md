@@ -6,8 +6,8 @@
 - [ ] TASK-infra-1: Multi-stage Dockerfiles for all services
   - Context: FR1 requires `api-core` (NestJS) and `payment-service` (Spring Boot) to run as containers. FR2 requires `landing` and `admin-dashboard` to produce `dist/` for Nginx. The edge case notes that `payment-service` (Java/Maven) is independent from Turborepo and needs its own build step.
   - Deliverable:
-    - `services/api-core/Dockerfile` (Node multi-stage: build + runtime)
-    - `services/payment-service/Dockerfile` (Maven multi-stage: build + JRE runtime)
+    - `apps/api-core/Dockerfile` (Node multi-stage: build + runtime)
+    - `apps/payment-service/Dockerfile` (Maven multi-stage: build + JRE runtime)
     - `apps/landing/Dockerfile` (Node build stage producing `dist/`)
     - `apps/admin-dashboard/Dockerfile` (Node build stage producing `dist/`)
   - Depends on: feature-scaffold-monorepo (TASK-scaffold-1 through TASK-scaffold-6 must be complete)
@@ -33,7 +33,7 @@
 
 - [ ] TASK-infra-4: Database seed script with fake data
   - Context: FR4 requires a seed script with fake data for development/testing covering prototypes, supplies, orders, quotes, and complaints in various states.
-  - Deliverable: `scripts/seed-db.sh`, `services/api-core/src/seed/` (TypeScript seeder using `faker`)
+  - Deliverable: `scripts/seed-db.sh`, `apps/api-core/src/seed/` (TypeScript seeder using `faker`)
   - Depends on: migrations from all domain features (feature-admin-auth-core, feature-catalog-landing, feature-direct-purchase, feature-custom-quote, feature-complaints-refunds, feature-supply-stock-management)
   - Assigned to: unassigned
   - Done criteria: `npm run seed` (or `scripts/seed-db.sh`) populates Supabase/Postgres with fake data; at least 10 prototypes, 20 supplies, 15 orders, 10 quotes, 10 complaints across multiple states; script is idempotent (running twice does not duplicate data); seed data is realistic (faker-based names, emails, amounts, dates).

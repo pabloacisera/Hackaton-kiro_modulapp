@@ -224,8 +224,8 @@ body for non-trivial changes, and one commit = one logical change.
 
 ## Financial code review
 
-Any change touching `services/payment-service/**` or financial entities in
-`services/api-core/**` requires **two approvers**, one of whom must be a
+Any change touching `apps/payment-service/**` or financial entities in
+`apps/api-core/**` requires **two approvers**, one of whom must be a
 human developer (not the PR author). See
 `.kiro/steerings/03-code-review.md` § Reinforced section.
 
@@ -312,7 +312,7 @@ Review PR #42. Además del checklist estándar, chequeá:
 (1) Si toca archivos que otra feature en progreso también está tocando
     (ver docs/feature-status.md).
 (2) Si algo de lo que cambia ya tenía tests que pasaban y ahora los rompe.
-(3) Si toca services/payment-service o entidades financieras, aplicá la
+(3) Si toca apps/payment-service o entidades financieras, aplicá la
     sección reforzada completa de 03-code-review.md.
 
 Al final decime si está en condiciones de mergear, o qué bloquea — vos no

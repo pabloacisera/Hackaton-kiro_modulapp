@@ -32,7 +32,7 @@ TASK-scaffold-1  (Turborepo root)
 ---
 
 - [ ] TASK-scaffold-1: Configure Turborepo at monorepo root
-  - Context: FR1 — foundation for the entire monorepo build system. Workspaces for `apps/*`, `services/api-core`, and `packages/*`.
+  - Context: FR1 — foundation for the entire monorepo build system. Workspaces for `apps/*`, `apps/api-core`, and `packages/*`.
   - Deliverable: `turbo.json` with pipeline (dev, build, lint, test), `pnpm-workspace.yaml`, root `package.json` with scripts
   - Depends on: none
   - Assigned to: unassigned
@@ -52,16 +52,16 @@ TASK-scaffold-1  (Turborepo root)
   - Assigned to: unassigned
   - Done criteria: `pnpm dev` in `apps/landing` starts Vite on port 3000 and renders a page containing "Landing" and "3000". `pnpm dev` in `apps/admin-dashboard` starts Vite on port 3001 and renders a page containing "Admin Dashboard" and "3001". `pnpm build` succeeds in both apps. `pnpm lint` completes without errors in both apps (inherits from TASK-scaffold-9 config). Both apps are listed in the Turborepo workspace (verify via `pnpm ls -r` from root).
 
-- [ ] TASK-scaffold-3: Scaffold `services/api-core` (NestJS)
+- [ ] TASK-scaffold-3: Scaffold `apps/api-core` (NestJS)
   - Context: FR4 — backend domain service on port 8080 with a `/health` endpoint.
-  - Deliverable: `services/api-core/` with `package.json`, `tsconfig.json`, `src/main.ts`, `src/app.module.ts`, `src/health/health.controller.ts` returning `{ status: "ok" }`
+  - Deliverable: `apps/api-core/` with `package.json`, `tsconfig.json`, `src/main.ts`, `src/app.module.ts`, `src/health/health.controller.ts` returning `{ status: "ok" }`
   - Depends on: TASK-scaffold-1, TASK-scaffold-9
   - Assigned to: unassigned
-  - Done criteria: `pnpm dev` in `services/api-core` starts NestJS on port 8080. `curl localhost:8080/health` returns HTTP 200 with body `{"status":"ok"}`. `pnpm build` compiles without errors. `pnpm lint` completes without errors (inherits from TASK-scaffold-9 config). App is listed in the Turborepo workspace.
+  - Done criteria: `pnpm dev` in `apps/api-core` starts NestJS on port 8080. `curl localhost:8080/health` returns HTTP 200 with body `{"status":"ok"}`. `pnpm build` compiles without errors. `pnpm lint` completes without errors (inherits from TASK-scaffold-9 config). App is listed in the Turborepo workspace.
 
-- [ ] TASK-scaffold-4: Scaffold `services/payment-service` (Spring Boot)
+- [ ] TASK-scaffold-4: Scaffold `apps/payment-service` (Spring Boot)
   - Context: FR5 — financial microservice on port 8081 with a `/health` endpoint. Does not participate in Turborepo; independent Maven build.
-  - Deliverable: `services/payment-service/` with `pom.xml` (spring-boot-maven-plugin), `src/main/java/` application class, health endpoint returning `{"status":"ok"}`
+  - Deliverable: `apps/payment-service/` with `pom.xml` (spring-boot-maven-plugin), `src/main/java/` application class, health endpoint returning `{"status":"ok"}`
   - Depends on: none (independent of Turborepo)
   - Assigned to: unassigned
   - Done criteria: `mvn spring-boot:run` starts on port 8081. `curl localhost:8081/health` returns HTTP 200 with body `{"status":"ok"}`. `mvn package -DskipTests` builds a runnable JAR. README documents that this service is outside Turborepo.
@@ -75,10 +75,10 @@ TASK-scaffold-1  (Turborepo root)
 
 - [ ] TASK-scaffold-10: Testing framework setup (Vitest for React, Jest for NestJS)
   - Context: FR12 — every JS/TS workspace must have a working test runner. The first business feature (admin-auth-core) requires unit tests from TASK-auth-1. Without test config, tests cannot run.
-  - Deliverable: `vitest.config.ts` in `apps/landing` and `apps/admin-dashboard`, `jest.config.ts` in `services/api-core`, `src/test-setup.ts` in React apps (jsdom environment), test scripts in each workspace `package.json`
+  - Deliverable: `vitest.config.ts` in `apps/landing` and `apps/admin-dashboard`, `jest.config.ts` in `apps/api-core`, `src/test-setup.ts` in React apps (jsdom environment), test scripts in each workspace `package.json`
   - Depends on: TASK-scaffold-2, TASK-scaffold-3
   - Assigned to: unassigned
-  - Done criteria: `pnpm test` runs in `apps/landing`, `apps/admin-dashboard`, and `services/api-core` (even with zero tests, runner exits cleanly). Vitest uses jsdom environment for React components. Jest uses node environment for NestJS. Test scripts in `package.json` are correct (`vitest run` for React, `jest --config jest.config.ts` for NestJS). Unit test: create a trivial test file in each workspace (e.g., `describe('sanity', () => it('works', () => expect(true).toBe(true)))`), verify `pnpm test` passes. All pass.
+  - Done criteria: `pnpm test` runs in `apps/landing`, `apps/admin-dashboard`, and `apps/api-core` (even with zero tests, runner exits cleanly). Vitest uses jsdom environment for React components. Jest uses node environment for NestJS. Test scripts in `package.json` are correct (`vitest run` for React, `jest --config jest.config.ts` for NestJS). Unit test: create a trivial test file in each workspace (e.g., `describe('sanity', () => it('works', () => expect(true).toBe(true)))`), verify `pnpm test` passes. All pass.
 
 - [ ] TASK-scaffold-6: Create Docker Compose + Nginx infrastructure (`infra/`)
   - Context: FR7+FR8 — docker-compose.yml starts all services (api-core, payment-service, landing, admin-dashboard, Redis). Nginx reverse-proxies: `/api/` → api-core, `/payments/` → payment-service, `/` → landing, `/admin/` → admin-dashboard. Health checks ensure dependent services wait.
@@ -92,14 +92,14 @@ TASK-scaffold-1  (Turborepo root)
   - Deliverable: `.env.example` at repo root with all variables properly commented and organized by service
   - Depends on: TASK-scaffold-3, TASK-scaffold-4
   - Assigned to: unassigned
-  - Done criteria: Every environment variable referenced in `services/api-core/src/` and `services/payment-service/src/` exists in `.env.example`. No variable in `.env.example` is unreferenced. Each variable has a descriptive comment. Cross-check by grepping for `process.env.` and `@Value` / `application.properties` references against `.env.example` keys. Also verify that `docker-compose.yml` `env_file: .env` references match `.env.example` keys.
+  - Done criteria: Every environment variable referenced in `apps/api-core/src/` and `apps/payment-service/src/` exists in `.env.example`. No variable in `.env.example` is unreferenced. Each variable has a descriptive comment. Cross-check by grepping for `process.env.` and `@Value` / `application.properties` references against `.env.example` keys. Also verify that `docker-compose.yml` `env_file: .env` references match `.env.example` keys.
 
 - [ ] TASK-scaffold-8: End-to-end verification — `bash scripts/dev-up.sh`
   - Context: FR10 — the full local stack must start and respond within 60 seconds via the dev script.
   - Deliverable: `scripts/dev-up.sh` that runs `docker compose up --build` (or equivalent) and blocks until all services are healthy
   - Depends on: TASK-scaffold-6, TASK-scaffold-7
   - Assigned to: unassigned
-  - Done criteria: `bash scripts/dev-up.sh` starts all services within 60 seconds. Landing responds at http://localhost:3000 with visible "Landing" placeholder. Admin dashboard responds at http://localhost:3001 with visible "Admin Dashboard" placeholder. API core health at http://localhost:8080/health returns HTTP 200. Payment service health at http://localhost:8081/health returns HTTP 200. Nginx proxies `/api/*` to api-core and `/payments/*` to payment-service correctly. Redis PING returns PONG inside Docker network. Each service also starts independently without Docker (except payment-service which needs Java) — verify by running `pnpm dev` in `apps/landing`, `apps/admin-dashboard`, and `services/api-core` individually.
+  - Done criteria: `bash scripts/dev-up.sh` starts all services within 60 seconds. Landing responds at http://localhost:3000 with visible "Landing" placeholder. Admin dashboard responds at http://localhost:3001 with visible "Admin Dashboard" placeholder. API core health at http://localhost:8080/health returns HTTP 200. Payment service health at http://localhost:8081/health returns HTTP 200. Nginx proxies `/api/*` to api-core and `/payments/*` to payment-service correctly. Redis PING returns PONG inside Docker network. Each service also starts independently without Docker (except payment-service which needs Java) — verify by running `pnpm dev` in `apps/landing`, `apps/admin-dashboard`, and `apps/api-core` individually.
 
 - [ ] TASK-scaffold-11: CI pipeline (minimum viable — lint + test + build)
   - Context: FR13 — 3 developers will submit PRs from day 1. Layer 2 of the protection model (CI) must exist before any business feature PRs are created. Basic lint+test+build should be in scaffold-monorepo so the very first PR has CI checks. The Java payment-service is NOT in this pipeline yet — added later by feature-infra-deploy.
