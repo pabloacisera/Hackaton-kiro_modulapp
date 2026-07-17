@@ -20,8 +20,8 @@
 
 ## Reinforced section — financial code (payments, refunds, stock, receipts)
 
-Applies to all changes in `services/payment-service` (Java) and any code in
-`services/api-core` touching `stock`, `orders`, `quotes` in
+Applies to all changes in `apps/payment-service` (Java) and any code in
+`apps/api-core` touching `stock`, `orders`, `quotes` in
 accepted/paid state.
 
 - [ ] **Mandatory double reviewer** (a single approver is not enough).

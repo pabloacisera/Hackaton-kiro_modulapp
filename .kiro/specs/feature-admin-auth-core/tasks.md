@@ -5,12 +5,12 @@
 - [ ] TASK-auth-1: Prisma migration for `admin_users` and `refresh_tokens` tables + `AdminUser` entity with password hashing (argon2)
   - Context: FR1 (admin login requires an admin entity), FR2 (multiple admins with same permissions), NFR (passwords hashed with argon2, never plain text). Creates the data foundation for the entire auth feature.
   - Deliverable:
-    - `services/api-core/prisma/migrations/<timestamp>_create_admin_auth_tables/migration.sql`
-    - `services/api-core/src/domain/auth/entities/admin-user.entity.ts`
-    - `services/api-core/src/domain/auth/entities/refresh-token.entity.ts`
-    - `services/api-core/src/infrastructure/auth/repositories/admin-user.repository.ts`
-    - `services/api-core/src/infrastructure/auth/repositories/refresh-token.repository.ts`
-    - Unit tests embedded: `services/api-core/src/domain/auth/entities/admin-user.entity.spec.ts`
+    - `apps/api-core/prisma/migrations/<timestamp>_create_admin_auth_tables/migration.sql`
+    - `apps/api-core/src/domain/auth/entities/admin-user.entity.ts`
+    - `apps/api-core/src/domain/auth/entities/refresh-token.entity.ts`
+    - `apps/api-core/src/infrastructure/auth/repositories/admin-user.repository.ts`
+    - `apps/api-core/src/infrastructure/auth/repositories/refresh-token.repository.ts`
+    - Unit tests embedded: `apps/api-core/src/domain/auth/entities/admin-user.entity.spec.ts`
   - Depends on: none
   - Assigned to: unassigned
   - Done criteria: `prisma migrate dev` creates both tables with correct schema. Unit tests pass: `unit.admin-user.create.validHash`, `unit.admin-user.create.rejectsPlainText`, `unit.admin-user.verifyPassword.correctHash`, `unit.admin-user.verifyPassword.wrongHash`, `unit.refresh-token.create.setsExpiry`, `unit.refresh-token.isExpired.true`, `unit.refresh-token.isExpired.false`.
@@ -20,15 +20,15 @@
 - [ ] TASK-auth-2: Login, refresh, and logout endpoints with JWT generation and refresh cookie
   - Context: FR1 (login with email + password, proprietary JWT), FR5 (session expires via refresh token, explicit logout). These three endpoints form the core auth flow. Login returns a short-lived access JWT (~15 min) + sets a long-lived httpOnly refresh cookie. Refresh exchanges a valid refresh token for a new access JWT. Logout revokes the refresh token.
   - Deliverable:
-    - `services/api-core/src/interface/auth/controllers/auth.controller.ts`
-    - `services/api-core/src/interface/auth/dto/login-request.dto.ts`
-    - `services/api-core/src/interface/auth/dto/login-response.dto.ts`
-    - `services/api-core/src/application/auth/use-cases/login.use-case.ts`
-    - `services/api-core/src/application/auth/use-cases/refresh.use-case.ts`
-    - `services/api-core/src/application/auth/use-cases/logout.use-case.ts`
-    - `services/api-core/src/infrastructure/auth/jwt/jwt.service.ts`
-    - `services/api-core/src/infrastructure/auth/jwt/refresh-cookie.service.ts`
-    - Unit tests embedded: `services/api-core/src/application/auth/use-cases/login.use-case.spec.ts`, `services/api-core/src/application/auth/use-cases/refresh.use-case.spec.ts`, `services/api-core/src/application/auth/use-cases/logout.use-case.spec.ts`
+    - `apps/api-core/src/interface/auth/controllers/auth.controller.ts`
+    - `apps/api-core/src/interface/auth/dto/login-request.dto.ts`
+    - `apps/api-core/src/interface/auth/dto/login-response.dto.ts`
+    - `apps/api-core/src/application/auth/use-cases/login.use-case.ts`
+    - `apps/api-core/src/application/auth/use-cases/refresh.use-case.ts`
+    - `apps/api-core/src/application/auth/use-cases/logout.use-case.ts`
+    - `apps/api-core/src/infrastructure/auth/jwt/jwt.service.ts`
+    - `apps/api-core/src/infrastructure/auth/jwt/refresh-cookie.service.ts`
+    - Unit tests embedded: `apps/api-core/src/application/auth/use-cases/login.use-case.spec.ts`, `apps/api-core/src/application/auth/use-cases/refresh.use-case.spec.ts`, `apps/api-core/src/application/auth/use-cases/logout.use-case.spec.ts`
   - Depends on: TASK-auth-1
   - Assigned to: unassigned
   - Done criteria: Unit tests pass: `unit.login.validCredentialsReturnsJWTAndCookie`, `unit.login.invalidCredentialsReturns401`, `unit.login.deactivatedUserReturns403`. `unit.refresh.validTokenReturnsNewJWT`, `unit.refresh.expiredTokenThrows`, `unit.refresh.revokedTokenThrows`. `unit.logout.revokesRefreshToken`, `unit.logout.clearsCookie`. Endpoints respond correctly via `curl`.
@@ -38,11 +38,11 @@
 - [ ] TASK-auth-3: Rate limiting on login endpoint (Redis) + global JWT guard for `/admin/**` routes
   - Context: NFR (rate limiting on login for brute force mitigation), NFR (all dashboard routes except login require a valid JWT), edge case (repeated failed login attempts → temporary lockout). Rate limit is 5 attempts per 15 min per IP+email via Redis. JWT guard protects all `/admin/**` routes except `/admin/auth/login` and `/admin/auth/refresh`.
   - Deliverable:
-    - `services/api-core/src/interface/auth/guards/rate-limit.guard.ts`
-    - `services/api-core/src/infrastructure/auth/rate-limit/rate-limit.service.ts`
-    - `services/api-core/src/interface/auth/guards/jwt-auth.guard.ts`
-    - `services/api-core/src/interface/auth/decorators/current-admin.decorator.ts`
-    - Unit tests embedded: `services/api-core/src/infrastructure/auth/rate-limit/rate-limit.service.spec.ts`, `services/api-core/src/interface/auth/guards/jwt-auth.guard.spec.ts`
+    - `apps/api-core/src/interface/auth/guards/rate-limit.guard.ts`
+    - `apps/api-core/src/infrastructure/auth/rate-limit/rate-limit.service.ts`
+    - `apps/api-core/src/interface/auth/guards/jwt-auth.guard.ts`
+    - `apps/api-core/src/interface/auth/decorators/current-admin.decorator.ts`
+    - Unit tests embedded: `apps/api-core/src/infrastructure/auth/rate-limit/rate-limit.service.spec.ts`, `apps/api-core/src/interface/auth/guards/jwt-auth.guard.spec.ts`
   - Depends on: TASK-auth-2
   - Assigned to: unassigned
   - Done criteria: Unit tests pass: `unit.rate-limit.incrementAndCount`, `unit.rate-limit.blocksAfterMaxAttempts`, `unit.rate-limit.resetsAfterWindow`. `unit.jwt-guard.validTokenAllowsRequest`, `unit.jwt-guard.missingTokenRedirectsToLogin`, `unit.jwt-guard.expiredTokenRedirectsToLogin`. Login endpoint returns 429 after 5 failed attempts within 15 min. Unauthenticated request to any `/admin/**` route (except login/refresh) returns 401.
@@ -52,11 +52,11 @@
 - [ ] TASK-auth-4: Admin create and deactivate endpoints
   - Context: FR3 (basic admin management: create by another logged-in admin, deactivate). Creates admin management endpoints behind JWT auth. Only logged-in admins can create new admins or deactivate existing ones.
   - Deliverable:
-    - `services/api-core/src/interface/auth/controllers/admin-user.controller.ts`
-    - `services/api-core/src/interface/auth/dto/create-admin.dto.ts`
-    - `services/api-core/src/application/auth/use-cases/create-admin.use-case.ts`
-    - `services/api-core/src/application/auth/use-cases/deactivate-admin.use-case.ts`
-    - Unit tests embedded: `services/api-core/src/application/auth/use-cases/create-admin.use-case.spec.ts`, `services/api-core/src/application/auth/use-cases/deactivate-admin.use-case.spec.ts`
+    - `apps/api-core/src/interface/auth/controllers/admin-user.controller.ts`
+    - `apps/api-core/src/interface/auth/dto/create-admin.dto.ts`
+    - `apps/api-core/src/application/auth/use-cases/create-admin.use-case.ts`
+    - `apps/api-core/src/application/auth/use-cases/deactivate-admin.use-case.ts`
+    - Unit tests embedded: `apps/api-core/src/application/auth/use-cases/create-admin.use-case.spec.ts`, `apps/api-core/src/application/auth/use-cases/deactivate-admin.use-case.spec.ts`
   - Depends on: TASK-auth-1
   - Assigned to: unassigned
   - Done criteria: Unit tests pass: `unit.create-admin.validInputCreatesAdmin`, `unit.create-admin.duplicateEmailThrows`, `unit.create-admin.hashPasswordBeforeSaving`. `unit.deactivate-admin.deactivatesUser`, `unit.deactivate-admin.deactivatedUserCannotLogin`. Acceptance criteria: deactivated admin cannot log in even with correct password.
@@ -96,9 +96,9 @@
 - [ ] TASK-auth-7: Notification to affected admin on rate-limit lockout
   - Context: edge case in specs.md requires "temporary lockout + notification" on repeated failed login attempts. TASK-auth-3 implements the lockout itself; this task sends a notification to the affected admin when lockout triggers (via WebSocket if connected, or email as fallback).
   - Deliverable:
-    - `services/api-core/src/application/auth/use-cases/notify-lockout.use-case.ts`
-    - `services/api-core/src/application/auth/use-cases/notify-lockout.use-case.spec.ts`
-    - `services/api-core/src/infrastructure/auth/notifications/lockout-notification.service.ts`
+    - `apps/api-core/src/application/auth/use-cases/notify-lockout.use-case.ts`
+    - `apps/api-core/src/application/auth/use-cases/notify-lockout.use-case.spec.ts`
+    - `apps/api-core/src/infrastructure/auth/notifications/lockout-notification.service.ts`
   - Depends on: TASK-auth-3
   - Assigned to: unassigned
   - Done criteria: When rate limit blocks an admin, a notification is sent with message "Multiple failed login attempts detected. Account temporarily locked." Notification is persisted in `admin_notifications` table. Unit tests pass: `unit.notify-lockout.sendsWebSocketNotification`, `unit.notify-lockout.fallsBackToEmail`, `unit.notify-lockout.persistsNotification`.
@@ -116,7 +116,7 @@
 - [ ] TASK-auth-9: Integration tests for full auth flow and JWT guard protection
   - Context: validates the complete login → refresh → logout flow, rate limiting behavior, and JWT guard protection end-to-end. Uses Supertest against NestJS test app with mocked Redis for rate limiting. This is the single integration test task for the entire auth feature.
   - Deliverable:
-    - `services/api-core/src/modules/auth/auth.integration-spec.ts`
+    - `apps/api-core/src/modules/auth/auth.integration-spec.ts`
   - Depends on: TASK-auth-1, TASK-auth-2, TASK-auth-3, TASK-auth-4
   - Assigned to: unassigned
   - Done criteria: All integration tests pass: `integration.auth.login.successReturnsJWTAndCookie`, `integration.auth.login.invalidCredentialsReturns401`, `integration.auth.login.deactivatedAdminReturns403`, `integration.auth.login.rateLimitBlocksAfter5Attempts`. `integration.auth.refresh.validTokenReturnsNewJWT`, `integration.auth.refresh.expiredTokenRedirectsToLogin`, `integration.auth.refresh.revokedTokenReturns401`. `integration.auth.logout.revokesRefreshToken`, `integration.auth.logout.clearsCookie`. `integration.auth.guard.blocksRequestWithoutJWT`, `integration.auth.guard.allowsRequestWithValidJWT`. `integration.auth.admin.createRequiresJWT`, `integration.auth.admin.createCreatesNewAdmin`, `integration.auth.admin.deactivatePreventsLogin`. `integration.auth.lockout.notificationSentOnLockout`.

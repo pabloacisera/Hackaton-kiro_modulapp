@@ -1,4 +1,4 @@
-# services/payment-service
+# apps/payment-service
 
 Financial microservice. Java + Spring Boot. Responsible for:
 - Payment processing (PayPal Orders API)
