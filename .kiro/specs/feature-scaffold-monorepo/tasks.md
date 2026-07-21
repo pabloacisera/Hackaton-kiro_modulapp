@@ -38,21 +38,21 @@ TASK-scaffold-1  (Turborepo root)
   - Assigned to: Pablo
   - Done criteria: `turbo run dev` from root starts the dev pipeline without errors. `turbo run lint` completes without config errors. Workspace packages are resolved correctly (run `pnpm ls -r --depth 0` to verify).
 
-- [ ] TASK-scaffold-9: ESLint + Prettier configuration (root + all workspaces)
+- [x] TASK-scaffold-9: ESLint + Prettier configuration (root + all workspaces)
   - Context: FR11 — shared lint and format config. Every workspace must pass `pnpm lint` and `pnpm format:check`. This task must complete before React apps (TASK-scaffold-2) and NestJS (TASK-scaffold-3) claim lint passes in their Done criteria.
   - Deliverable: `.eslintrc.js` (root), `.prettierrc` (root), ESLint configs per workspace (React extends `plugin:react/recommended`), dev dependencies at root (`eslint`, `@typescript-eslint/parser`, `@typescript-eslint/eslint-plugin`, `prettier`, `eslint-config-prettier`), lint/format scripts in each workspace `package.json`
   - Depends on: TASK-scaffold-1
   - Assigned to: unassigned
   - Done criteria: `pnpm lint` passes in all JS/TS workspaces with zero errors. `pnpm format:check` passes. `pnpm lint:fix` auto-fixes simple issues. Root `.eslintrc.js` and `.prettierrc` exist and are valid. Each workspace extends root config correctly. Unit test: introduce a deliberate lint error (unused variable), verify `pnpm lint` catches it, verify `pnpm lint:fix` resolves it. All pass.
 
-- [ ] TASK-scaffold-2: Scaffold React apps (`apps/landing` + `apps/admin-dashboard`)
+- [x] TASK-scaffold-2: Scaffold React apps (`apps/landing` + `apps/admin-dashboard`)
   - Context: FR2+FR3 — both apps are structurally identical React + Vite apps. Landing is public-facing (port 3000), admin dashboard is internal (port 3001). Each must show a placeholder with service name and port.
   - Deliverable: `apps/landing/` and `apps/admin-dashboard/`, each with `package.json` (dev/build/lint/test scripts), `vite.config.ts`, `tsconfig.json`, `index.html`, `src/main.tsx`, `src/App.tsx`
   - Depends on: TASK-scaffold-1, TASK-scaffold-9
   - Assigned to: unassigned
   - Done criteria: `pnpm dev` in `apps/landing` starts Vite on port 3000 and renders a page containing "Landing" and "3000". `pnpm dev` in `apps/admin-dashboard` starts Vite on port 3001 and renders a page containing "Admin Dashboard" and "3001". `pnpm build` succeeds in both apps. `pnpm lint` completes without errors in both apps (inherits from TASK-scaffold-9 config). Both apps are listed in the Turborepo workspace (verify via `pnpm ls -r` from root).
 
-- [ ] TASK-scaffold-3: Scaffold `services/api-core` (NestJS)
+- [x] TASK-scaffold-3: Scaffold `services/api-core` (NestJS)
   - Context: FR4 — backend domain service on port 8080 with a `/health` endpoint.
   - Deliverable: `services/api-core/` with `package.json`, `tsconfig.json`, `src/main.ts`, `src/app.module.ts`, `src/health/health.controller.ts` returning `{ status: "ok" }`
   - Depends on: TASK-scaffold-1, TASK-scaffold-9
@@ -66,14 +66,14 @@ TASK-scaffold-1  (Turborepo root)
   - Assigned to: unassigned
   - Done criteria: `mvn spring-boot:run` starts on port 8081. `curl localhost:8081/health` returns HTTP 200 with body `{"status":"ok"}`. `mvn package -DskipTests` builds a runnable JAR. README documents that this service is outside Turborepo.
 
-- [ ] TASK-scaffold-5: Create `packages/shared-types` with initial DTOs
+- [x] TASK-scaffold-5: Create `packages/shared-types` with initial DTOs
   - Context: FR6 — shared TypeScript types for cross-app type safety. Defines `LoginRequest`, `LoginResponse`, `RefreshResponse`.
   - Deliverable: `packages/shared-types/` with `package.json` (name, main, types, build script), `tsconfig.json`, `src/index.ts` exporting all DTO types
   - Depends on: TASK-scaffold-1
   - Assigned to: unassigned
   - Done criteria: `pnpm build` in `packages/shared-types` compiles without errors. Types can be imported from both `apps/landing` and `apps/admin-dashboard` (add a test import in each app's `App.tsx`, verify `pnpm build` succeeds). Package is resolvable via workspace protocol (`@modula/shared-types`).
 
-- [ ] TASK-scaffold-10: Testing framework setup (Vitest for React, Jest for NestJS)
+- [x] TASK-scaffold-10: Testing framework setup (Vitest for React, Jest for NestJS)
   - Context: FR12 — every JS/TS workspace must have a working test runner. The first business feature (admin-auth-core) requires unit tests from TASK-auth-1. Without test config, tests cannot run.
   - Deliverable: `vitest.config.ts` in `apps/landing` and `apps/admin-dashboard`, `jest.config.ts` in `services/api-core`, `src/test-setup.ts` in React apps (jsdom environment), test scripts in each workspace `package.json`
   - Depends on: TASK-scaffold-2, TASK-scaffold-3
