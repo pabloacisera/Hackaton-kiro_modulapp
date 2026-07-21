@@ -2,14 +2,6 @@
   "name": "mobiliario-eventos-monorepo",
   "private": true,
   "packageManager": "pnpm@9.0.0",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
-  "scripts": {
-    "dev": "turbo run dev",
-    "build": "turbo run build"
-  },
   "devDependencies": {
     "turbo": "^2.0.0"
   }
