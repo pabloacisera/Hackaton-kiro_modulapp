@@ -13,6 +13,8 @@ business flows that converge at the same checkout but behave differently:
 1. Read `.kiro/steerings/00-project-context.md` — business decisions and
    non-negotiable architecture.
 2. Copy `.env.example` to `.env` and complete (see `.kiro/steerings/09-environment-variables.md`).
+   > **`.env` is immutable** — once populated with real keys it cannot be
+   > modified, edited, or deleted by anyone (human or agent). See `AGENTS.md`.
 3. `bash scripts/dev-up.sh` — starts everything with Docker Compose.
 4. `bash scripts/seed-db.sh` — seeds the database with test data.
 
@@ -44,6 +46,7 @@ packages/        Shared types/DTOs (Turborepo)
 
 ## Documentation
 
+- **Agent rules** (`.env` immutability and other hard rules): [`AGENTS.md`](AGENTS.md)
 - **Project overview** (architecture, tech stack, agent rules, doc map): [`PROJECT_OVERVIEW.md`](PROJECT_OVERVIEW.md)
 - **Business and architecture**: `.kiro/steerings/` (all in English)
 - **Team workflow**: `.kiro/steerings/06-team-workflow.md`

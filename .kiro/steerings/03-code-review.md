@@ -13,6 +13,8 @@
   that is not understood.
 - [ ] No secrets/keys leaked — sensitive variables only via `.env` (see
   `.kiro/steerings/09-environment-variables.md`).
+- [ ] `.env` file was **not** modified — it is immutable once populated
+  (see `.kiro/steerings/09-environment-variables.md` § Immutable rule).
 - [ ] If the change affects an API contract (request/response), update
   `design.md` of the corresponding feature in the same PR.
 - [ ] Responsive/mobile-first verified if the change is frontend-related
