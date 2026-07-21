@@ -5,3 +5,10 @@
 3. Terminar de configurar las webhook de PayPal
 
 ## *ayuda@codigofacilito.com*
+
+- commitear la rama;
+
+- verificar casos de uso;
+- diagramas(vale puntos)
+- comparacion con otras herramientas?
+- resuelve el problema que se plantea?

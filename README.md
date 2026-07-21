@@ -37,8 +37,7 @@ business flows that converge at the same checkout but behave differently:
 .kiro/            Agent rules and feature specs
 docs/            Documentation for human developers
 scripts/         Automation (bash)
-apps/            Landing and admin dashboard (React)
-services/        api-core (NestJS) and payment-service (Java/Spring Boot)
+apps/            Landing, admin dashboard, api-core, payment-service
 infra/           Docker and Nginx
 packages/        Shared types/DTOs (Turborepo)
 ```

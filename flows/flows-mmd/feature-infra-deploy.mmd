@@ -1,9 +1,9 @@
 flowchart TD
     subgraph Turborepo["Turborepo (JS/TS only)"]
-        T1[turbo.json - workspaces: apps/*, services/api-core]
+        T1[turbo.json - workspaces: apps/*]
         T2[apps/landing - React build]
         T3[apps/admin-dashboard - React build]
-        T4[services/api-core - NestJS build]
+        T4[apps/api-core - NestJS build]
     end
 
     subgraph Docker["Docker Compose"]

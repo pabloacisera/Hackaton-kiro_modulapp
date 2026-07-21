@@ -49,8 +49,7 @@ ESTRUCTURA DEL MONOREPO
 .kiro/              Agent rules and feature specs
 docs/              Documentacion para desarrolladores humanos
 scripts/           Automatizacion (bash)
-apps/              Landing y admin-dashboard (React)
-services/          api-core (NestJS) y payment-service (Java/Spring Boot)
+apps/              Landing, admin-dashboard, api-core, payment-service
 infra/             Docker y Nginx
 packages/          Tipos/DTOs compartidos (Turborepo)
 .github/           CI pipeline (GitHub Actions)

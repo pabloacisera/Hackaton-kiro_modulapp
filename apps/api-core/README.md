@@ -1,4 +1,4 @@
-# services/api-core
+# apps/api-core
 
 Backend domain. NestJS + TypeScript, Clean Architecture (see
 `.kiro/steerings/05-architecture-conventions.md`).
@@ -13,7 +13,7 @@ src/
 
 Domains: `catalog`, `orders`, `quotes`, `supplies`,
 `complaints`, `notifications`, `auth`. Does not handle payments or
-receipts directly — delegates to `services/payment-service` via HTTP/webhooks.
+receipts directly — delegates to `apps/payment-service` via HTTP/webhooks.
 
 ## Development
 

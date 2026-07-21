@@ -5,5 +5,5 @@ set -euo pipefail
 # Ver TASK-infra-8 en .kiro/specs/feature-infra-deploy/tasks.md
 
 echo "Corriendo seed de datos falsos..."
-cd services/api-core
+cd apps/api-core
 pnpm run seed

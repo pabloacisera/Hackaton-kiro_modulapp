@@ -51,8 +51,7 @@ project. For the full agent rules, see `.kiro/steerings/00-project-context.md`.
 | **No "passing the baton"** | Next developer just syncs and continues |
 
 ### Key rules
-
-1. **Owner creates the branch** — developers do NOT create branches in their forks
+**Owner creates the branch** — developers do NOT create branches in their forks
 2. **Each microtask = 1 PR** — no PRs for individual microtasks, no PRs for the entire feature
 3. **Sync before starting** — always `git fetch upstream && git pull upstream <branch>`
 4. **Owner merges** — only the owner can merge PRs to `main`
@@ -225,8 +224,8 @@ body for non-trivial changes, and one commit = one logical change.
 
 ## Financial code review
 
-Any change touching `services/payment-service/**` or financial entities in
-`services/api-core/**` requires **two approvers**, one of whom must be a
+Any change touching `apps/payment-service/**` or financial entities in
+`apps/api-core/**` requires **two approvers**, one of whom must be a
 human developer (not the PR author). See
 `.kiro/steerings/03-code-review.md` § Reinforced section.
 
@@ -313,7 +312,7 @@ Review PR #42. Además del checklist estándar, chequeá:
 (1) Si toca archivos que otra feature en progreso también está tocando
     (ver docs/feature-status.md).
 (2) Si algo de lo que cambia ya tenía tests que pasaban y ahora los rompe.
-(3) Si toca services/payment-service o entidades financieras, aplicá la
+(3) Si toca apps/payment-service o entidades financieras, aplicá la
     sección reforzada completa de 03-code-review.md.
 
 Al final decime si está en condiciones de mergear, o qué bloquea — vos no

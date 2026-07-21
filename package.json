@@ -4,14 +4,11 @@
   "packageManager": "pnpm@9.0.0",
   "workspaces": [
     "apps/*",
-    "services/api-core",
     "packages/*"
   ],
   "scripts": {
     "dev": "turbo run dev",
-    "build": "turbo run build",
-    "lint": "turbo run lint",
-    "test": "turbo run test"
+    "build": "turbo run build"
   },
   "devDependencies": {
     "turbo": "^2.0.0"

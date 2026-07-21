@@ -11,7 +11,7 @@
 - Mobile-first: every component is designed first for viewport ~360-390px and
   then expanded with breakpoints (Tailwind `sm/md/lg`).
 
-## Backend domain (services/api-core) — Clean Architecture
+## Backend domain (apps/api-core) — Clean Architecture
 
 ```
 src/
@@ -24,7 +24,7 @@ src/
 Rule: `domain/` imports nothing from `infrastructure/` or NestJS. Dependencies
 always point inward (interface → application → domain).
 
-## Financial microservice (services/payment-service) — Java/Spring Boot
+## Financial microservice (apps/payment-service) — Java/Spring Boot
 
 Layered structure equivalent (`controller` → `service` → `domain` →
 `repository`), isolated from NestJS. Communicates with `api-core` only via
@@ -43,10 +43,10 @@ transactions/receipts, with events/webhooks to `api-core` to reflect status
 
 ## ORM: Prisma
 
-**Prisma** is the ORM for `services/api-core`. All database operations go
+**Prisma** is the ORM for `apps/api-core`. All database operations go
 through Prisma Client. TypeORM is not used.
 
-- Schema files live in `services/api-core/prisma/schema.prisma`.
+- Schema files live in `apps/api-core/prisma/schema.prisma`.
 - Migrations are generated via `npx prisma migrate dev`.
 - Never use raw SQL unless Prisma cannot express the query.
 
