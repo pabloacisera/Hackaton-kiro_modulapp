@@ -2,5 +2,4 @@
 # Defines which directories are part of the monorepo
 packages:
   - 'apps/*'
-  - 'services/api-core'
   - 'packages/*'
