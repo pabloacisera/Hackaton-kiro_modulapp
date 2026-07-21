@@ -31,11 +31,11 @@ TASK-scaffold-1  (Turborepo root)
 
 ---
 
-- [ ] TASK-scaffold-1: Configure Turborepo at monorepo root
+- [x] TASK-scaffold-1: Configure Turborepo at monorepo root
   - Context: FR1 — foundation for the entire monorepo build system. Workspaces for `apps/*`, `services/api-core`, and `packages/*`.
   - Deliverable: `turbo.json` with pipeline (dev, build, lint, test), `pnpm-workspace.yaml`, root `package.json` with scripts
   - Depends on: none
-  - Assigned to: unassigned
+  - Assigned to: Pablo
   - Done criteria: `turbo run dev` from root starts the dev pipeline without errors. `turbo run lint` completes without config errors. Workspace packages are resolved correctly (run `pnpm ls -r --depth 0` to verify).
 
 - [ ] TASK-scaffold-9: ESLint + Prettier configuration (root + all workspaces)
