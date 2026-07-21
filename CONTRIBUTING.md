@@ -166,6 +166,12 @@ git push --force-with-lease origin <your-branch>
 pushed to that same branch on your fork in the meantime, the push stops
 instead of silently overwriting it.
 
+### After a PR is merged — delete the branch
+
+Once a PR is merged to `main`, delete the branch immediately (both remote
+and local). Stale branches clutter the repo and confuse automation. This
+applies to feature branches, issue branches, and any other temporary branch.
+
 ### After someone else's PR is merged (collaborative model)
 
 When working on the same feature with other developers, after their PR is merged:

@@ -129,6 +129,9 @@ TASK-<feature>-<n> (or FIX-ISSUE-<n>)
 5. The source microtask is marked `[x]` in the corresponding `tasks.md`
    (in the same PR or an immediate follow-up commit).
 6. **Only the owner can merge.** No other developer or agent can merge PRs.
+7. **Delete the branch after merge.** Both the remote branch and any local
+   tracking branch must be deleted immediately after the PR is merged.
+   Stale branches clutter the repo and confuse automation.
 
 ## Who can merge?
 
