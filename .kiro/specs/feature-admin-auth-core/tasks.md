@@ -2,7 +2,7 @@
 
 ## Group A — Data layer + entities
 
-- [ ] TASK-auth-1: Prisma migration for `admin_users` and `refresh_tokens` tables + `AdminUser` entity with password hashing (argon2)
+- [x] TASK-auth-1: Prisma migration for `admin_users` and `refresh_tokens` tables + `AdminUser` entity with password hashing (argon2)
   - Context: FR1 (admin login requires an admin entity), FR2 (multiple admins with same permissions), NFR (passwords hashed with argon2, never plain text). Creates the data foundation for the entire auth feature.
   - Deliverable:
     - `services/api-core/prisma/migrations/<timestamp>_create_admin_auth_tables/migration.sql`
