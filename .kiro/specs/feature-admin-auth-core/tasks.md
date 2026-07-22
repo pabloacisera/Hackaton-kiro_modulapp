@@ -49,7 +49,7 @@
 
 ## Group D — Admin management endpoints
 
-- [ ] TASK-auth-4: Admin create and deactivate endpoints
+- [x] TASK-auth-4: Admin create and deactivate endpoints
   - Context: FR3 (basic admin management: create by another logged-in admin, deactivate). Creates admin management endpoints behind JWT auth. Only logged-in admins can create new admins or deactivate existing ones.
   - Deliverable:
     - `services/api-core/src/interface/auth/controllers/admin-user.controller.ts`
