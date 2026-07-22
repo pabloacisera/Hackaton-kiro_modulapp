@@ -63,7 +63,7 @@
 
 ## Group E — Frontend (login + layout + interceptor)
 
-- [ ] TASK-auth-5: Login page, useAuth controller, and dashboard layout with section navigation
+- [x] TASK-auth-5: Login page, useAuth controller, and dashboard layout with section navigation
   - Context: FR1 (admin login UI), FR4 (base dashboard layout with navigation to sections: catalog, purchases/orders, quotes, stock/supplies, complaints/refunds, notifications; responsive). Builds the React frontend for the admin auth flow. Login page with email/password form. Dashboard layout with collapsible sidebar nav (mobile-first, Tailwind breakpoints). Route guard: no valid JWT → redirect to `/login`.
   - Deliverable:
     - `apps/admin-dashboard/src/views/LoginPage.tsx`
@@ -81,7 +81,7 @@
   - Assigned to: unassigned
   - Done criteria: Login page renders email/password fields, calls `useAuth.login()`, shows loading/error states. Dashboard layout renders side nav with links to all 6 sections. RouteGuard redirects unauthenticated users to `/login`. Mobile sidebar collapses at `sm` breakpoint. All frontend unit tests pass (Vitest).
 
-- [ ] TASK-auth-6: Automatic refresh HTTP interceptor in admin frontend
+- [x] TASK-auth-6: Automatic refresh HTTP interceptor in admin frontend
   - Context: FR5 (session expires → silent refresh; if refresh also expired → redirect to login without losing draft state). Adds an Axios/fetch interceptor that intercepts 401 responses, attempts a silent refresh via `POST /admin/auth/refresh`, and retries the original request. If refresh fails, redirects to `/login` while preserving local state (e.g., half-filled form in component state).
   - Deliverable:
     - `apps/admin-dashboard/src/models/http-client.ts`
@@ -93,7 +93,7 @@
 
 ## Group F — Notification on lockout
 
-- [ ] TASK-auth-7: Notification to affected admin on rate-limit lockout
+- [x] TASK-auth-7: Notification to affected admin on rate-limit lockout
   - Context: edge case in specs.md requires "temporary lockout + notification" on repeated failed login attempts. TASK-auth-3 implements the lockout itself; this task sends a notification to the affected admin when lockout triggers (via WebSocket if connected, or email as fallback).
   - Deliverable:
     - `services/api-core/src/application/auth/use-cases/notify-lockout.use-case.ts`
@@ -105,7 +105,7 @@
 
 ## Group G — CI verification
 
-- [ ] TASK-auth-8: Verify CI pipeline runs correctly with auth module code
+- [x] TASK-auth-8: Verify CI pipeline runs correctly with auth module code
   - Context: CI is already created by TASK-scaffold-11 (feature-scaffold-monorepo) with lint + test + build for all workspaces. This task verifies that the auth module's code (entities, services, controllers, guards) passes CI cleanly. No new CI file is created — the existing pipeline must work with auth code.
   - Depends on: TASK-scaffold-11 (feature-scaffold-monorepo), TASK-auth-1
   - Assigned to: unassigned
@@ -113,7 +113,7 @@
 
 ## Group H — Integration tests (cross-cutting)
 
-- [ ] TASK-auth-9: Integration tests for full auth flow and JWT guard protection
+- [x] TASK-auth-9: Integration tests for full auth flow and JWT guard protection
   - Context: validates the complete login → refresh → logout flow, rate limiting behavior, and JWT guard protection end-to-end. Uses Supertest against NestJS test app with mocked Redis for rate limiting. This is the single integration test task for the entire auth feature.
   - Deliverable:
     - `services/api-core/src/modules/auth/auth.integration-spec.ts`
