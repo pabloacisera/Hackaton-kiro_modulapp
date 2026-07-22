@@ -1,6 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import { DeactivateAdminUseCase } from './deactivate-admin.use-case';
 import { AdminUser } from '../../../domain/auth/entities/admin-user.entity';
+import { IAdminUserRepository } from '../../../domain/auth/repositories/admin-user.repository.port';
 
 describe('DeactivateAdminUseCase', () => {
   let useCase: DeactivateAdminUseCase;
@@ -19,7 +20,7 @@ describe('DeactivateAdminUseCase', () => {
       update: jest.fn(),
     };
 
-    useCase = new DeactivateAdminUseCase(adminUserRepo as any);
+    useCase = new DeactivateAdminUseCase(adminUserRepo as unknown as IAdminUserRepository);
   });
 
   it('unit.deactivate-admin.deactivatesUser', async () => {
@@ -59,9 +60,7 @@ describe('DeactivateAdminUseCase', () => {
 
     const deactivatedUser: AdminUser = adminUserRepo.update.mock.calls[0][0];
     expect(deactivatedUser.active).toBe(false);
-    expect(adminUserRepo.update).toHaveBeenCalledWith(
-      expect.objectContaining({ active: false }),
-    );
+    expect(adminUserRepo.update).toHaveBeenCalledWith(expect.objectContaining({ active: false }));
   });
 
   it('throws NotFoundException when user does not exist', async () => {

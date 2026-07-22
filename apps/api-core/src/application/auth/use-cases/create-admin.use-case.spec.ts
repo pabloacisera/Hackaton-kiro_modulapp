@@ -1,6 +1,7 @@
 import { ConflictException } from '@nestjs/common';
 import { CreateAdminUseCase } from './create-admin.use-case';
 import { AdminUser } from '../../../domain/auth/entities/admin-user.entity';
+import { IAdminUserRepository } from '../../../domain/auth/repositories/admin-user.repository.port';
 
 describe('CreateAdminUseCase', () => {
   let useCase: CreateAdminUseCase;
@@ -19,7 +20,7 @@ describe('CreateAdminUseCase', () => {
       update: jest.fn(),
     };
 
-    useCase = new CreateAdminUseCase(adminUserRepo as any);
+    useCase = new CreateAdminUseCase(adminUserRepo as unknown as IAdminUserRepository);
   });
 
   it('unit.create-admin.validInputCreatesAdmin', async () => {
@@ -47,13 +48,13 @@ describe('CreateAdminUseCase', () => {
 
     adminUserRepo.findByEmail.mockResolvedValue(existingUser);
 
-    await expect(
-      useCase.execute('existing@example.com', 'password123'),
-    ).rejects.toThrow(ConflictException);
+    await expect(useCase.execute('existing@example.com', 'password123')).rejects.toThrow(
+      ConflictException,
+    );
 
-    await expect(
-      useCase.execute('existing@example.com', 'password123'),
-    ).rejects.toThrow('Email already in use');
+    await expect(useCase.execute('existing@example.com', 'password123')).rejects.toThrow(
+      'Email already in use',
+    );
   });
 
   it('unit.create-admin.hashPasswordBeforeSaving', async () => {

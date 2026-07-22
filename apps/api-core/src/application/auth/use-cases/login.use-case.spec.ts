@@ -2,6 +2,10 @@ import { ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { LoginUseCase } from './login.use-case';
 import { AdminUser } from '../../../domain/auth/entities/admin-user.entity';
 import { RefreshToken } from '../../../domain/auth/entities/refresh-token.entity';
+import { IAdminUserRepository } from '../../../domain/auth/repositories/admin-user.repository.port';
+import { IRefreshTokenRepository } from '../../../domain/auth/repositories/refresh-token.repository.port';
+import { JwtService } from '../../../infrastructure/auth/jwt/jwt.service';
+import { RefreshCookieService } from '../../../infrastructure/auth/jwt/refresh-cookie.service';
 
 describe('LoginUseCase', () => {
   let useCase: LoginUseCase;
@@ -19,7 +23,11 @@ describe('LoginUseCase', () => {
     revokeAllForUser: jest.Mock;
   };
   let jwtService: { generateAccessToken: jest.Mock; verifyAccessToken: jest.Mock };
-  let cookieService: { setRefreshCookie: jest.Mock; clearRefreshCookie: jest.Mock; getRefreshTokenFromCookie: jest.Mock };
+  let cookieService: {
+    setRefreshCookie: jest.Mock;
+    clearRefreshCookie: jest.Mock;
+    getRefreshTokenFromCookie: jest.Mock;
+  };
   let mockRes: { cookie: jest.Mock; clearCookie: jest.Mock };
 
   beforeEach(() => {
@@ -48,10 +56,10 @@ describe('LoginUseCase', () => {
     mockRes = { cookie: jest.fn(), clearCookie: jest.fn() };
 
     useCase = new LoginUseCase(
-      adminUserRepo as any,
-      refreshTokenRepo as any,
-      jwtService as any,
-      cookieService as any,
+      adminUserRepo as unknown as IAdminUserRepository,
+      refreshTokenRepo as unknown as IRefreshTokenRepository,
+      jwtService as unknown as JwtService,
+      cookieService as unknown as RefreshCookieService,
     );
   });
 
@@ -75,7 +83,11 @@ describe('LoginUseCase', () => {
       revoke: jest.fn(),
     } as unknown as RefreshToken);
 
-    const result = await useCase.execute('admin@example.com', 'password123', mockRes as any);
+    const result = await useCase.execute(
+      'admin@example.com',
+      'password123',
+      mockRes as unknown as import('express').Response,
+    );
 
     expect(result).toEqual({ accessToken: 'mock-access-token' });
     expect(cookieService.setRefreshCookie).toHaveBeenCalledWith(mockRes, expect.any(String));
@@ -86,7 +98,11 @@ describe('LoginUseCase', () => {
     adminUserRepo.findByEmail.mockResolvedValue(null);
 
     await expect(
-      useCase.execute('notfound@example.com', 'password123', mockRes as any),
+      useCase.execute(
+        'notfound@example.com',
+        'password123',
+        mockRes as unknown as import('express').Response,
+      ),
     ).rejects.toThrow(UnauthorizedException);
   });
 
@@ -101,7 +117,11 @@ describe('LoginUseCase', () => {
     adminUserRepo.findByEmail.mockResolvedValue(mockUser);
 
     await expect(
-      useCase.execute('admin@example.com', 'password123', mockRes as any),
+      useCase.execute(
+        'admin@example.com',
+        'password123',
+        mockRes as unknown as import('express').Response,
+      ),
     ).rejects.toThrow(ForbiddenException);
   });
 });
