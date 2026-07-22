@@ -35,7 +35,7 @@
 
 ## Group C — Middleware (rate limiting + JWT guard)
 
-- [ ] TASK-auth-3: Rate limiting on login endpoint (Redis) + global JWT guard for `/admin/**` routes
+- [x] TASK-auth-3: Rate limiting on login endpoint (Redis) + global JWT guard for `/admin/**` routes
   - Context: NFR (rate limiting on login for brute force mitigation), NFR (all dashboard routes except login require a valid JWT), edge case (repeated failed login attempts → temporary lockout). Rate limit is 5 attempts per 15 min per IP+email via Redis. JWT guard protects all `/admin/**` routes except `/admin/auth/login` and `/admin/auth/refresh`.
   - Deliverable:
     - `services/api-core/src/interface/auth/guards/rate-limit.guard.ts`
