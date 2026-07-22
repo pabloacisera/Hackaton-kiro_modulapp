@@ -6,9 +6,7 @@ spring:
     name: payment-service
 
   datasource:
-    url: ${DATABASE_URL_PAYMENT:jdbc:postgresql://localhost:5432/modula_payments}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: ${PAYMENT_DATABASE_URL}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -23,3 +21,22 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
+
+paypal:
+  client-id: ${PAYPAL_CLIENT_ID}
+  client-secret: ${PAYPAL_CLIENT_SECRET}
+  mode: ${PAYPAL_MODE:sandbox}
+  webhook-id: ${PAYPAL_WEBHOOK_ID}
+
+mailjet:
+  api-key: ${MAILJET_API_KEY}
+  api-secret: ${MAILJET_API_SECRET}
+  from-email: ${MAILJET_FROM_EMAIL}
+  from-name: ${MAILJET_FROM_NAME}
+
+supabase:
+  storage-bucket: ${SUPABASE_STORAGE_BUCKET}
+  service-role-key: ${SUPABASE_SERVICE_ROLE_KEY}
+
+api-core:
+  webhook-url: ${API_CORE_WEBHOOK_URL:http://localhost:8080}

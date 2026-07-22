@@ -1,3 +1,3 @@
 -- Flyway baseline migration for payment-service
--- Actual schema will be created in feature-payment-billing-java tasks
-SELECT 1;
+-- Enables uuid_generate_v4() extension used by all subsequent migrations
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
