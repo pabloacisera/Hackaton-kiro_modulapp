@@ -17,7 +17,7 @@
 
 ## Group B — Auth endpoints (login / refresh / logout)
 
-- [ ] TASK-auth-2: Login, refresh, and logout endpoints with JWT generation and refresh cookie
+- [x] TASK-auth-2: Login, refresh, and logout endpoints with JWT generation and refresh cookie
   - Context: FR1 (login with email + password, proprietary JWT), FR5 (session expires via refresh token, explicit logout). These three endpoints form the core auth flow. Login returns a short-lived access JWT (~15 min) + sets a long-lived httpOnly refresh cookie. Refresh exchanges a valid refresh token for a new access JWT. Logout revokes the refresh token.
   - Deliverable:
     - `services/api-core/src/interface/auth/controllers/auth.controller.ts`
