@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import axios from 'axios';
 
 vi.mock('axios', async (importOriginal) => {
   const actual = await importOriginal<typeof import('axios')>();
@@ -15,10 +14,7 @@ vi.mock('axios', async (importOriginal) => {
   };
 });
 
-import {
-  setAccessToken,
-  setSessionExpiredHandler,
-} from './http-client';
+import { setAccessToken, setSessionExpiredHandler } from './http-client';
 
 describe('http-client', () => {
   beforeEach(() => {
