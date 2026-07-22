@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
+import * as cookieParser from 'cookie-parser';
 import { AppModule } from '../../app.module';
 import { AdminUser } from '../../domain/auth/entities/admin-user.entity';
 import { RefreshToken } from '../../domain/auth/entities/refresh-token.entity';
@@ -55,9 +56,7 @@ class InMemoryRefreshTokenRepo implements IRefreshTokenRepository {
     return token;
   }
   async revokeAllForUser(adminUserId: string) {
-    this.tokens = this.tokens.map((t) =>
-      t.adminUserId === adminUserId ? t.revoke() : t,
-    );
+    this.tokens = this.tokens.map((t) => (t.adminUserId === adminUserId ? t.revoke() : t));
   }
 }
 
@@ -102,7 +101,7 @@ describe('Auth Integration Tests', () => {
       .compile();
 
     app = moduleRef.createNestApplication();
-    app.use(require('cookie-parser')());
+    app.use(cookieParser());
     await app.init();
 
     process.env.JWT_ACCESS_SECRET = 'test-secret-integration';
