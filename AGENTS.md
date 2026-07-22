@@ -9,7 +9,7 @@
 The file `.env` at the project root **cannot be touched, modified, or deleted**
 by any agent under any circumstance. This rule is absolute and has no exceptions.
 
-- **Do not read** `.env` to extract secrets or print them.
+- **Do not print, expose, or echo** secret values from `.env` in responses. Reading is permitted for configuration tasks.
 - **Do not write** to `.env` — no new variables, no updated values, no deletions.
 - **Do not delete** `.env` or rename it.
 - **Do not generate** `.env` files with real or placeholder values.

@@ -11,3 +11,10 @@
 - diagramas(vale puntos)
 - comparacion con otras herramientas?
 - resuelve el problema que se plantea?
+
+22/07
+Tus pasos ahora:
+
+1. Crear 2 proyectos en Supabase
+2. Copiar las connection strings a tu .env (en DATABASE_URL y PAYMENT_DATABASE_URL)
+3. Los servicios crean las tablas solos al iniciar
