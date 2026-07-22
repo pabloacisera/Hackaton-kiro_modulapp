@@ -84,7 +84,7 @@ Copilot, etc.). Full details in `.kiro/steerings/00-project-context.md`.
 2. **Never commit directly to `main`** without owner confirmation.
 3. **Never merge or approve PRs** — only the owner merges.
 4. **Max half a day per microtask**, max 2-3 files — decompose if larger.
-5. **Financial code review** — changes to `payment-service/` or financial
+5. **Financial code review** — changes to `apps/payment-service/` or financial
    entities require two approvers, one human.
 6. **Immutable `.env`** — once populated, cannot be modified without
    documentation and owner approval.
@@ -135,8 +135,7 @@ Copilot, etc.). Full details in `.kiro/steerings/00-project-context.md`.
 .kiro/              Agent rules and feature specs
 docs/               Documentation for human developers
 scripts/            Automation (bash)
-apps/               Landing and admin dashboard (React)
-services/           api-core (NestJS) and payment-service (Java/Spring Boot)
+apps/               Landing, admin dashboard, api-core, payment-service
 infra/              Docker and Nginx
 packages/           Shared types/DTOs (Turborepo)
 ```

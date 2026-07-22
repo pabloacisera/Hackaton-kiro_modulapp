@@ -8,7 +8,6 @@ coverage/
 npm-debug.log
 pnpm-debug.log*
 .pnpm-store/
-
 # Java / Maven (payment-service)
 apps/payment-service/target/
 services/payment-service/target/

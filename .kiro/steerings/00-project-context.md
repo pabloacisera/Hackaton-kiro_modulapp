@@ -87,6 +87,8 @@ in `.kiro/steerings/09-environment-variables.md` and then manually applied by th
 - **Impact-based authorization**: the severity/impact of a change can also
   authorize branch creation. A high-impact change (even if small) should get
   its own branch for safety.
+- **Post-merge cleanup**: once a branch PR is merged to `main`, the branch
+  must be deleted immediately (remote and local). No stale branches allowed.
 
 ## Commit ownership
 

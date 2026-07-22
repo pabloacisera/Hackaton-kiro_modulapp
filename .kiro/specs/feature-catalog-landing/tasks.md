@@ -2,28 +2,28 @@
 
 - [ ] TASK-catalog-1: Database migration + `Prototype` domain entity with invariants
   - Context: FR1 — data model for active prototypes; entity enforces `active implies visible` and `stock_qty >= 0` (FR14 — `build_on_demand` allows stock=0 purchase)
-  - Deliverable: Prisma migration for `prototypes` + `proto_images` tables, `services/api-core/src/modules/catalog/domain/prototype.entity.ts`
+  - Deliverable: Prisma migration for `prototypes` + `proto_images` tables, `apps/api-core/src/modules/catalog/domain/prototype.entity.ts`
   - Depends on: none
   - Assigned to: unassigned
   - Done criteria: migration runs cleanly on dev DB; unit tests pass for `activeImpliesVisible`, `stockQtyCannotBeNegative`, and `buildOnDemandAllowsZeroStock`
 
 - [ ] TASK-catalog-2: `GET /catalog/prototypes` and `GET /catalog/prototypes/:id` endpoints
   - Context: FR1 — list active prototypes with images/name/description/price/stock; FR2 — filter by category and price range; FR3 — search by name/description; FR4 — prototype detail with gallery and specs
-  - Deliverable: `services/api-core/src/modules/catalog/use-cases/list-prototypes.ts`, `services/api-core/src/modules/catalog/use-cases/get-prototype.ts`, `services/api-core/src/modules/catalog/controllers/catalog.controller.ts`, `services/api-core/src/modules/catalog/catalog.module.ts`
+  - Deliverable: `apps/api-core/src/modules/catalog/use-cases/list-prototypes.ts`, `apps/api-core/src/modules/catalog/use-cases/get-prototype.ts`, `apps/api-core/src/modules/catalog/controllers/catalog.controller.ts`, `apps/api-core/src/modules/catalog/catalog.module.ts`
   - Depends on: TASK-catalog-1
   - Assigned to: unassigned
   - Done criteria: unit tests pass for list use case (category filter, price range, search, combined filters, pagination) and detail use case (valid ID returns full prototype, invalid ID returns 404)
 
 - [ ] TASK-catalog-3: Redis cache for listings with invalidation on update
   - Context: non-functional — cache catalog listings for performance; invalidate on admin update
-  - Deliverable: `services/api-core/src/modules/catalog/cache/catalog-cache.service.ts`, integration in `catalog.controller.ts`
+  - Deliverable: `apps/api-core/src/modules/catalog/cache/catalog-cache.service.ts`, integration in `catalog.controller.ts`
   - Depends on: TASK-catalog-2
   - Assigned to: unassigned
   - Done criteria: unit tests pass for cache hit returns cached data, cache invalidation clears listing cache on update
 
 - [ ] TASK-catalog-4: SSE endpoint `/catalog/stream` + event publisher from admin catalog module
   - Context: FR6 — real-time sync so landing page reflects price/stock/deactivation changes without reload
-  - Deliverable: `services/api-core/src/modules/catalog/controllers/catalog-sse.controller.ts`, `services/api-core/src/modules/catalog/events/catalog-event.publisher.ts`, registration in `catalog.module.ts`
+  - Deliverable: `apps/api-core/src/modules/catalog/controllers/catalog-sse.controller.ts`, `apps/api-core/src/modules/catalog/events/catalog-event.publisher.ts`, registration in `catalog.module.ts`
   - Depends on: TASK-catalog-1
   - Assigned to: unassigned
   - Done criteria: unit tests pass for SSE connection establishment and event emission on prototype update/deactivation
@@ -58,7 +58,7 @@
 
 - [ ] TASK-catalog-test1: Integration tests for catalog endpoints and SSE
   - Context: end-to-end validation of GET endpoints with combined filters, pagination, cache behavior, and SSE event flow; uses Supertest + mocked Redis
-  - Deliverable: `services/api-core/src/modules/catalog/**/*.integration-spec.ts`
+  - Deliverable: `apps/api-core/src/modules/catalog/**/*.integration-spec.ts`
   - Depends on: TASK-catalog-8
   - Assigned to: unassigned
   - Done criteria: integration.catalog.listPrototypes.withCategoryFilter, integration.catalog.listPrototypes.withPriceRange, integration.catalog.listPrototypes.withSearch, integration.catalog.listPrototypes.combinedFilters, integration.catalog.listPrototypes.pagination, integration.catalog.getPrototypeDetail.validId, integration.catalog.getPrototypeDetail.invalidId404, integration.catalog.cache.invalidationOnUpdate, integration.catalog.sse.emitsPrototypeUpdatedEvent, integration.catalog.sse.emitsPrototypeDeactivatedEvent. All pass.

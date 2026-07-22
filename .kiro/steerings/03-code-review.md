@@ -13,6 +13,8 @@
   that is not understood.
 - [ ] No secrets/keys leaked — sensitive variables only via `.env` (see
   `.kiro/steerings/09-environment-variables.md`).
+- [ ] `.env` file was **not** modified — it is immutable once populated
+  (see `.kiro/steerings/09-environment-variables.md` § Immutable rule).
 - [ ] If the change affects an API contract (request/response), update
   `design.md` of the corresponding feature in the same PR.
 - [ ] Responsive/mobile-first verified if the change is frontend-related
@@ -20,8 +22,8 @@
 
 ## Reinforced section — financial code (payments, refunds, stock, receipts)
 
-Applies to all changes in `services/payment-service` (Java) and any code in
-`services/api-core` touching `stock`, `orders`, `quotes` in
+Applies to all changes in `apps/payment-service` (Java) and any code in
+`apps/api-core` touching `stock`, `orders`, `quotes` in
 accepted/paid state.
 
 - [ ] **Mandatory double reviewer** (a single approver is not enough).

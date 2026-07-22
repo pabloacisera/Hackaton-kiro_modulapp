@@ -1,7 +1,7 @@
 # Java Spring Boot guide for beginners
 
 This guide is for developers who have never worked with Java/Spring Boot.
-It covers the basics needed to work on `services/payment-service`.
+It covers the basics needed to work on `apps/payment-service`.
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ It covers the basics needed to work on `services/payment-service`.
 ## Project structure
 
 ```
-services/payment-service/
+apps/payment-service/
   src/main/java/com/modula/payment/
     controller/     HTTP endpoints
     service/        Business logic
@@ -85,7 +85,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 ## Running the service
 
 ```bash
-cd services/payment-service
+cd apps/payment-service
 mvn spring-boot:run
 ```
 

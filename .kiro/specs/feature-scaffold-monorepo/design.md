@@ -6,15 +6,14 @@
 modobiliario-eventos-monorepo/
 ├── turbo.json                    # pipeline: dev, build, lint, test
 ├── package.json                  # root: pnpm workspaces + turbo scripts
-├── pnpm-workspace.yaml           # apps/*, services/api-core, packages/*
+├── pnpm-workspace.yaml           # apps/*, apps/api-core, packages/*
 ├── .eslintrc.js                  # shared ESLint config (root)
 ├── .prettierrc                   # shared Prettier config (root)
 ├── .husky/
 │   └── pre-commit                # lint-staged on commit
 ├── apps/
 │   ├── landing/                  # React + Vite, port 3000
-│   └── admin-dashboard/          # React + Vite, port 3001
-├── services/
+│   ├── admin-dashboard/          # React + Vite, port 3001
 │   ├── api-core/                 # NestJS, port 8080
 │   └── payment-service/          # Spring Boot, port 8081 (NOT in Turborepo)
 ├── packages/
@@ -62,7 +61,7 @@ Dependencies: `react`, `react-dom`, `@types/react`, `@types/react-dom`,
 ## NestJS app (api-core)
 
 ```
-services/api-core/
+apps/api-core/
 ├── package.json                    # scripts: { dev, build, start, test, lint }
 ├── tsconfig.json
 ├── tsconfig.build.json
@@ -84,7 +83,7 @@ Dependencies: `@nestjs/common`, `@nestjs/core`, `@nestjs/platform-express`,
 ## Spring Boot app (payment-service)
 
 ```
-services/payment-service/
+apps/payment-service/
 ├── pom.xml                          # Spring Boot 3.x, Java 17+
 ├── src/main/java/com/modula/payment/
 │   ├── PaymentServiceApplication.java
@@ -116,14 +115,14 @@ services:
     expose: ["3001"]
 
   api-core:
-    build: ./services/api-core
+    build: ./apps/api-core
     expose: ["8080"]
     env_file: .env
     depends_on: [redis]
     healthcheck: curl -f http://localhost:8080/health || exit 1
 
   payment-service:
-    build: ./services/payment-service
+    build: ./apps/payment-service
     expose: ["8081"]
     env_file: .env
     healthcheck: curl -f http://localhost:8081/health || exit 1
@@ -228,7 +227,7 @@ Each workspace `package.json` scripts:
 |---|---|---|---|
 | `apps/landing` | Vitest | `vitest.config.ts` | React Testing Library for components |
 | `apps/admin-dashboard` | Vitest | `vitest.config.ts` | React Testing Library for components |
-| `services/api-core` | Jest | `jest.config.ts` | @nestjs/testing for unit tests |
+| `apps/api-core` | Jest | `jest.config.ts` | @nestjs/testing for unit tests |
 | `packages/shared-types` | none | — | Types only, no runtime code to test |
 
 Root `package.json` test script: `turbo run test` (propagates to all workspaces).
@@ -357,7 +356,7 @@ Structure:
 4. Open http://localhost:3000 (landing) and http://localhost:3001 (admin)
 
 ## Architecture
-- Monorepo: Turborepo (apps/* + services/api-core + packages/*)
+- Monorepo: Turborepo (apps/* + apps/api-core + packages/*)
 - Frontend: React + Vite + Tailwind (MVC pattern)
 - Backend: NestJS + Prisma (Clean Architecture)
 - Payments: Spring Boot (isolated microservice)
