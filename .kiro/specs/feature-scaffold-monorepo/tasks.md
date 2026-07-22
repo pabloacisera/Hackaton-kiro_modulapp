@@ -59,7 +59,7 @@ TASK-scaffold-1  (Turborepo root)
   - Assigned to: unassigned
   - Done criteria: `pnpm dev` in `services/api-core` starts NestJS on port 8080. `curl localhost:8080/health` returns HTTP 200 with body `{"status":"ok"}`. `pnpm build` compiles without errors. `pnpm lint` completes without errors (inherits from TASK-scaffold-9 config). App is listed in the Turborepo workspace.
 
-- [ ] TASK-scaffold-4: Scaffold `services/payment-service` (Spring Boot)
+- [x] TASK-scaffold-4: Scaffold `services/payment-service` (Spring Boot)
   - Context: FR5 — financial microservice on port 8081 with a `/health` endpoint. Does not participate in Turborepo; independent Maven build.
   - Deliverable: `services/payment-service/` with `pom.xml` (spring-boot-maven-plugin), `src/main/java/` application class, health endpoint returning `{"status":"ok"}`
   - Depends on: none (independent of Turborepo)
@@ -80,42 +80,42 @@ TASK-scaffold-1  (Turborepo root)
   - Assigned to: unassigned
   - Done criteria: `pnpm test` runs in `apps/landing`, `apps/admin-dashboard`, and `services/api-core` (even with zero tests, runner exits cleanly). Vitest uses jsdom environment for React components. Jest uses node environment for NestJS. Test scripts in `package.json` are correct (`vitest run` for React, `jest --config jest.config.ts` for NestJS). Unit test: create a trivial test file in each workspace (e.g., `describe('sanity', () => it('works', () => expect(true).toBe(true)))`), verify `pnpm test` passes. All pass.
 
-- [ ] TASK-scaffold-6: Create Docker Compose + Nginx infrastructure (`infra/`)
+- [x] TASK-scaffold-6: Create Docker Compose + Nginx infrastructure (`infra/`)
   - Context: FR7+FR8 — docker-compose.yml starts all services (api-core, payment-service, landing, admin-dashboard, Redis). Nginx reverse-proxies: `/api/` → api-core, `/payments/` → payment-service, `/` → landing, `/admin/` → admin-dashboard. Health checks ensure dependent services wait.
   - Deliverable: `infra/docker/docker-compose.yml`, `infra/nginx/nginx.conf`, `infra/nginx/Dockerfile` (if needed for config mount)
   - Depends on: TASK-scaffold-2, TASK-scaffold-3, TASK-scaffold-4
   - Assigned to: unassigned
   - Done criteria: `docker compose up --build` from `infra/docker/` starts all 5 services. Redis responds to `docker exec <redis-container> redis-cli PING` with `PONG`. Nginx proxies `/api/health` to api-core (returns `{"status":"ok"}`). Nginx proxies `/payments/health` to payment-service (returns `{"status":"ok"}`). Nginx proxies `/` to landing (returns HTML with "Landing"). Nginx proxies `/admin/` to admin-dashboard (returns HTML with "Admin Dashboard"). Each service container passes its health check (verify via `docker compose ps` — all show `healthy`).
 
-- [ ] TASK-scaffold-7: Verify and finalize `.env.example`
+- [x] TASK-scaffold-7: Verify and finalize `.env.example`
   - Context: FR9 — every variable referenced in any service must appear in `.env.example`, no unused variables. Covers DATABASE_URL, Redis URL, and any service-specific vars.
   - Deliverable: `.env.example` at repo root with all variables properly commented and organized by service
   - Depends on: TASK-scaffold-3, TASK-scaffold-4
   - Assigned to: unassigned
   - Done criteria: Every environment variable referenced in `services/api-core/src/` and `services/payment-service/src/` exists in `.env.example`. No variable in `.env.example` is unreferenced. Each variable has a descriptive comment. Cross-check by grepping for `process.env.` and `@Value` / `application.properties` references against `.env.example` keys. Also verify that `docker-compose.yml` `env_file: .env` references match `.env.example` keys.
 
-- [ ] TASK-scaffold-8: End-to-end verification — `bash scripts/dev-up.sh`
+- [x] TASK-scaffold-8: End-to-end verification — `bash scripts/dev-up.sh`
   - Context: FR10 — the full local stack must start and respond within 60 seconds via the dev script.
   - Deliverable: `scripts/dev-up.sh` that runs `docker compose up --build` (or equivalent) and blocks until all services are healthy
   - Depends on: TASK-scaffold-6, TASK-scaffold-7
   - Assigned to: unassigned
   - Done criteria: `bash scripts/dev-up.sh` starts all services within 60 seconds. Landing responds at http://localhost:3000 with visible "Landing" placeholder. Admin dashboard responds at http://localhost:3001 with visible "Admin Dashboard" placeholder. API core health at http://localhost:8080/health returns HTTP 200. Payment service health at http://localhost:8081/health returns HTTP 200. Nginx proxies `/api/*` to api-core and `/payments/*` to payment-service correctly. Redis PING returns PONG inside Docker network. Each service also starts independently without Docker (except payment-service which needs Java) — verify by running `pnpm dev` in `apps/landing`, `apps/admin-dashboard`, and `services/api-core` individually.
 
-- [ ] TASK-scaffold-11: CI pipeline (minimum viable — lint + test + build)
+- [x] TASK-scaffold-11: CI pipeline (minimum viable — lint + test + build)
   - Context: FR13 — 3 developers will submit PRs from day 1. Layer 2 of the protection model (CI) must exist before any business feature PRs are created. Basic lint+test+build should be in scaffold-monorepo so the very first PR has CI checks. The Java payment-service is NOT in this pipeline yet — added later by feature-infra-deploy.
   - Deliverable: `.github/workflows/ci.yml` — runs on PR and push to `main`, steps: checkout → pnpm setup → Node 20 → install → turbo lint → turbo test → turbo build (with Turborepo cache)
   - Depends on: TASK-scaffold-9, TASK-scaffold-10
   - Assigned to: unassigned
   - Done criteria: Push to a branch triggers CI. Lint passes (all workspaces). Test suite runs (all JS/TS workspaces). Build succeeds (all workspaces). Second push to same branch uses Turborepo cache and completes faster. CI status badge is visible in PR checks. `payment-service` (Java) is NOT in this pipeline yet — added later by `feature-infra-deploy`. Unit test: create a test PR with a deliberate lint error, verify CI fails. Fix the error, push again, verify CI passes. All pass.
 
-- [ ] TASK-scaffold-12: Git hooks (husky + lint-staged)
+- [x] TASK-scaffold-12: Git hooks (husky + lint-staged)
   - Context: FR14 — pre-commit hooks enforce lint+format on every commit. Without this, developers can commit unlinted code and only discover it at PR time (Layer 2). Hooks catch it at Layer 1 (local).
   - Deliverable: `.husky/pre-commit` (shell script running `npx lint-staged`), `lint-staged` config in root `package.json` (TS/TSX → eslint --fix + prettier --write; JSON/MD/YML → prettier --write), dev dependencies (`husky`, `lint-staged`), `"prepare": "husky install"` script in root `package.json`
   - Depends on: TASK-scaffold-9
   - Assigned to: unassigned
   - Done criteria: `git commit` with a linted TypeScript file succeeds. `git commit` with a file containing a lint error (e.g., unused variable) is blocked by pre-commit hook. `git commit` with a markdown file runs Prettier formatting. `npx husky` shows hooks directory exists. `.husky/pre-commit` is executable. Unit test: stage a file with `console.log('debug')` (eslint no-console rule), attempt commit, verify hook blocks it. Remove the line, commit succeeds. All pass.
 
-- [ ] TASK-scaffold-13: Root README.md with setup instructions
+- [x] TASK-scaffold-13: Root README.md with setup instructions
   - Context: FR15 — every developer needs a README to onboard. Documents prerequisites, quick-start, architecture, and links to detailed docs.
   - Deliverable: `README.md` at repo root
   - Depends on: TASK-scaffold-8

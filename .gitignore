@@ -10,6 +10,7 @@ pnpm-debug.log*
 .pnpm-store/
 
 # Java / Maven (payment-service)
+apps/payment-service/target/
 services/payment-service/target/
 *.class
 *.jar
