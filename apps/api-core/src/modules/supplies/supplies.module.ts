@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { Redis } from '@upstash/redis';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { SUPPLY_REPOSITORY } from './repositories/supply.repository.port';
 import { InMemorySupplyRepository } from './repositories/in-memory-supply.repository';
@@ -14,15 +15,43 @@ const supplyRepoProvider = {
   useClass: InMemorySupplyRepository,
 };
 
-// Redis client stub — uses UPSTASH_REDIS_URL in production.
-// Same pattern as auth.module.ts and catalog.module.ts.
+/**
+ * Upstash Redis client provider.
+ * Uses UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN from .env.
+ * Falls back to an in-memory stub for tests when env vars are not set.
+ */
 const redisClientProvider = {
   provide: 'REDIS_CLIENT',
   useFactory: () => {
-    // In-memory stub that mimics Redis get/set/del for dev/test.
-    // In production, replace with Upstash Redis client:
-    //   import { Redis } from '@upstash/redis'
-    //   return new Redis({ url: process.env.UPSTASH_REDIS_URL })
+    const url = process.env.UPSTASH_REDIS_REST_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+    if (url && token) {
+      // Production/dev: use real Upstash Redis REST client
+      const redis = new Redis({ url, token });
+      return {
+        get: async (key: string): Promise<string | null> => {
+          const value = await redis.get<string>(key);
+          return value ?? null;
+        },
+        set: async (key: string, value: string, ...args: unknown[]): Promise<void> => {
+          if (args[0] === 'EX' && typeof args[1] === 'number') {
+            await redis.set(key, value, { ex: args[1] as number });
+          } else {
+            await redis.set(key, value);
+          }
+        },
+        del: async (key: string): Promise<void> => {
+          await redis.del(key);
+        },
+        keys: async (pattern: string): Promise<string[]> => {
+          const result = await redis.keys(pattern);
+          return result;
+        },
+      };
+    }
+
+    // Test fallback: in-memory stub (only when Upstash credentials are missing)
     const store = new Map<string, { value: string; expiresAt: number | null }>();
     return {
       get: async (key: string): Promise<string | null> => {
@@ -36,7 +65,6 @@ const redisClientProvider = {
       },
       set: async (key: string, value: string, ...args: unknown[]): Promise<void> => {
         let expiresAt: number | null = null;
-        // Handle 'EX' ttl arg: set(key, value, 'EX', seconds)
         if (args[0] === 'EX' && typeof args[1] === 'number') {
           expiresAt = Date.now() + args[1] * 1000;
         }
