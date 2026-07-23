@@ -16,11 +16,11 @@ export interface ImportPreviewResult {
   errors: ParseError[];
 }
 
-// In-memory store for previews (replace with Redis/cache in production)
-const previewStore = new Map<string, ExcelRow[]>();
+const PREVIEW_TTL_SECONDS = 600; // 10 minutes
 
 /**
  * TASK-stock-4: Import Excel preview — parses, classifies, returns diff without persisting.
+ * Uses Upstash Redis for preview storage with TTL.
  */
 @Injectable()
 export class ImportSupplyExcelUseCase {
@@ -28,6 +28,12 @@ export class ImportSupplyExcelUseCase {
 
   constructor(
     @Inject(SUPPLY_REPOSITORY) private readonly repo: ISupplyRepository,
+    @Inject('REDIS_CLIENT')
+    private readonly redis: {
+      get: (key: string) => Promise<string | null>;
+      set: (key: string, value: string, ...args: unknown[]) => Promise<unknown>;
+      del: (key: string) => Promise<unknown>;
+    },
     private readonly parser: ExcelParserService,
   ) {}
 
@@ -64,7 +70,8 @@ export class ImportSupplyExcelUseCase {
     }
 
     const previewId = crypto.randomUUID();
-    previewStore.set(previewId, valid);
+    const redisKey = `supply:import-preview:${previewId}`;
+    await this.redis.set(redisKey, JSON.stringify(valid), 'EX', PREVIEW_TTL_SECONDS);
 
     this.logger.log(
       `Import preview ${previewId}: ${toCreate.length} to create, ${toUpdate.length} to update, ${errors.length} errors`,
@@ -73,12 +80,16 @@ export class ImportSupplyExcelUseCase {
   }
 
   /** Retrieve stored preview data for confirmation */
-  getPreviewData(previewId: string): ExcelRow[] | null {
-    return previewStore.get(previewId) ?? null;
+  async getPreviewData(previewId: string): Promise<ExcelRow[] | null> {
+    const redisKey = `supply:import-preview:${previewId}`;
+    const raw = await this.redis.get(redisKey);
+    if (!raw) return null;
+    return JSON.parse(raw) as ExcelRow[];
   }
 
   /** Remove preview after use */
-  clearPreview(previewId: string): void {
-    previewStore.delete(previewId);
+  async clearPreview(previewId: string): Promise<void> {
+    const redisKey = `supply:import-preview:${previewId}`;
+    await this.redis.del(redisKey);
   }
 }

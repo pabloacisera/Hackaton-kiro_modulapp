@@ -11,6 +11,7 @@ export interface ConfirmResult {
 /**
  * TASK-stock-5: Confirm Excel import — applies valid changes from preview.
  * Uses SupplyCrudUseCase underneath (consistency rule).
+ * Preview data retrieved from Upstash Redis.
  */
 @Injectable()
 export class ConfirmSupplyImportUseCase {
@@ -23,7 +24,7 @@ export class ConfirmSupplyImportUseCase {
   ) {}
 
   async execute(previewId: string, actor: string): Promise<ConfirmResult> {
-    const rows = this.importUseCase.getPreviewData(previewId);
+    const rows = await this.importUseCase.getPreviewData(previewId);
     if (!rows) {
       throw new Error('Invalid or expired preview ID');
     }
@@ -68,7 +69,7 @@ export class ConfirmSupplyImportUseCase {
       }
     }
 
-    this.importUseCase.clearPreview(previewId);
+    await this.importUseCase.clearPreview(previewId);
     this.logger.log(`Import confirmed: ${applied} applied, ${errors.length} errors`);
     return { applied, errors };
   }
