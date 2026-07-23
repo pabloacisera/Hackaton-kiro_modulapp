@@ -140,6 +140,55 @@ model Quote {
   @@map("quotes")
 }
 
+// ── Supply Stock Management ───────────────────────────────────────────────────
+
+model Supply {
+  id          String   @id @default(uuid())
+  sku         String   @unique
+  name        String
+  unit        String   // e.g.: "unit", "m2", "kg"
+  currentQty  Decimal  @map("current_qty") @db.Decimal(10, 2)
+  minStock    Decimal  @map("min_stock") @db.Decimal(10, 2)
+  unitCostUsd Decimal  @map("unit_cost_usd") @db.Decimal(10, 2)
+  supplier    String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  changeLogs SupplyStockChangeLog[]
+  alertState LowStockAlertState?
+
+  @@map("supplies")
+}
+
+enum StockChangeSource {
+  manual
+  excel_import
+  order_consumption
+}
+
+model SupplyStockChangeLog {
+  id          String            @id @default(uuid())
+  supplyId    String            @map("supply_id")
+  previousQty Decimal           @map("previous_qty") @db.Decimal(10, 2)
+  newQty      Decimal           @map("new_qty") @db.Decimal(10, 2)
+  source      StockChangeSource
+  actor       String
+  createdAt   DateTime          @default(now()) @map("created_at")
+  supply      Supply            @relation(fields: [supplyId], references: [id], onDelete: Cascade)
+
+  @@map("supply_stock_change_log")
+}
+
+model LowStockAlertState {
+  id              String   @id @default(uuid())
+  supplyId        String   @unique @map("supply_id")
+  lastNotifiedAt  DateTime @map("last_notified_at")
+  lastNotifiedQty Decimal  @map("last_notified_qty") @db.Decimal(10, 2)
+  supply          Supply   @relation(fields: [supplyId], references: [id], onDelete: Cascade)
+
+  @@map("low_stock_alert_state")
+}
+
 // ── Notifications ─────────────────────────────────────────────────────────────
 
 enum NotificationType {
