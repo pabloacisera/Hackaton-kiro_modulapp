@@ -21,13 +21,10 @@ import { JwtService } from '../../infrastructure/auth/jwt/jwt.service';
 import { JwtAuthGuard } from '../../interface/auth/guards/jwt-auth.guard';
 
 @Module({
-  imports: [
-    HttpModule.register({ timeout: 15_000 }),
-    NotificationsModule,
-  ],
+  imports: [HttpModule.register({ timeout: 15_000 }), NotificationsModule],
   controllers: [OrdersController],
   providers: [
-    { provide: ORDER_REPOSITORY,     useClass: InMemoryOrderRepository },
+    { provide: ORDER_REPOSITORY, useClass: InMemoryOrderRepository },
     { provide: PROTOTYPE_REPOSITORY, useClass: InMemoryPrototypeRepository },
 
     JwtService,
@@ -44,6 +41,6 @@ import { JwtAuthGuard } from '../../interface/auth/guards/jwt-auth.guard';
     HandlePaymentWebhookUseCase,
     PaymentReconciliationJob,
   ],
-  exports: [ListOrdersUseCase, HandlePaymentWebhookUseCase],
+  exports: [ListOrdersUseCase, HandlePaymentWebhookUseCase, PaymentServiceClient],
 })
 export class OrdersModule {}

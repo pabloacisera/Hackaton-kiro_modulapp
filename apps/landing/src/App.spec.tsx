@@ -3,13 +3,13 @@ import { describe, it, expect } from 'vitest';
 import App from './App';
 
 describe('App (landing)', () => {
-  it('renders the Landing heading', () => {
+  it('renders the navigation with Modula brand', () => {
     render(<App />);
-    expect(screen.getByRole('heading', { name: /landing/i })).toBeInTheDocument();
+    expect(screen.getAllByText('Modula').length).toBeGreaterThan(0);
   });
 
-  it('displays port 3000', () => {
+  it('renders catalog link', () => {
     render(<App />);
-    expect(screen.getByText(/3000/)).toBeInTheDocument();
+    expect(screen.getByText('Catalog')).toBeInTheDocument();
   });
 });

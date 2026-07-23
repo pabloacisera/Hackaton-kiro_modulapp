@@ -8,6 +8,7 @@ import {
 } from '../repositories/complaint.repository.port';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { ComplaintEmailService } from '../services/complaint-email.service';
+import { PaymentServiceClient } from '../../orders/services/payment-service.client';
 
 export interface CreateComplaintInput {
   referenceType: ComplaintReferenceType;
@@ -100,6 +101,7 @@ export class ApproveRefundUseCase {
   constructor(
     @Inject(COMPLAINT_REPOSITORY) private readonly repo: IComplaintRepository,
     private readonly notifications: NotificationsService,
+    private readonly paymentClient: PaymentServiceClient,
   ) {}
 
   async execute(complaintId: string): Promise<Complaint> {
@@ -107,14 +109,17 @@ export class ApproveRefundUseCase {
     if (!complaint) throw new Error(`Complaint not found: ${complaintId}`);
 
     // Generate idempotent refund request ID
-    const refundRequestId = `REFUND-${complaintId}-${Date.now()}`;
+    const refundRequestId = `REFUND-${complaintId}`;
 
     // Domain validates reference type and ID
     const approved = complaint.approveRefund(refundRequestId);
 
-    // TODO: Call payment-service POST /payments/orders/:ref/refund
-    // For now, mock the payment-service call
-    this.logger.log(`Refund initiated for complaint ${complaintId}: ${refundRequestId}`);
+    // Call payment-service to process refund
+    await this.paymentClient.refund({
+      referenceId: complaint.referenceId!,
+      reason: complaint.reason,
+      refundRequestId,
+    });
 
     await this.repo.update(approved);
 
@@ -124,6 +129,7 @@ export class ApproveRefundUseCase {
       `/admin/complaints/${complaintId}`,
     );
 
+    this.logger.log(`Refund processed for complaint ${complaintId}: ${refundRequestId}`);
     return approved;
   }
 }

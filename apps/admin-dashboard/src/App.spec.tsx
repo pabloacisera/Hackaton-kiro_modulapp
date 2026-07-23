@@ -1,15 +1,28 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import App from './App';
 
+// Mock useAuth to simulate unauthenticated state (shows login page)
+vi.mock('./controllers/useAuth', () => ({
+  useAuth: () => ({
+    accessToken: null,
+    login: vi.fn(),
+    refresh: vi.fn(),
+    logout: vi.fn(),
+    loading: false,
+    error: null,
+  }),
+}));
+
 describe('App (admin-dashboard)', () => {
-  it('renders the Admin Dashboard heading', () => {
+  it('renders login page when not authenticated', () => {
     render(<App />);
-    expect(screen.getByRole('heading', { name: /admin dashboard/i })).toBeInTheDocument();
+    expect(screen.getByText(/sign in/i)).toBeInTheDocument();
   });
 
-  it('displays port 3001', () => {
+  it('renders email and password fields', () => {
     render(<App />);
-    expect(screen.getByText(/3001/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
   });
 });

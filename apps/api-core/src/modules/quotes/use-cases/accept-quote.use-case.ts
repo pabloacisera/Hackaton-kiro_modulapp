@@ -3,6 +3,7 @@ import { Quote } from '../domain/quote.entity';
 import { IQuoteRepository, QUOTE_REPOSITORY } from '../repositories/quote.repository.port';
 import { QuoteTokenService } from '../services/quote-token.service';
 import { NotificationsService } from '../../notifications/notifications.service';
+import { PaymentServiceClient } from '../../orders/services/payment-service.client';
 
 export interface AcceptQuoteResult {
   quote: Quote;
@@ -23,6 +24,7 @@ export class AcceptQuoteUseCase {
     @Inject(QUOTE_REPOSITORY) private readonly quoteRepo: IQuoteRepository,
     private readonly tokenService: QuoteTokenService,
     private readonly notifications: NotificationsService,
+    private readonly paymentClient: PaymentServiceClient,
   ) {}
 
   async execute(quoteId: string, token: string): Promise<AcceptQuoteResult> {
@@ -72,19 +74,24 @@ export class AcceptQuoteUseCase {
     // Transition: quoted → accepted (marks token as used atomically)
     const accepted = quote.accept();
 
-    // Generate payment link via payment-service
-    // TODO: Replace with real HTTP call to payment-service
-    const paymentServiceRef = `PAY-QUOTE-${quoteId}-${Date.now()}`;
+    // Call payment-service to initiate payment (real integration)
+    const idempotencyKey = `quote-payment:${quoteId}`;
+    const { paymentLink, paymentServiceRef } = await this.paymentClient.initiatePayment({
+      referenceId: quoteId,
+      origin: 'quote',
+      amountUsd: quote.quotedPriceUsd!,
+      customerEmail: quote.customerEmail,
+      idempotencyKey,
+    });
+
     const initiated = accepted.initiatePayment(paymentServiceRef);
     await this.quoteRepo.update(initiated);
-
-    const paymentUrl = `${process.env.PAYPAL_BASE_URL || 'https://sandbox.paypal.com'}/pay/${paymentServiceRef}`;
 
     this.logger.log(`Quote ${quoteId} accepted, payment initiated: ${paymentServiceRef}`);
 
     return {
       quote: initiated,
-      paymentUrl,
+      paymentUrl: paymentLink,
       alreadyProcessed: false,
       expired: false,
     };
