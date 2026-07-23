@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# dev-up.sh — Start the full local stack and wait for all services to be healthy.
+# dev-up.sh — Start the full local stack with Docker Compose.
 # Run from the repository root: bash scripts/dev-up.sh
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 COMPOSE_FILE="$ROOT_DIR/infra/docker/docker-compose.yml"
-TIMEOUT=120
+TIMEOUT=180
 
 # ── Pre-flight checks ────────────────────────────────────────────────────────
 if [ ! -f "$ROOT_DIR/.env" ]; then
@@ -15,7 +15,7 @@ if [ ! -f "$ROOT_DIR/.env" ]; then
 fi
 
 command -v docker >/dev/null 2>&1 || { echo "ERROR: docker not found."; exit 1; }
-command -v docker compose >/dev/null 2>&1 || docker-compose version >/dev/null 2>&1 || { echo "ERROR: docker compose not found."; exit 1; }
+docker compose version >/dev/null 2>&1 || { echo "ERROR: docker compose not found."; exit 1; }
 
 echo "► Building and starting all services..."
 docker compose -f "$COMPOSE_FILE" up --build -d
@@ -28,12 +28,12 @@ wait_healthy() {
 
   echo -n "  Waiting for $service ($url)..."
   until curl -sf "$url" >/dev/null 2>&1; do
-    sleep 2
-    elapsed=$((elapsed + 2))
+    sleep 3
+    elapsed=$((elapsed + 3))
     if [ $elapsed -ge $TIMEOUT ]; then
       echo " TIMEOUT"
       echo "ERROR: $service did not become healthy within ${TIMEOUT}s."
-      docker compose -f "$COMPOSE_FILE" logs "$service" | tail -20
+      docker compose -f "$COMPOSE_FILE" logs "$service" | tail -30
       exit 1
     fi
     echo -n "."
@@ -46,13 +46,6 @@ wait_healthy "payment-service"  "http://localhost:8081/health"
 wait_healthy "landing"          "http://localhost:3000"
 wait_healthy "admin-dashboard"  "http://localhost:3001"
 
-# ── Redis ────────────────────────────────────────────────────────────────────
-echo -n "  Waiting for redis..."
-until docker compose -f "$COMPOSE_FILE" exec -T redis redis-cli ping 2>/dev/null | grep -q PONG; do
-  sleep 2
-done
-echo " ✓"
-
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
 echo "✅ All services are up:"
@@ -62,7 +55,16 @@ echo "   API Core         → http://localhost:8080"
 echo "   Payment Service  → http://localhost:8081"
 echo "   Nginx (proxy)    → http://localhost:80"
 echo ""
-echo "   /api/health      → http://localhost/api/health"
-echo "   /payments/health → http://localhost/payments/health"
-echo ""
-echo "Run 'docker compose -f infra/docker/docker-compose.yml logs -f' to tail logs."
+echo "To stop:  docker compose -f infra/docker/docker-compose.yml down"
+echo "To logs:  docker compose -f infra/docker/docker-compose.yml logs -f"
+
+# ── Tailscale Funnel (HTTPS for PayPal callbacks) ────────────────────────────
+if command -v tailscale >/dev/null 2>&1; then
+  echo ""
+  echo "► Tailscale detected. Exposing port 80 via Funnel for PayPal HTTPS callbacks..."
+  echo "  Run manually if needed: tailscale funnel 80"
+  echo "  Your public HTTPS URL: https://$(tailscale status --self --json 2>/dev/null | grep -o '"DNSName":"[^"]*"' | cut -d'"' -f4 | sed 's/\.$//')"
+  echo ""
+  echo "  Make sure APP_PUBLIC_URL in .env matches this URL."
+  echo "  PayPal webhook URL should be: \${APP_PUBLIC_URL}/payments/webhooks/paypal"
+fi

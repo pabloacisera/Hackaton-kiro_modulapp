@@ -2,52 +2,48 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"
+      - '80:80'
     volumes:
       - ../nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       api-core:
-        condition: service_healthy
-      payment-service:
         condition: service_healthy
       landing:
         condition: service_started
       admin-dashboard:
         condition: service_started
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost/api/health"]
+      test: ['CMD', 'wget', '-qO-', 'http://localhost/health']
       interval: 10s
       timeout: 5s
       retries: 5
 
   landing:
     build:
-      context: ../../apps/landing
-      dockerfile: Dockerfile
-    expose:
-      - "3000"
+      context: ../..
+      dockerfile: apps/landing/Dockerfile
+    ports:
+      - '3000:80'
     restart: unless-stopped
 
   admin-dashboard:
     build:
-      context: ../../apps/admin-dashboard
-      dockerfile: Dockerfile
-    expose:
-      - "3001"
+      context: ../..
+      dockerfile: apps/admin-dashboard/Dockerfile
+    ports:
+      - '3001:80'
     restart: unless-stopped
 
   api-core:
     build:
-      context: ../../apps/api-core
-      dockerfile: Dockerfile
-    expose:
-      - "8080"
+      context: ../..
+      dockerfile: apps/api-core/Dockerfile
+    ports:
+      - '8080:8080'
     env_file: ../../.env
-    depends_on:
-      - redis
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:8080/health']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -56,23 +52,12 @@ services:
     build:
       context: ../../apps/payment-service
       dockerfile: Dockerfile
-    expose:
-      - "8081"
+    ports:
+      - '8081:8081'
     env_file: ../../.env
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8081/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:8081/health']
       interval: 10s
       timeout: 5s
       retries: 5

@@ -63,8 +63,8 @@ public class PayPalClient {
                 "payment_source", Map.of(
                         "paypal", Map.of(
                                 "experience_context", Map.of(
-                                        "return_url", "https://modula.app/checkout/success",
-                                        "cancel_url", "https://modula.app/checkout/cancel"
+                                        "return_url", props.getAppPublicUrl() + "/checkout/success",
+                                        "cancel_url", props.getAppPublicUrl() + "/checkout/cancel"
                                 )
                         )
                 )
