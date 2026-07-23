@@ -8,7 +8,7 @@ Last updated: 2026-07-23
 | `feature-scaffold-monorepo`       | ✅ Complete    | 13/13 | (pre-existing)        |
 | `feature-admin-auth-core`         | ✅ Complete    | 9/9   | (pre-existing)        |
 | `feature-catalog-landing`         | 🟡 In Progress | 8/9   | (pre-existing)        |
-| `feature-realtime-notifications`  | 🟡 In Progress | 8/12  | (pre-existing)        |
+| `feature-realtime-notifications`  | ✅ Complete    | 12/12 | (pre-existing)        |
 | `feature-direct-purchase`         | ✅ Complete    | 15/15 | (pre-existing)        |
 | `feature-custom-quote`            | ✅ Complete    | 22/22 | #10, #11              |
 | `feature-supply-stock-management` | ✅ Complete    | 10/10 | #12                   |
@@ -21,19 +21,11 @@ Last updated: 2026-07-23
 
 ## Remaining work
 
-### Missing integration tests (low effort):
+### ~~Missing integration tests~~ ✅ All done (PR #18)
 
-- `feature-catalog-landing`: TASK-catalog-test1
-- `feature-complaints-refunds`: TASK-complaint-test2
-- `feature-order-delivery-schedule`: TASK-delivery-test2
-- `feature-realtime-notifications`: TASK-notif-test2
+### ~~feature-realtime-notifications~~ ✅ Complete (12/12)
 
-### feature-realtime-notifications (4 tasks):
-
-- TASK-notif-5: mark_read event propagation
-- TASK-notif-9: Sound asset + on/off preference
-- TASK-notif-10: Reconnection with exponential backoff
-- TASK-notif-test2: Integration test
+All tasks verified as implemented: mark_read in gateway, Web Audio sound with debounce + localStorage, reconnection with exponential backoff in useNotifications.
 
 ### feature-i18n-localization (10 tasks — not started):
 
