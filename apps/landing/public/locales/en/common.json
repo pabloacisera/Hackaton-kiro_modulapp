@@ -1,0 +1,113 @@
+{
+  "nav": {
+    "catalog": "Catalog",
+    "requestQuote": "Request Quote",
+    "complaints": "Complaints",
+    "brand": "Modula"
+  },
+  "home": {
+    "title": "Modula",
+    "subtitle": "Modular furniture & custom event arches"
+  },
+  "catalog": {
+    "title": "Catalog",
+    "empty": "No products available.",
+    "loading": "Loading catalog...",
+    "buyButton": "Buy",
+    "requestQuoteButton": "Request custom quote",
+    "filters": {
+      "search": "Search by name...",
+      "category": "Category",
+      "all": "All",
+      "furniture": "Modular furniture",
+      "arches": "Arches",
+      "priceRange": "Price range",
+      "apply": "Apply"
+    }
+  },
+  "quote": {
+    "title": "Request a Custom Quote",
+    "subtitle": "Tell us what you need — we'll get back to you with a price and timeline.",
+    "fields": {
+      "name": "Full name",
+      "email": "Email address",
+      "phone": "Phone number",
+      "description": "What do you need?",
+      "neededBy": "When do you need it by?",
+      "descriptionPlaceholder": "Describe what you're looking for: dimensions, theme, materials..."
+    },
+    "submit": "Submit Request",
+    "submitting": "Submitting...",
+    "cancel": "Cancel",
+    "success": {
+      "title": "Request Submitted",
+      "message": "Check your email for confirmation.",
+      "backToCatalog": "Back to catalog"
+    }
+  },
+  "complaint": {
+    "title": "Complaints & Refunds",
+    "subtitle": "Have an issue with your order? Submit a complaint and we'll get back to you.",
+    "fields": {
+      "referenceType": "Reference type",
+      "referenceId": "Order/Quote ID (optional)",
+      "name": "Full name",
+      "email": "Email address",
+      "phone": "Phone (optional)",
+      "reason": "Reason",
+      "reasonPlaceholder": "Describe the issue..."
+    },
+    "referenceTypes": {
+      "order": "Order",
+      "quote": "Quote",
+      "unknown": "I don't have my reference"
+    },
+    "submit": "Submit Complaint",
+    "submitting": "Submitting...",
+    "success": {
+      "title": "Complaint Received",
+      "message": "Check your email for a receipt.",
+      "backToCatalog": "Back to catalog"
+    }
+  },
+  "checkout": {
+    "title": "Complete your order",
+    "nameLabel": "Full name (optional)",
+    "emailLabel": "Email address",
+    "emailHint": "Your payment confirmation and receipt will be sent here.",
+    "payButton": "Pay with PayPal",
+    "processing": "Processing...",
+    "cancel": "Cancel"
+  },
+  "quoteAction": {
+    "processing": "Processing your response...",
+    "accepted": {
+      "title": "Quote Accepted!",
+      "message": "Complete your payment within 24 hours.",
+      "payButton": "Complete Payment",
+      "expiry": "Payment link expires in 24 hours."
+    },
+    "rejected": {
+      "title": "Quote Rejected",
+      "message": "Thank you for letting us know.",
+      "hint": "Feel free to submit a new request anytime."
+    },
+    "expired": {
+      "title": "Link Expired",
+      "message": "This quote has expired. Please request a new one.",
+      "hint": "Please contact us to request a new quote."
+    },
+    "alreadyProcessed": {
+      "title": "Already Processed",
+      "message": "This action has already been processed."
+    },
+    "error": {
+      "title": "Something went wrong"
+    }
+  },
+  "common": {
+    "required": "Required",
+    "error": "Error",
+    "back": "Back"
+  }
+}

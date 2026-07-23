@@ -92,6 +92,7 @@ model Order {
   estimatedDeliveryDate DateTime?   @map("estimated_delivery_date")
   paymentServiceRef     String?     @map("payment_service_ref")
   idempotencyKey        String      @unique @map("idempotency_key")
+  locale                String      @default("es") @db.VarChar(5)
   createdAt             DateTime    @default(now()) @map("created_at")
   updatedAt             DateTime    @updatedAt @map("updated_at")
 
@@ -134,6 +135,7 @@ model Quote {
   actionTokenHash       String?     @map("action_token_hash")
   actionTokenUsed       Boolean     @default(false) @map("action_token_used")
   paymentServiceRef     String?     @map("payment_service_ref")
+  locale                String      @default("es") @db.VarChar(5)
   createdAt             DateTime    @default(now()) @map("created_at")
   updatedAt             DateTime    @updatedAt @map("updated_at")
 
@@ -167,6 +169,7 @@ model Complaint {
   status          ComplaintStatus        @default(received)
   resolutionNotes String?                @map("resolution_notes")
   refundRequestId String?                @map("refund_request_id")
+  locale          String                 @default("es") @db.VarChar(5)
   createdAt       DateTime               @default(now()) @map("created_at")
   resolvedAt      DateTime?              @map("resolved_at")
 
