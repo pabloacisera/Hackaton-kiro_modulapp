@@ -25,6 +25,11 @@ import { InMemoryPrototypeRepository } from './repositories/in-memory-prototype.
     CatalogCacheService,
     CatalogEventPublisher,
   ],
-  exports: [CatalogEventPublisher, ListPrototypesUseCase, GetPrototypeUseCase],
+  exports: [
+    CatalogEventPublisher,
+    ListPrototypesUseCase,
+    GetPrototypeUseCase,
+    PROTOTYPE_REPOSITORY,
+  ],
 })
 export class CatalogModule {}
