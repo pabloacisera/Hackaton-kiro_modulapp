@@ -1,17 +1,10 @@
 import { Order } from './order.entity';
 
-function makeOrder(status?: string) {
-  return Order.create(
-    'proto-1',
-    199.99,
-    'customer@test.com',
-    'Alice',
-    'idem-key-1',
-  );
+function makeOrder(_status?: string) {
+  return Order.create('proto-1', 199.99, 'customer@test.com', 'Alice', 'idem-key-1');
 }
 
 describe('Order entity — state machine', () => {
-
   it('unit.order.stateMachine.validTransitionsAllowed — created → payment_initiated', () => {
     const order = makeOrder().initiatePayment('pay-ref-1');
     expect(order.status).toBe('payment_initiated');
@@ -33,10 +26,7 @@ describe('Order entity — state machine', () => {
   });
 
   it('paid_pending_acceptance → rejected', () => {
-    const order = makeOrder()
-      .initiatePayment('ref')
-      .confirmPayment()
-      .reject('Out of materials');
+    const order = makeOrder().initiatePayment('ref').confirmPayment().reject('Out of materials');
     expect(order.status).toBe('rejected');
     expect(order.rejectionReason).toBe('Out of materials');
   });
@@ -61,9 +51,7 @@ describe('Order entity — state machine', () => {
   });
 
   it('accepted → rejected throws (terminal state)', () => {
-    const order = makeOrder()
-      .initiatePayment('ref').confirmPayment()
-      .accept(new Date());
+    const order = makeOrder().initiatePayment('ref').confirmPayment().accept(new Date());
     expect(() => order.reject('reason')).toThrow('Invalid transition');
   });
 
@@ -79,21 +67,15 @@ describe('Order entity — state machine', () => {
   });
 
   it('invalid email throws on creation', () => {
-    expect(() =>
-      Order.create('proto-1', 100, 'not-an-email', null, 'k1'),
-    ).toThrow('email');
+    expect(() => Order.create('proto-1', 100, 'not-an-email', null, 'k1')).toThrow('email');
   });
 
   it('non-positive price throws', () => {
-    expect(() =>
-      Order.create('proto-1', 0, 'c@t.com', null, 'k2'),
-    ).toThrow('Price');
+    expect(() => Order.create('proto-1', 0, 'c@t.com', null, 'k2')).toThrow('Price');
   });
 
   it('unit.order.rejectionTriggersRefund — rejected order has reason set', () => {
-    const order = makeOrder()
-      .initiatePayment('ref').confirmPayment()
-      .reject('Not available');
+    const order = makeOrder().initiatePayment('ref').confirmPayment().reject('Not available');
     expect(order.rejectionReason).toBe('Not available');
     // Refund is triggered by the use-case that reads this reason — entity just records it
   });

@@ -29,7 +29,9 @@ export interface UseCatalogResult {
  */
 export function useCatalog(initialFilter: CatalogFilter = {}): UseCatalogResult {
   const [filter, setFilterState] = useState<CatalogFilter>({
-    page: 1, pageSize: 12, ...initialFilter,
+    page: 1,
+    pageSize: 12,
+    ...initialFilter,
   });
   const [items, setItems] = useState<PrototypeDto[]>([]);
   const [total, setTotal] = useState(0);
@@ -57,31 +59,38 @@ export function useCatalog(initialFilter: CatalogFilter = {}): UseCatalogResult 
     }
   }, [filter]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   // ── SSE subscription with reconnect backoff ───────────────────────────────
 
   useEffect(() => {
     let cancelled = false;
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
     function connect() {
       if (cancelled) return;
-      cleanupRef.current = subscribeCatalogStream((event) => {
-        backoffRef.current = INITIAL_BACKOFF_MS; // reset on successful message
+      cleanupRef.current = subscribeCatalogStream(
+        (event) => {
+          backoffRef.current = INITIAL_BACKOFF_MS; // reset on successful message
 
-        if (event.type === 'prototype.updated') {
-          setItems((prev) =>
-            prev.map((p) =>
-              p.id === event.payload.id ? { ...p, ...event.payload } : p,
-            ),
-          );
-        } else if (event.type === 'prototype.deactivated') {
-          setItems((prev) => prev.filter((p) => p.id !== event.payload.id));
-        }
-      });
-
-      // EventSource has no built-in onclose; detect via onerror
-      // The cleanup will re-schedule with backoff if needed
+          if (event.type === 'prototype.updated') {
+            setItems((prev) =>
+              prev.map((p) => (p.id === event.payload.id ? { ...p, ...event.payload } : p)),
+            );
+          } else if (event.type === 'prototype.deactivated') {
+            setItems((prev) => prev.filter((p) => p.id !== event.payload.id));
+          }
+        },
+        () => {
+          // onError callback — reconnect with exponential backoff
+          if (cancelled) return;
+          const delay = backoffRef.current;
+          backoffRef.current = Math.min(delay * 2, MAX_BACKOFF_MS);
+          reconnectTimer = setTimeout(connect, delay);
+        },
+      );
     }
 
     connect();
@@ -89,6 +98,7 @@ export function useCatalog(initialFilter: CatalogFilter = {}): UseCatalogResult 
     return () => {
       cancelled = true;
       cleanupRef.current?.();
+      if (reconnectTimer) clearTimeout(reconnectTimer);
     };
   }, []);
 

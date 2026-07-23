@@ -1,4 +1,5 @@
 import { PrototypeDto } from '../models/catalogApi';
+import { KeyboardEvent } from 'react';
 
 interface Props {
   prototype: PrototypeDto;
@@ -9,10 +10,20 @@ export function PrototypeCard({ prototype: p, onSelect }: Props) {
   const thumb = p.images[0]?.url ?? '/placeholder.jpg';
   const inStock = p.buildOnDemand || p.stockQty > 0;
 
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onSelect(p.id);
+    }
+  };
+
   return (
     <article
-      className="group flex cursor-pointer flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md"
+      className="group flex cursor-pointer flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
       onClick={() => onSelect(p.id)}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      role="link"
       aria-label={`View ${p.name}`}
     >
       <div className="relative h-48 overflow-hidden bg-gray-100">
@@ -36,9 +47,7 @@ export function PrototypeCard({ prototype: p, onSelect }: Props) {
         <p className="mb-3 flex-1 text-sm text-gray-500 line-clamp-2">{p.description}</p>
 
         <div className="flex items-center justify-between">
-          <span className="text-lg font-bold text-gray-900">
-            ${p.priceUsd.toFixed(2)}
-          </span>
+          <span className="text-lg font-bold text-gray-900">${p.priceUsd.toFixed(2)}</span>
           {p.estimatedDeliveryDays && (
             <span className="text-xs text-gray-400">~{p.estimatedDeliveryDays}d delivery</span>
           )}

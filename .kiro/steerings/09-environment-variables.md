@@ -13,40 +13,47 @@ Once `.env` is created and populated with real keys, it **cannot** be modified, 
 
 ## Database and cache
 
-| Variable | Description |
-|---|---|
-| `DATABASE_URL` | Supabase Postgres connection string (api-core domain) |
-| `PAYMENT_DATABASE_URL` | Connection string for payment-service own schema |
-| `UPSTASH_REDIS_URL` | Redis for catalog cache, BullMQ, and rate limiting |
+| Variable               | Description                                           |
+| ---------------------- | ----------------------------------------------------- |
+| `DATABASE_URL`         | Supabase Postgres connection string (api-core domain) |
+| `PAYMENT_DATABASE_URL` | Connection string for payment-service own schema      |
+| `UPSTASH_REDIS_URL`    | Redis for catalog cache, BullMQ, and rate limiting    |
 
 ## Auth
 
-| Variable | Description |
-|---|---|
-| `JWT_ACCESS_SECRET` | Admin access token signature (short-lived) |
-| `JWT_REFRESH_SECRET` | Refresh token signature |
+| Variable                    | Description                                   |
+| --------------------------- | --------------------------------------------- |
+| `JWT_ACCESS_SECRET`         | Admin access token signature (short-lived)    |
+| `JWT_REFRESH_SECRET`        | Refresh token signature                       |
 | `QUOTE_ACTION_TOKEN_SECRET` | Signature for quote accept/reject magic links |
 
 ## PayPal (payment-service)
 
-| Variable | Description |
-|---|---|
-| `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET` | Sandbox or live credentials |
-| `PAYPAL_MODE` | `sandbox` \| `live` |
-| `PAYPAL_WEBHOOK_ID` | To validate incoming PayPal webhook signatures |
+| Variable                                    | Description                                    |
+| ------------------------------------------- | ---------------------------------------------- |
+| `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET` | Sandbox or live credentials                    |
+| `PAYPAL_MODE`                               | `sandbox` \| `live`                            |
+| `PAYPAL_WEBHOOK_ID`                         | To validate incoming PayPal webhook signatures |
 
 ## Email (Mailjet)
 
-| Variable | Description |
-|---|---|
-| `MAILJET_API_KEY` | Mailjet API key |
-| `MAILJET_API_SECRET` | Mailjet API secret |
+| Variable             | Description                                        |
+| -------------------- | -------------------------------------------------- |
+| `MAILJET_API_KEY`    | Mailjet API key                                    |
+| `MAILJET_API_SECRET` | Mailjet API secret                                 |
 | `MAILJET_FROM_EMAIL` | Sender email address (must be verified in Mailjet) |
-| `MAILJET_FROM_NAME` | Sender display name |
+| `MAILJET_FROM_NAME`  | Sender display name                                |
 
 ## Storage (receipts)
 
-| Variable | Description |
-|---|---|
-| `SUPABASE_STORAGE_BUCKET` | Bucket where PDF receipts are stored |
+| Variable                    | Description                             |
+| --------------------------- | --------------------------------------- |
+| `SUPABASE_STORAGE_BUCKET`   | Bucket where PDF receipts are stored    |
 | `SUPABASE_SERVICE_ROLE_KEY` | Backend only, never exposed to frontend |
+
+## Internal Webhooks (api-core ↔ payment-service)
+
+| Variable                | Description                                                                                                     |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `WEBHOOK_SHARED_SECRET` | HMAC-SHA256 shared secret for payment-service → api-core webhook authentication. Must match on both services.   |
+| `CORS_ORIGINS`          | Comma-separated list of allowed CORS origins (defaults to `http://localhost:3000,http://localhost:3001` in dev) |

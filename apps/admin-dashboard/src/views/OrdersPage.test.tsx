@@ -8,18 +8,30 @@ vi.mock('../controllers/useOrders', () => ({
   useOrders: () => ({
     orders: [
       {
-        id: 'ord-111-222', prototypeId: 'p-1', priceUsdSnapshot: 199.99,
-        customerEmail: 'buyer@test.com', customerName: 'Alice',
+        id: 'ord-111-222',
+        prototypeId: 'p-1',
+        priceUsdSnapshot: 199.99,
+        customerEmail: 'buyer@test.com',
+        customerName: 'Alice',
         status: 'paid_pending_acceptance',
-        rejectionReason: null, estimatedDeliveryDate: null,
-        paymentServiceRef: 'ref', idempotencyKey: 'k',
-        createdAt: '2026-07-22T00:00:00Z', updatedAt: '2026-07-22T00:00:00Z',
+        rejectionReason: null,
+        estimatedDeliveryDate: null,
+        paymentServiceRef: 'ref',
+        idempotencyKey: 'k',
+        createdAt: '2026-07-22T00:00:00Z',
+        updatedAt: '2026-07-22T00:00:00Z',
       },
     ],
-    total: 1, page: 1, loading: false, error: null,
+    total: 1,
+    page: 1,
+    loading: false,
+    error: null,
     statusFilter: undefined,
-    setStatusFilter: vi.fn(), setPage: vi.fn(),
-    accept: mockAccept, reject: mockReject, reload: vi.fn(),
+    setStatusFilter: vi.fn(),
+    setPage: vi.fn(),
+    accept: mockAccept,
+    reject: mockReject,
+    reload: vi.fn(),
   }),
 }));
 
@@ -54,6 +66,7 @@ describe('OrdersPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /accept order/i }));
 
     const dialog = screen.getByRole('dialog', { name: /accept order/i });
+    expect(dialog).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText(/estimated delivery date/i), {
       target: { value: '2026-09-01' },
     });
@@ -78,8 +91,6 @@ describe('OrdersPage', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: /reject & refund/i }));
 
-    await waitFor(() =>
-      expect(mockReject).toHaveBeenCalledWith('ord-111-222', 'Out of materials'),
-    );
+    await waitFor(() => expect(mockReject).toHaveBeenCalledWith('ord-111-222', 'Out of materials'));
   });
 });

@@ -4,9 +4,15 @@ import { PrototypeCard } from './PrototypeCard';
 import type { PrototypeDto } from '../models/catalogApi';
 
 const proto: PrototypeDto = {
-  id: 'p-1', name: 'Beautiful Arch', category: 'arches', priceUsd: 249.99,
-  active: true, stockQty: 2, buildOnDemand: false,
-  description: 'A wonderful arch for events', estimatedDeliveryDays: 14,
+  id: 'p-1',
+  name: 'Beautiful Arch',
+  category: 'arches',
+  priceUsd: 249.99,
+  active: true,
+  stockQty: 2,
+  buildOnDemand: false,
+  description: 'A wonderful arch for events',
+  estimatedDeliveryDays: 14,
   images: [{ id: 'img-1', url: 'https://example.com/arch.jpg', order: 0 }],
 };
 
@@ -39,7 +45,7 @@ describe('PrototypeCard', () => {
   it('calls onSelect with prototype id on click', () => {
     const onSelect = vi.fn();
     render(<PrototypeCard prototype={proto} onSelect={onSelect} />);
-    fireEvent.click(screen.getByRole('article'));
+    fireEvent.click(screen.getByRole('link', { name: /view beautiful arch/i }));
     expect(onSelect).toHaveBeenCalledWith('p-1');
   });
 
@@ -49,7 +55,12 @@ describe('PrototypeCard', () => {
   });
 
   it('does not show out of stock when buildOnDemand=true', () => {
-    render(<PrototypeCard prototype={{ ...proto, stockQty: 0, buildOnDemand: true }} onSelect={vi.fn()} />);
+    render(
+      <PrototypeCard
+        prototype={{ ...proto, stockQty: 0, buildOnDemand: true }}
+        onSelect={vi.fn()}
+      />,
+    );
     expect(screen.queryByText(/out of stock/i)).not.toBeInTheDocument();
   });
 });

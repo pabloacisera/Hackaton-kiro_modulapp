@@ -41,12 +41,12 @@ export interface CatalogFilter {
 
 export async function fetchPrototypes(filter: CatalogFilter = {}): Promise<CatalogListResponse> {
   const params = new URLSearchParams();
-  if (filter.category)  params.set('category',  filter.category);
-  if (filter.q)         params.set('q',          filter.q);
+  if (filter.category) params.set('category', filter.category);
+  if (filter.q) params.set('q', filter.q);
   if (filter.minPrice !== undefined) params.set('minPrice', String(filter.minPrice));
   if (filter.maxPrice !== undefined) params.set('maxPrice', String(filter.maxPrice));
-  if (filter.page)      params.set('page',      String(filter.page));
-  if (filter.pageSize)  params.set('pageSize',  String(filter.pageSize));
+  if (filter.page) params.set('page', String(filter.page));
+  if (filter.pageSize) params.set('pageSize', String(filter.pageSize));
 
   const res = await fetch(`${API_BASE}/catalog/prototypes?${params.toString()}`);
   if (!res.ok) throw new Error('Failed to fetch catalog');
@@ -60,15 +60,17 @@ export async function fetchPrototypeById(id: string): Promise<PrototypeDto> {
 }
 
 export type CatalogSseEvent =
-  | { type: 'prototype.updated';     payload: Partial<PrototypeDto> & { id: string } }
+  | { type: 'prototype.updated'; payload: Partial<PrototypeDto> & { id: string } }
   | { type: 'prototype.deactivated'; payload: { id: string } };
 
 /**
  * Connects to the SSE catalog stream.
  * Returns a cleanup function — call it to close the connection.
+ * Optionally accepts an onError callback for reconnection handling.
  */
 export function subscribeCatalogStream(
   onEvent: (event: CatalogSseEvent) => void,
+  onError?: () => void,
 ): () => void {
   const es = new EventSource(`${API_BASE}/catalog/stream`);
 
@@ -76,11 +78,18 @@ export function subscribeCatalogStream(
     try {
       const payload = JSON.parse(raw.data);
       onEvent({ type, payload } as CatalogSseEvent);
-    } catch { /* ignore malformed */ }
+    } catch {
+      /* ignore malformed */
+    }
   };
 
-  es.addEventListener('prototype.updated',     (e) => handleEvent(e, 'prototype.updated'));
+  es.addEventListener('prototype.updated', (e) => handleEvent(e, 'prototype.updated'));
   es.addEventListener('prototype.deactivated', (e) => handleEvent(e, 'prototype.deactivated'));
+
+  es.onerror = () => {
+    es.close();
+    onError?.();
+  };
 
   return () => es.close();
 }

@@ -6,18 +6,30 @@ vi.mock('../models/catalogApi', () => ({
   subscribeCatalogStream: vi.fn(() => vi.fn()),
 }));
 
-import { fetchPrototypes, subscribeCatalogStream } from '../models/catalogApi';
+import { fetchPrototypes, subscribeCatalogStream, CatalogListResponse } from '../models/catalogApi';
 import { useCatalog } from './useCatalog';
 
 const mockFetch = vi.mocked(fetchPrototypes);
 const mockSubscribe = vi.mocked(subscribeCatalogStream);
 
-const page1 = {
+const page1: CatalogListResponse = {
   items: [
-    { id: 'p-1', name: 'Arch A', category: 'arches', priceUsd: 100, active: true,
-      stockQty: 5, buildOnDemand: false, description: 'd', estimatedDeliveryDays: 7, images: [] },
+    {
+      id: 'p-1',
+      name: 'Arch A',
+      category: 'arches',
+      priceUsd: 100,
+      active: true,
+      stockQty: 5,
+      buildOnDemand: false,
+      description: 'd',
+      estimatedDeliveryDays: 7,
+      images: [],
+    },
   ],
-  total: 1, page: 1, pageSize: 12,
+  total: 1,
+  page: 1,
+  pageSize: 12,
 };
 
 describe('useCatalog controller', () => {
@@ -49,8 +61,7 @@ describe('useCatalog controller', () => {
     act(() => result.current.setFilter({ q: 'wooden', minPrice: 50 }));
     await waitFor(() => !result.current.loading);
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.objectContaining({ q: 'wooden', minPrice: 50 }));
+    expect(mockFetch).toHaveBeenCalledWith(expect.objectContaining({ q: 'wooden', minPrice: 50 }));
   });
 
   it('subscribes to SSE stream on mount', async () => {

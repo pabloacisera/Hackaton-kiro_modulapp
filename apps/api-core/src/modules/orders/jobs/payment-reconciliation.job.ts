@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, Inject, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { IOrderRepository, ORDER_REPOSITORY } from '../repositories/order.repository.port';
 import { HandlePaymentWebhookUseCase } from '../use-cases/handle-payment-webhook.use-case';
 import { HttpService } from '@nestjs/axios';
@@ -13,7 +13,7 @@ import { firstValueFrom } from 'rxjs';
  * This covers the edge case: PayPal confirmed but webhook never arrived.
  */
 @Injectable()
-export class PaymentReconciliationJob implements OnModuleInit {
+export class PaymentReconciliationJob implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PaymentReconciliationJob.name);
   private intervalHandle: ReturnType<typeof setInterval> | null = null;
 
@@ -31,11 +31,16 @@ export class PaymentReconciliationJob implements OnModuleInit {
 
   onModuleInit(): void {
     // Schedule reconciliation (use setInterval — BullMQ would require Redis config)
-    this.intervalHandle = setInterval(
-      () => this.runReconciliation(),
-      this.RUN_INTERVAL_MS,
-    );
+    this.intervalHandle = setInterval(() => this.runReconciliation(), this.RUN_INTERVAL_MS);
     this.logger.log('Payment reconciliation job scheduled (every 5 min)');
+  }
+
+  onModuleDestroy(): void {
+    if (this.intervalHandle) {
+      clearInterval(this.intervalHandle);
+      this.intervalHandle = null;
+      this.logger.log('Payment reconciliation job stopped');
+    }
   }
 
   async runReconciliation(): Promise<void> {
@@ -60,7 +65,7 @@ export class PaymentReconciliationJob implements OnModuleInit {
 
         const status = res.data.status === 'confirmed' ? 'confirmed' : 'failed';
         await this.webhookHandler.execute({
-          referenceId:       order.id,
+          referenceId: order.id,
           paymentServiceRef: order.paymentServiceRef ?? '',
           status,
         });

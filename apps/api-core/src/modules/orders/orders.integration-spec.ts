@@ -1,22 +1,32 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
+import * as jwt from 'jsonwebtoken';
 import { AppModule } from '../../app.module';
 import { PROTOTYPE_REPOSITORY } from '../catalog/repositories/prototype.repository.port';
 import { ORDER_REPOSITORY } from './repositories/order.repository.port';
 import { InMemoryPrototypeRepository } from '../catalog/repositories/in-memory-prototype.repository';
 import { InMemoryOrderRepository } from './repositories/in-memory-order.repository';
 import { Prototype } from '../catalog/domain/prototype.entity';
+import { Order } from './domain/order.entity';
 import { PaymentServiceClient } from './services/payment-service.client';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function makePrototype(overrides = {}) {
   return new Prototype({
-    id: 'proto-1', name: 'Test Arch', description: 'desc',
-    category: 'arches', priceUsd: 199.99, active: true,
-    stockQty: 5, buildOnDemand: false, estimatedDeliveryDays: 14,
-    images: [], createdAt: new Date(), updatedAt: new Date(),
+    id: 'proto-1',
+    name: 'Test Arch',
+    description: 'desc',
+    category: 'arches',
+    priceUsd: 199.99,
+    active: true,
+    stockQty: 5,
+    buildOnDemand: false,
+    estimatedDeliveryDays: 14,
+    images: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
     ...overrides,
   });
 }
@@ -35,7 +45,7 @@ describe('Orders Integration Tests', () => {
 
     paymentClientMock = {
       initiatePayment: jest.fn().mockResolvedValue({
-        paymentLink:       'https://paypal.com/approve?token=TEST',
+        paymentLink: 'https://paypal.com/approve?token=TEST',
         paymentServiceRef: 'pay-ref-001',
       }),
       refund: jest.fn().mockResolvedValue({ refundId: 'refund-001', status: 'processed' }),
@@ -46,16 +56,19 @@ describe('Orders Integration Tests', () => {
     const moduleRef: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideProvider(PROTOTYPE_REPOSITORY).useValue(protoRepo)
-      .overrideProvider(ORDER_REPOSITORY).useValue(orderRepo)
-      .overrideProvider(PaymentServiceClient).useValue(paymentClientMock)
+      .overrideProvider(PROTOTYPE_REPOSITORY)
+      .useValue(protoRepo)
+      .overrideProvider(ORDER_REPOSITORY)
+      .useValue(orderRepo)
+      .overrideProvider(PaymentServiceClient)
+      .useValue(paymentClientMock)
       .compile();
 
     app = moduleRef.createNestApplication();
     await app.init();
 
-    process.env.JWT_ACCESS_SECRET   = 'test-secret';
-    process.env.JWT_REFRESH_SECRET  = 'test-refresh';
+    process.env.JWT_ACCESS_SECRET = 'test-secret';
+    process.env.JWT_REFRESH_SECRET = 'test-refresh';
   });
 
   afterAll(() => app.close());
@@ -63,7 +76,7 @@ describe('Orders Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     paymentClientMock.initiatePayment.mockResolvedValue({
-      paymentLink:       'https://paypal.com/approve?token=TEST',
+      paymentLink: 'https://paypal.com/approve?token=TEST',
       paymentServiceRef: 'pay-ref-001',
     });
     paymentClientMock.refund.mockResolvedValue({ refundId: 'refund-001', status: 'processed' });
@@ -149,14 +162,12 @@ describe('Orders Integration Tests', () => {
     expect(noAuth.status).toBe(401);
 
     // With valid JWT
-    const jwt = require('jsonwebtoken').sign(
-      { sub: 'admin-1', email: 'admin@modula.com' },
-      'test-secret',
-      { expiresIn: '15m' },
-    );
+    const token = jwt.sign({ sub: 'admin-1', email: 'admin@modula.com' }, 'test-secret', {
+      expiresIn: '15m',
+    });
     const acceptRes = await request(app.getHttpServer())
       .patch(`/orders/${orderId}/accept`)
-      .set('Authorization', `Bearer ${jwt}`)
+      .set('Authorization', `Bearer ${token}`)
       .send({ estimatedDeliveryDate: '2026-09-01' });
     expect(acceptRes.status).toBe(204);
 
@@ -176,14 +187,12 @@ describe('Orders Integration Tests', () => {
       .post('/orders/webhooks/payment-result')
       .send({ reference_id: orderId, payment_service_ref: 'pay-ref-003', status: 'confirmed' });
 
-    const jwt = require('jsonwebtoken').sign(
-      { sub: 'admin-1', email: 'admin@modula.com' },
-      'test-secret',
-      { expiresIn: '15m' },
-    );
+    const token = jwt.sign({ sub: 'admin-1', email: 'admin@modula.com' }, 'test-secret', {
+      expiresIn: '15m',
+    });
     const rejectRes = await request(app.getHttpServer())
       .patch(`/orders/${orderId}/reject`)
-      .set('Authorization', `Bearer ${jwt}`)
+      .set('Authorization', `Bearer ${token}`)
       .send({ reason: 'Out of stock in warehouse' });
 
     expect(rejectRes.status).toBe(204);
@@ -199,8 +208,12 @@ describe('Orders Integration Tests', () => {
   // ── integration.order.reconciliation.catchesHungPayments ─────────────────
 
   it('integration.order.reconciliation.catchesHungPayments — findHungPayments finds old payment_initiated', async () => {
-    const old = require('../domain/order.entity').Order.create(
-      'proto-1', 99.99, 'hung@test.com', null, `idem-hung-${Date.now()}`,
+    const old = Order.create(
+      'proto-1',
+      99.99,
+      'hung@test.com',
+      null,
+      `idem-hung-${Date.now()}`,
     ).initiatePayment('ref-hung');
 
     // Backdate the order to simulate being stuck for > 10 min

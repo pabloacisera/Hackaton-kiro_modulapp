@@ -30,7 +30,11 @@ export interface UseNotificationsResult {
 export function useNotifications(accessToken: string | null): UseNotificationsResult {
   const [notifications, setNotifications] = useState<AdminNotification[]>([]);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
-    try { return localStorage.getItem('notif_sound') !== 'off'; } catch { return true; }
+    try {
+      return localStorage.getItem('notif_sound') !== 'off';
+    } catch {
+      return true;
+    }
   });
 
   const socketRef = useRef<Socket | null>(null);
@@ -54,7 +58,9 @@ export function useNotifications(accessToken: string | null): UseNotificationsRe
       gain.gain.value = 0.4;
       osc.start();
       osc.stop(ctx.currentTime + 0.15);
-    } catch { /* AudioContext not available in test env */ }
+    } catch {
+      /* AudioContext not available in test env */
+    }
   }, [soundEnabled]);
 
   // ── Socket connection ────────────────────────────────────────────────────
@@ -80,8 +86,7 @@ export function useNotifications(accessToken: string | null): UseNotificationsRe
       });
 
       socket.on('notification.marked_read', ({ id }: { id: string }) => {
-        setNotifications((prev) =>
-          prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+        setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
       });
 
       socket.on('disconnect', () => {
@@ -97,19 +102,24 @@ export function useNotifications(accessToken: string | null): UseNotificationsRe
     }
 
     connect();
-    return () => { socketRef.current?.close(); };
+    return () => {
+      socketRef.current?.close();
+    };
   }, [accessToken, playSound]);
 
   const markRead = useCallback((id: string) => {
     socketRef.current?.emit('notification.mark_read', { id });
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
   }, []);
 
   const toggleSound = useCallback(() => {
     setSoundEnabled((prev) => {
       const next = !prev;
-      try { localStorage.setItem('notif_sound', next ? 'on' : 'off'); } catch {}
+      try {
+        localStorage.setItem('notif_sound', next ? 'on' : 'off');
+      } catch {
+        /* ignore storage errors */
+      }
       return next;
     });
   }, []);
