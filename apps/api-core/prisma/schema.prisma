@@ -70,6 +70,34 @@ model ProtoImage {
   @@map("proto_images")
 }
 
+// ── Orders (Flow A — Direct Purchase) ────────────────────────────────────────
+
+enum OrderStatus {
+  created
+  payment_initiated
+  paid_pending_acceptance
+  accepted
+  rejected
+  payment_failed
+}
+
+model Order {
+  id                    String      @id @default(uuid())
+  prototypeId           String      @map("prototype_id")
+  priceUsdSnapshot      Decimal     @map("price_usd_snapshot") @db.Decimal(10, 2)
+  customerEmail         String      @map("customer_email")
+  customerName          String?     @map("customer_name")
+  status                OrderStatus @default(created)
+  rejectionReason       String?     @map("rejection_reason")
+  estimatedDeliveryDate DateTime?   @map("estimated_delivery_date")
+  paymentServiceRef     String?     @map("payment_service_ref")
+  idempotencyKey        String      @unique @map("idempotency_key")
+  createdAt             DateTime    @default(now()) @map("created_at")
+  updatedAt             DateTime    @updatedAt @map("updated_at")
+
+  @@map("orders")
+}
+
 // ── Notifications ─────────────────────────────────────────────────────────────
 
 enum NotificationType {
