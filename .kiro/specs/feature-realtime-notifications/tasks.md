@@ -11,7 +11,7 @@
 - [x] TASK-notif-4: `GET /admin/notifications?read=&page=` endpoint
   - Depends on: TASK-notif-2
   - Assigned to: unassigned
-- [ ] TASK-notif-5: `notification.mark_read` event (propagated to same admin multi-tab)
+- [x] TASK-notif-5: `notification.mark_read` event (propagated to same admin multi-tab)
   - Depends on: TASK-notif-3
   - Assigned to: unassigned
 - [x] TASK-notif-6: Integrate `notifyAdmins()` in: direct-purchase, quotes, complaints, low-stock (called from each module, no duplicated logic)
@@ -23,7 +23,7 @@
 - [x] TASK-notif-8: `views/NotificationBell` + `views/NotificationPanel`
   - Depends on: TASK-notif-7
   - Assigned to: unassigned
-- [ ] TASK-notif-9: Sound asset selection and setup (~300-500ms, moderate volume) + persisted on/off preference
+- [x] TASK-notif-9: Sound asset selection and setup (~300-500ms, moderate volume) + persisted on/off preference
   - Depends on: TASK-notif-7
   - Assigned to: unassigned
 - [x] TASK-notif-10: Reconnection with backoff on WebSocket client
@@ -37,7 +37,7 @@
   - Assigned to: unassigned
   - Done criteria: unit.notification.createIncludesCorrectFields, unit.notification.markRead.propagatesToAllTabs, unit.notification.sound.debouncePreventsSimultaneousPlayback. All pass.
 
-- [ ] TASK-notif-test2: Integration tests for WebSocket and SSE event delivery
+- [x] TASK-notif-test2: Integration tests for WebSocket and SSE event delivery
   - Context: validates WebSocket connection with JWT handshake, event delivery to connected clients, mark_read sync across tabs, and SSE catalog events. Uses NestJS WebSocket test client.
   - Deliverable: `services/api-core/src/modules/notifications/**/*.integration-spec.ts`
   - Depends on: TASK-notif-10
