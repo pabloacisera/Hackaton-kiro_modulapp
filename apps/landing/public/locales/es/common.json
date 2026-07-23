@@ -1,0 +1,113 @@
+{
+  "nav": {
+    "catalog": "Catálogo",
+    "requestQuote": "Solicitar cotización",
+    "complaints": "Quejas y reclamos",
+    "brand": "Modula"
+  },
+  "home": {
+    "title": "Modula",
+    "subtitle": "Muebles modulares y arcos para eventos a medida"
+  },
+  "catalog": {
+    "title": "Catálogo",
+    "empty": "No hay productos disponibles.",
+    "loading": "Cargando catálogo...",
+    "buyButton": "Comprar",
+    "requestQuoteButton": "Solicitar cotización personalizada",
+    "filters": {
+      "search": "Buscar por nombre...",
+      "category": "Categoría",
+      "all": "Todas",
+      "furniture": "Muebles modulares",
+      "arches": "Arcos",
+      "priceRange": "Rango de precio",
+      "apply": "Aplicar"
+    }
+  },
+  "quote": {
+    "title": "Solicitar cotización personalizada",
+    "subtitle": "Contanos qué necesitás — te respondemos con precio y plazo.",
+    "fields": {
+      "name": "Nombre completo",
+      "email": "Correo electrónico",
+      "phone": "Teléfono",
+      "description": "¿Qué necesitás?",
+      "neededBy": "¿Para cuándo lo necesitás?",
+      "descriptionPlaceholder": "Describí lo que buscás: dimensiones, temática, materiales..."
+    },
+    "submit": "Enviar solicitud",
+    "submitting": "Enviando...",
+    "cancel": "Cancelar",
+    "success": {
+      "title": "Solicitud enviada",
+      "message": "Revisá tu correo para la confirmación.",
+      "backToCatalog": "Volver al catálogo"
+    }
+  },
+  "complaint": {
+    "title": "Quejas y reembolsos",
+    "subtitle": "¿Tenés un problema con tu pedido? Enviá tu queja y te respondemos.",
+    "fields": {
+      "referenceType": "Tipo de referencia",
+      "referenceId": "ID de orden/cotización (opcional)",
+      "name": "Nombre completo",
+      "email": "Correo electrónico",
+      "phone": "Teléfono (opcional)",
+      "reason": "Motivo",
+      "reasonPlaceholder": "Describí el problema..."
+    },
+    "referenceTypes": {
+      "order": "Orden",
+      "quote": "Cotización",
+      "unknown": "No tengo mi referencia"
+    },
+    "submit": "Enviar queja",
+    "submitting": "Enviando...",
+    "success": {
+      "title": "Queja recibida",
+      "message": "Revisá tu correo para el comprobante.",
+      "backToCatalog": "Volver al catálogo"
+    }
+  },
+  "checkout": {
+    "title": "Completar tu compra",
+    "nameLabel": "Nombre completo (opcional)",
+    "emailLabel": "Correo electrónico",
+    "emailHint": "Tu confirmación de pago y recibo se enviarán aquí.",
+    "payButton": "Pagar con PayPal",
+    "processing": "Procesando...",
+    "cancel": "Cancelar"
+  },
+  "quoteAction": {
+    "processing": "Procesando tu respuesta...",
+    "accepted": {
+      "title": "¡Cotización aceptada!",
+      "message": "Completá tu pago dentro de las próximas 24 horas.",
+      "payButton": "Completar pago",
+      "expiry": "El enlace de pago expira en 24 horas."
+    },
+    "rejected": {
+      "title": "Cotización rechazada",
+      "message": "Gracias por avisarnos.",
+      "hint": "Podés solicitar una nueva cotización cuando quieras."
+    },
+    "expired": {
+      "title": "Enlace expirado",
+      "message": "Esta cotización ha expirado. Por favor solicitá una nueva.",
+      "hint": "Contactanos para solicitar una nueva cotización."
+    },
+    "alreadyProcessed": {
+      "title": "Ya procesado",
+      "message": "Esta acción ya fue procesada."
+    },
+    "error": {
+      "title": "Algo salió mal"
+    }
+  },
+  "common": {
+    "required": "Obligatorio",
+    "error": "Error",
+    "back": "Volver"
+  }
+}
