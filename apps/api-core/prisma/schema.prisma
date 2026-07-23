@@ -1,5 +1,5 @@
-// Prisma schema — datasource + generator placeholder
-// Tables will be added by individual feature specs.
+// Prisma schema — datasource + generator
+// Tables are added per feature spec.
 
 generator client {
   provider = "prisma-client-js"
@@ -13,12 +13,12 @@ datasource db {
 // ── Admin Auth ────────────────────────────────────────────────────────────────
 
 model AdminUser {
-  id           String         @id @default(uuid())
-  email        String         @unique
-  passwordHash String         @map("password_hash")
-  active       Boolean        @default(true)
-  createdAt    DateTime       @default(now()) @map("created_at")
-  lastLoginAt  DateTime?      @map("last_login_at")
+  id            String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String         @map("password_hash")
+  active        Boolean        @default(true)
+  createdAt     DateTime       @default(now()) @map("created_at")
+  lastLoginAt   DateTime?      @map("last_login_at")
   refreshTokens RefreshToken[]
 
   @@map("admin_users")
@@ -34,4 +34,88 @@ model RefreshToken {
   adminUser   AdminUser @relation(fields: [adminUserId], references: [id])
 
   @@map("refresh_tokens")
+}
+
+// ── Catalog ───────────────────────────────────────────────────────────────────
+
+enum PrototypeCategory {
+  modular_furniture
+  arches
+}
+
+model Prototype {
+  id                    String            @id @default(uuid())
+  name                  String
+  description           String
+  category              PrototypeCategory
+  priceUsd              Decimal           @map("price_usd") @db.Decimal(10, 2)
+  active                Boolean           @default(true)
+  stockQty              Int               @default(0) @map("stock_qty")
+  buildOnDemand         Boolean           @default(false) @map("build_on_demand")
+  estimatedDeliveryDays Int?              @map("estimated_delivery_days")
+  createdAt             DateTime          @default(now()) @map("created_at")
+  updatedAt             DateTime          @updatedAt @map("updated_at")
+  images                ProtoImage[]
+
+  @@map("prototypes")
+}
+
+model ProtoImage {
+  id          String    @id @default(uuid())
+  prototypeId String    @map("prototype_id")
+  url         String
+  order       Int       @default(0)
+  prototype   Prototype @relation(fields: [prototypeId], references: [id], onDelete: Cascade)
+
+  @@map("proto_images")
+}
+
+// ── Orders (Flow A — Direct Purchase) ────────────────────────────────────────
+
+enum OrderStatus {
+  created
+  payment_initiated
+  paid_pending_acceptance
+  accepted
+  rejected
+  payment_failed
+}
+
+model Order {
+  id                    String      @id @default(uuid())
+  prototypeId           String      @map("prototype_id")
+  priceUsdSnapshot      Decimal     @map("price_usd_snapshot") @db.Decimal(10, 2)
+  customerEmail         String      @map("customer_email")
+  customerName          String?     @map("customer_name")
+  status                OrderStatus @default(created)
+  rejectionReason       String?     @map("rejection_reason")
+  estimatedDeliveryDate DateTime?   @map("estimated_delivery_date")
+  paymentServiceRef     String?     @map("payment_service_ref")
+  idempotencyKey        String      @unique @map("idempotency_key")
+  createdAt             DateTime    @default(now()) @map("created_at")
+  updatedAt             DateTime    @updatedAt @map("updated_at")
+
+  @@map("orders")
+}
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+enum NotificationType {
+  new_purchase
+  new_quote_request
+  quote_response
+  new_complaint
+  low_stock_minimum
+  payment_confirmed
+}
+
+model AdminNotification {
+  id           String           @id @default(uuid())
+  type         NotificationType
+  message      String
+  referenceUrl String           @map("reference_url")
+  read         Boolean          @default(false)
+  createdAt    DateTime         @default(now()) @map("created_at")
+
+  @@map("admin_notifications")
 }
