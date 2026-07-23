@@ -12,7 +12,7 @@ vi.mock('../models/suppliesApi', () => ({
 import { fetchSupplies, createSupply, updateSupply, deleteSupply } from '../models/suppliesApi';
 const mockFetch = vi.mocked(fetchSupplies);
 const mockCreate = vi.mocked(createSupply);
-const mockUpdate = vi.mocked(updateSupply);
+vi.mocked(updateSupply); // used by hook internally
 const mockDelete = vi.mocked(deleteSupply);
 
 const sampleData = {
