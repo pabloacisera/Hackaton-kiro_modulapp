@@ -27,6 +27,7 @@ paypal:
   client-secret: ${PAYPAL_CLIENT_SECRET}
   mode: ${PAYPAL_MODE:sandbox}
   webhook-id: ${PAYPAL_WEBHOOK_ID}
+  app-public-url: ${APP_PUBLIC_URL:https://localhost}
 
 mailjet:
   api-key: ${MAILJET_API_KEY}

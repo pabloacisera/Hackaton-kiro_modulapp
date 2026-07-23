@@ -14,6 +14,7 @@ public class PayPalProperties {
     private String clientSecret;
     private String mode = "sandbox";
     private String webhookId;
+    private String appPublicUrl = "https://localhost";
 
     // ── Sandbox/Live base URLs ───────────────────────────────────────────────
 
@@ -36,4 +37,7 @@ public class PayPalProperties {
 
     public String getWebhookId()     { return webhookId; }
     public void setWebhookId(String v) { this.webhookId = v; }
+
+    public String getAppPublicUrl()     { return appPublicUrl; }
+    public void setAppPublicUrl(String v) { this.appPublicUrl = v; }
 }
