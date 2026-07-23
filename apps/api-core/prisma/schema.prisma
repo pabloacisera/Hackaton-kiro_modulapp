@@ -98,6 +98,48 @@ model Order {
   @@map("orders")
 }
 
+// ── Quotes (Flow B — Custom Quote) ────────────────────────────────────────────
+
+enum QuoteStatus {
+  discarded_incomplete_data
+  pending
+  quoted
+  accepted
+  rejected
+  expired
+  payment_initiated
+  paid
+  payment_expired
+  archived
+}
+
+model Quote {
+  id                    String      @id @default(uuid())
+  customerName          String      @map("customer_name")
+  customerEmail         String      @map("customer_email")
+  customerPhone         String      @map("customer_phone")
+  description           String
+  neededByDate          DateTime    @map("needed_by_date") @db.Date
+  status                QuoteStatus @default(pending)
+  quotedPriceUsd        Decimal?    @map("quoted_price_usd") @db.Decimal(10, 2)
+  quotedLeadTimeDays    Int?        @map("quoted_lead_time_days")
+  estimatedDeliveryDate DateTime?   @map("estimated_delivery_date") @db.Date
+  quoteSentAt           DateTime?   @map("quote_sent_at")
+  quoteResponseDeadline DateTime?   @map("quote_response_deadline")
+  paymentDeadline       DateTime?   @map("payment_deadline")
+  acceptedAt            DateTime?   @map("accepted_at")
+  rejectedAt            DateTime?   @map("rejected_at")
+  paidAt                DateTime?   @map("paid_at")
+  rejectionReason       String?     @map("rejection_reason")
+  actionTokenHash       String?     @map("action_token_hash")
+  actionTokenUsed       Boolean     @default(false) @map("action_token_used")
+  paymentServiceRef     String?     @map("payment_service_ref")
+  createdAt             DateTime    @default(now()) @map("created_at")
+  updatedAt             DateTime    @updatedAt @map("updated_at")
+
+  @@map("quotes")
+}
+
 // ── Notifications ─────────────────────────────────────────────────────────────
 
 enum NotificationType {
