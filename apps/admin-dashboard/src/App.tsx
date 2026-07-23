@@ -6,6 +6,7 @@ import { QuotesPage } from './views/QuotesPage';
 import { SuppliesPage } from './views/SuppliesPage';
 import { ComplaintsPage } from './views/ComplaintsPage';
 import { ExcelImportWizard } from './views/ExcelImportWizard';
+import { DeliveriesPage } from './views/DeliveriesPage';
 import { useAuth } from './controllers/useAuth';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -32,6 +33,7 @@ export default function App() {
           <Route path="/supplies" element={<SuppliesPage />} />
           <Route path="/supplies/import" element={<ExcelImportWizard />} />
           <Route path="/complaints" element={<ComplaintsPage />} />
+          <Route path="/deliveries" element={<DeliveriesPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

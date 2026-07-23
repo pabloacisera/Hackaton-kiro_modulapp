@@ -41,6 +41,6 @@ import { JwtAuthGuard } from '../../interface/auth/guards/jwt-auth.guard';
     HandlePaymentWebhookUseCase,
     PaymentReconciliationJob,
   ],
-  exports: [ListOrdersUseCase, HandlePaymentWebhookUseCase, PaymentServiceClient],
+  exports: [ListOrdersUseCase, HandlePaymentWebhookUseCase, PaymentServiceClient, ORDER_REPOSITORY],
 })
 export class OrdersModule {}

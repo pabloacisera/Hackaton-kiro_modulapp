@@ -7,6 +7,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { QuotesModule } from './modules/quotes/quotes.module';
 import { SuppliesModule } from './modules/supplies/supplies.module';
 import { ComplaintsModule } from './modules/complaints/complaints.module';
+import { DeliveriesModule } from './modules/deliveries/deliveries.module';
 import { SeedService } from './infrastructure/seed.service';
 
 @Module({
@@ -19,6 +20,7 @@ import { SeedService } from './infrastructure/seed.service';
     QuotesModule,
     SuppliesModule,
     ComplaintsModule,
+    DeliveriesModule,
   ],
   providers: [SeedService],
 })
