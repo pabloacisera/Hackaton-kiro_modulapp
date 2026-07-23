@@ -9,6 +9,7 @@ import {
   QUOTE_REPOSITORY,
 } from '../../quotes/repositories/quote.repository.port';
 import { Quote } from '../../quotes/domain/quote.entity';
+import { Order } from '../../orders/domain/order.entity';
 
 export interface ListDeliveriesFilter {
   status?: DeliveryStatus;
@@ -130,8 +131,12 @@ export class DeliveryUseCase {
     if (origin === 'order') {
       const order = await this.orderRepo.findById(id);
       if (!order) throw new Error(`Order not found: ${id}`);
-      // Update the order's estimated delivery date
-      const updated = order.accept(newDate); // re-accept with new date (same transition logic)
+      // Update estimated delivery date directly (order is already in accepted state)
+      const updated = new Order({
+        ...order.toProps(),
+        estimatedDeliveryDate: newDate,
+        updatedAt: new Date(),
+      });
       await this.orderRepo.update(updated);
       this.logger.log(`Order ${id} delivery postponed to ${newDate.toISOString()}`);
     } else {
