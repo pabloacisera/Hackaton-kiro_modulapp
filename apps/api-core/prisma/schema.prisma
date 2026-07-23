@@ -140,6 +140,39 @@ model Quote {
   @@map("quotes")
 }
 
+// ── Complaints & Refunds ──────────────────────────────────────────────────────
+
+enum ComplaintReferenceType {
+  order
+  quote
+  unknown
+}
+
+enum ComplaintStatus {
+  received
+  under_review
+  refund_approved
+  resolved_other_way
+  rejected
+}
+
+model Complaint {
+  id              String                 @id @default(uuid())
+  referenceType   ComplaintReferenceType @map("reference_type")
+  referenceId     String?                @map("reference_id")
+  customerName    String                 @map("customer_name")
+  customerEmail   String                 @map("customer_email")
+  customerPhone   String?                @map("customer_phone")
+  reason          String
+  status          ComplaintStatus        @default(received)
+  resolutionNotes String?                @map("resolution_notes")
+  refundRequestId String?                @map("refund_request_id")
+  createdAt       DateTime               @default(now()) @map("created_at")
+  resolvedAt      DateTime?              @map("resolved_at")
+
+  @@map("complaints")
+}
+
 // ── Supply Stock Management ───────────────────────────────────────────────────
 
 model Supply {

@@ -1,0 +1,86 @@
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ComplaintsPage } from './ComplaintsPage';
+
+vi.mock('../controllers/useComplaints', () => ({ useComplaints: vi.fn() }));
+
+import { useComplaints } from '../controllers/useComplaints';
+const mockUseComplaints = vi.mocked(useComplaints);
+
+const baseHook = {
+  complaints: [],
+  total: 0,
+  loading: false,
+  error: null,
+  statusFilter: undefined,
+  setStatusFilter: vi.fn(),
+  review: vi.fn(),
+  refund: vi.fn(),
+  resolve: vi.fn(),
+  reload: vi.fn(),
+};
+
+const receivedComplaint = {
+  id: 'c-1',
+  referenceType: 'order' as const,
+  referenceId: 'ord-123',
+  customerName: 'Ana García',
+  customerEmail: 'ana@test.com',
+  customerPhone: null,
+  reason: 'Product arrived damaged',
+  status: 'received' as const,
+  resolutionNotes: null,
+  refundRequestId: null,
+  createdAt: '2026-07-23T10:00:00Z',
+  resolvedAt: null,
+};
+
+describe('ComplaintsPage', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('renders complaints table', () => {
+    mockUseComplaints.mockReturnValue({ ...baseHook, complaints: [receivedComplaint], total: 1 });
+    render(<ComplaintsPage />);
+    expect(screen.getByText('Ana García')).toBeInTheDocument();
+    expect(screen.getByText(/product arrived damaged/i)).toBeInTheDocument();
+  });
+
+  it('shows Review button for received complaints', () => {
+    mockUseComplaints.mockReturnValue({ ...baseHook, complaints: [receivedComplaint], total: 1 });
+    render(<ComplaintsPage />);
+    expect(screen.getByRole('button', { name: /review/i })).toBeInTheDocument();
+  });
+
+  it('shows Approve Refund and Resolve buttons for under_review', () => {
+    const underReview = { ...receivedComplaint, status: 'under_review' as const };
+    mockUseComplaints.mockReturnValue({ ...baseHook, complaints: [underReview], total: 1 });
+    render(<ComplaintsPage />);
+    expect(screen.getByRole('button', { name: /approve refund/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /resolve/i })).toBeInTheDocument();
+  });
+
+  it('calls review on button click', () => {
+    const mockReview = vi.fn();
+    mockUseComplaints.mockReturnValue({
+      ...baseHook,
+      complaints: [receivedComplaint],
+      total: 1,
+      review: mockReview,
+    });
+    render(<ComplaintsPage />);
+    fireEvent.click(screen.getByRole('button', { name: /review/i }));
+    expect(mockReview).toHaveBeenCalledWith('c-1');
+  });
+
+  it('shows empty state', () => {
+    mockUseComplaints.mockReturnValue(baseHook);
+    render(<ComplaintsPage />);
+    expect(screen.getByText(/no complaints found/i)).toBeInTheDocument();
+  });
+
+  it('shows error state', () => {
+    mockUseComplaints.mockReturnValue({ ...baseHook, error: 'Server error' });
+    render(<ComplaintsPage />);
+    expect(screen.getByRole('alert')).toHaveTextContent('Server error');
+  });
+});
