@@ -15,7 +15,7 @@ import {
  * user for development/testing. Only runs when NODE_ENV !== 'production'.
  *
  * Default admin credentials (override via env vars):
- *   email:    ADMIN_SEED_EMAIL    (default: admin@modulapp.com)
+ *   email:    ADMIN_SEED_EMAIL    (default: admin@modulapp.com.com)
  *   password: ADMIN_SEED_PASSWORD (default: Password123456)
  */
 @Injectable()
@@ -37,7 +37,7 @@ export class SeedService implements OnModuleInit {
   }
 
   private async seedAdmin() {
-    const email = process.env.ADMIN_SEED_EMAIL ?? 'admin@modulapp.com';
+    const email = process.env.ADMIN_SEED_EMAIL ?? 'admin@modulapp.com.com';
     const password = process.env.ADMIN_SEED_PASSWORD ?? 'Password123456';
 
     const existing = await this.adminUserRepo.findByEmail(email);

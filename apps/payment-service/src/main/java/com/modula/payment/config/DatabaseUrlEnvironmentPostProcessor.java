@@ -92,12 +92,12 @@ public class DatabaseUrlEnvironmentPostProcessor implements EnvironmentPostProce
                     overrides.put("spring.datasource.password", password);
                     overrides.put("spring.flyway.user", user);
                     overrides.put("spring.flyway.password", password);
-                    System.out.println("[EPP] Extracted user=" + user + " password=" + password);
+                    System.out.println("[EPP] Extracted credentials for user: " + user);
                 } else {
                     String user = URLDecoder.decode(userInfo, StandardCharsets.UTF_8);
                     overrides.put("spring.datasource.username", user);
                     overrides.put("spring.flyway.user", user);
-                    System.out.println("[EPP] Extracted user=" + user + " (no password)");
+                    System.out.println("[EPP] Extracted user: " + user + " (no password)");
                 }
             }
 

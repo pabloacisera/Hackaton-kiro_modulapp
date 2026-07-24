@@ -34,7 +34,7 @@ describe('useAuth controller', () => {
     mockLoginApi.mockResolvedValue({ accessToken: 'jwt-abc', expiresIn: 900 });
     const { result } = renderHook(() => useAuth(), { wrapper });
     await act(async () => {
-      await result.current.login('admin@modulapp', 'pass123');
+      await result.current.login('admin@modulapp.com', 'pass123');
     });
     expect(result.current.accessToken).toBe('jwt-abc');
     expect(result.current.error).toBeNull();
@@ -63,9 +63,13 @@ describe('useAuth controller', () => {
     mockLoginApi.mockResolvedValue({ accessToken: 'jwt-abc', expiresIn: 900 });
     mockLogoutApi.mockResolvedValue(undefined);
     const { result } = renderHook(() => useAuth(), { wrapper });
-    await act(async () => { await result.current.login('a@b.com', 'pass'); });
+    await act(async () => {
+      await result.current.login('a@b.com', 'pass');
+    });
     expect(result.current.accessToken).toBe('jwt-abc');
-    await act(async () => { await result.current.logout(); });
+    await act(async () => {
+      await result.current.logout();
+    });
     expect(result.current.accessToken).toBeNull();
   });
 });

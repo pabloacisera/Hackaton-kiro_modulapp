@@ -1,7 +1,13 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { IRefreshTokenRepository, REFRESH_TOKEN_REPOSITORY } from '../../../domain/auth/repositories/refresh-token.repository.port';
-import { IAdminUserRepository, ADMIN_USER_REPOSITORY } from '../../../domain/auth/repositories/admin-user.repository.port';
+import {
+  IRefreshTokenRepository,
+  REFRESH_TOKEN_REPOSITORY,
+} from '../../../domain/auth/repositories/refresh-token.repository.port';
+import {
+  IAdminUserRepository,
+  ADMIN_USER_REPOSITORY,
+} from '../../../domain/auth/repositories/admin-user.repository.port';
 import { RefreshToken } from '../../../domain/auth/entities/refresh-token.entity';
 import { JwtService } from '../../../infrastructure/auth/jwt/jwt.service';
 import { RefreshCookieService } from '../../../infrastructure/auth/jwt/refresh-cookie.service';
@@ -17,10 +23,7 @@ export class RefreshUseCase {
     private readonly cookieService: RefreshCookieService,
   ) {}
 
-  async execute(
-    req: Request,
-    res: Response,
-  ): Promise<{ accessToken: string }> {
+  async execute(req: Request, res: Response): Promise<{ accessToken: string }> {
     const rawToken = this.cookieService.getRefreshTokenFromCookie(req);
     if (!rawToken) {
       throw new UnauthorizedException('No refresh token provided');

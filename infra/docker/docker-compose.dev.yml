@@ -8,9 +8,10 @@
 # node_modules and ~/.m2 live inside the image, while source code comes
 # from the host bind mount.
 #
-# node_modules paths are declared as anonymous volumes to shadow the host
+# node_modules paths are declared as named volumes to shadow the host
 # folders — otherwise the bind mount would hide the deps installed in the
-# image. Same trick for /root/.m2 in payment-service.
+# image. Named volumes persist across `docker compose down` (without -v),
+# making subsequent startups faster.
 #
 # Usage:
 #   docker compose -f infra/docker/docker-compose.yml \
@@ -18,6 +19,24 @@
 # (`scripts/dev-up.sh` and the Makefile do this automatically.)
 
 services:
+  # ── PostgreSQL (local dev database) ──────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: modula_dev
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
   landing:
     build:
       target: builder
@@ -32,11 +51,11 @@ services:
     command: sh -c "pnpm --filter @modula/landing dev"
     volumes:
       - ../..:/app
-      - /app/node_modules
-      - /app/apps/landing/node_modules
-      - /app/apps/admin-dashboard/node_modules
-      - /app/apps/api-core/node_modules
-      - /app/packages/shared-types/node_modules
+      - node-modules-root:/app/node_modules
+      - node-modules-landing:/app/apps/landing/node_modules
+      - node-modules-admin:/app/apps/admin-dashboard/node_modules
+      - node-modules-api:/app/apps/api-core/node_modules
+      - node-modules-shared:/app/packages/shared-types/node_modules
 
   admin-dashboard:
     build:
@@ -49,16 +68,19 @@ services:
     command: sh -c "pnpm --filter @modula/admin-dashboard dev"
     volumes:
       - ../..:/app
-      - /app/node_modules
-      - /app/apps/landing/node_modules
-      - /app/apps/admin-dashboard/node_modules
-      - /app/apps/api-core/node_modules
-      - /app/packages/shared-types/node_modules
+      - node-modules-root:/app/node_modules
+      - node-modules-landing:/app/apps/landing/node_modules
+      - node-modules-admin:/app/apps/admin-dashboard/node_modules
+      - node-modules-api:/app/apps/api-core/node_modules
+      - node-modules-shared:/app/packages/shared-types/node_modules
 
   api-core:
     build:
       target: builder
     working_dir: /app
+    depends_on:
+      postgres:
+        condition: service_healthy
     # Windows/WSL2 bind mounts don't emit inotify events. Force chokidar
     # (the file watcher used by NestJS / Vite) to poll instead.
     environment:
@@ -67,16 +89,19 @@ services:
     command: sh -c "pnpm --filter @modula/api-core dev"
     volumes:
       - ../..:/app
-      - /app/node_modules
-      - /app/apps/landing/node_modules
-      - /app/apps/admin-dashboard/node_modules
-      - /app/apps/api-core/node_modules
-      - /app/packages/shared-types/node_modules
+      - node-modules-root:/app/node_modules
+      - node-modules-landing:/app/apps/landing/node_modules
+      - node-modules-admin:/app/apps/admin-dashboard/node_modules
+      - node-modules-api:/app/apps/api-core/node_modules
+      - node-modules-shared:/app/packages/shared-types/node_modules
 
   payment-service:
     build:
       target: builder
     working_dir: /app
+    depends_on:
+      postgres:
+        condition: service_healthy
     # Reset ENTRYPOINT from the maven base image so `command` runs as-is.
     entrypoint: []
     # `mvn spring-boot:run` recompiles and launches on start. For live
@@ -88,4 +113,10 @@ services:
       - payment-service-m2:/root/.m2
 
 volumes:
+  postgres-data:
   payment-service-m2:
+  node-modules-root:
+  node-modules-landing:
+  node-modules-admin:
+  node-modules-api:
+  node-modules-shared:

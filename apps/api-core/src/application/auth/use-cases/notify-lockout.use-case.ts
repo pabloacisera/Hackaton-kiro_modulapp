@@ -3,9 +3,7 @@ import { LockoutNotificationService } from '../../../infrastructure/auth/notific
 
 @Injectable()
 export class NotifyLockoutUseCase {
-  constructor(
-    private readonly notificationService: LockoutNotificationService,
-  ) {}
+  constructor(private readonly notificationService: LockoutNotificationService) {}
 
   async execute(email: string, adminUserId: string): Promise<void> {
     await this.notificationService.notify(email, adminUserId);

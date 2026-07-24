@@ -1,11 +1,13 @@
 import { NavLink } from 'react-router-dom';
 
 const NAV_ITEMS = [
+  { to: '/catalog', label: 'Catalog' },
   { to: '/orders', label: 'Orders' },
   { to: '/quotes', label: 'Quotes' },
   { to: '/supplies', label: 'Supplies' },
   { to: '/complaints', label: 'Complaints & Refunds' },
   { to: '/deliveries', label: 'Deliveries' },
+  { to: '/notifications', label: 'Notifications' },
 ];
 
 interface SideNavProps {

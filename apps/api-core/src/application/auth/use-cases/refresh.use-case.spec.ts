@@ -19,7 +19,11 @@ describe('RefreshUseCase', () => {
     update: jest.Mock;
   };
   let jwtService: { generateAccessToken: jest.Mock; verifyAccessToken: jest.Mock };
-  let cookieService: { setRefreshCookie: jest.Mock; clearRefreshCookie: jest.Mock; getRefreshTokenFromCookie: jest.Mock };
+  let cookieService: {
+    setRefreshCookie: jest.Mock;
+    clearRefreshCookie: jest.Mock;
+    getRefreshTokenFromCookie: jest.Mock;
+  };
   let mockReq: { cookies: Record<string, string> };
   let mockRes: { cookie: jest.Mock; clearCookie: jest.Mock };
 
@@ -96,9 +100,9 @@ describe('RefreshUseCase', () => {
 
     refreshTokenRepo.findByTokenHash.mockResolvedValue(mockToken);
 
-    await expect(
-      useCase.execute(mockReq as any, mockRes as any),
-    ).rejects.toThrow(UnauthorizedException);
+    await expect(useCase.execute(mockReq as any, mockRes as any)).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('unit.refresh.revokedTokenThrows', async () => {
@@ -114,8 +118,8 @@ describe('RefreshUseCase', () => {
 
     refreshTokenRepo.findByTokenHash.mockResolvedValue(mockToken);
 
-    await expect(
-      useCase.execute(mockReq as any, mockRes as any),
-    ).rejects.toThrow(UnauthorizedException);
+    await expect(useCase.execute(mockReq as any, mockRes as any)).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 });

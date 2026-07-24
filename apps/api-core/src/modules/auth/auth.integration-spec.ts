@@ -82,7 +82,7 @@ describe('Auth Integration Tests', () => {
     refreshTokenRepo = new InMemoryRefreshTokenRepo();
 
     // Seed one active admin
-    seededAdmin = await AdminUser.create('admin@modulapp', 'Password123456');
+    seededAdmin = await AdminUser.create('admin@modulapp.com', 'Password123456');
     adminUserRepo.seed(seededAdmin);
 
     // Seed one deactivated admin
@@ -123,7 +123,7 @@ describe('Auth Integration Tests', () => {
   it('integration.auth.login.successReturnsJWTAndCookie', async () => {
     const res = await request(app.getHttpServer())
       .post('/admin/auth/login')
-      .send({ email: 'admin@modulapp', password: 'Password123456' });
+      .send({ email: 'admin@modulapp.com', password: 'Password123456' });
 
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('accessToken');
@@ -133,7 +133,7 @@ describe('Auth Integration Tests', () => {
   it('integration.auth.login.invalidCredentialsReturns401', async () => {
     const res = await request(app.getHttpServer())
       .post('/admin/auth/login')
-      .send({ email: 'admin@modulapp', password: 'wrongpassword' });
+      .send({ email: 'admin@modulapp.com', password: 'wrongpassword' });
 
     expect(res.status).toBe(401);
   });
@@ -151,7 +151,7 @@ describe('Auth Integration Tests', () => {
 
     const res = await request(app.getHttpServer())
       .post('/admin/auth/login')
-      .send({ email: 'admin@modulapp', password: 'wrongpassword' });
+      .send({ email: 'admin@modulapp.com', password: 'wrongpassword' });
 
     expect(res.status).toBe(429);
   });
@@ -170,7 +170,7 @@ describe('Auth Integration Tests', () => {
     // Login first to get a token
     const loginRes = await request(app.getHttpServer())
       .post('/admin/auth/login')
-      .send({ email: 'admin@modulapp', password: 'Password123456' });
+      .send({ email: 'admin@modulapp.com', password: 'Password123456' });
 
     const { accessToken } = loginRes.body;
 
