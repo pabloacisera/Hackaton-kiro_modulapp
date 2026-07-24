@@ -52,22 +52,38 @@ export function useOrders(): UseOrdersResult {
         if (!cancelled) setLoading(false);
       });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [page, statusFilter, reloadToken]);
 
-  const accept = useCallback(async (orderId: string, eta: string) => {
-    await acceptOrder(orderId, eta);
-    reload();
-  }, [reload]);
+  const accept = useCallback(
+    async (orderId: string, eta: string) => {
+      await acceptOrder(orderId, eta);
+      reload();
+    },
+    [reload],
+  );
 
-  const reject = useCallback(async (orderId: string, reason: string) => {
-    await rejectOrder(orderId, reason);
-    reload();
-  }, [reload]);
+  const reject = useCallback(
+    async (orderId: string, reason: string) => {
+      await rejectOrder(orderId, reason);
+      reload();
+    },
+    [reload],
+  );
 
   return {
-    orders, total, page, loading, error,
-    statusFilter, setStatusFilter,
-    setPage, accept, reject, reload,
+    orders,
+    total,
+    page,
+    loading,
+    error,
+    statusFilter,
+    setStatusFilter,
+    setPage,
+    accept,
+    reject,
+    reload,
   };
 }

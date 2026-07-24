@@ -21,11 +21,7 @@ export function NotificationPanel({
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-30"
-        onClick={onClose}
-        aria-hidden="true"
-      />
+      <div className="fixed inset-0 z-30" onClick={onClose} aria-hidden="true" />
 
       {/* Panel */}
       <div
@@ -48,9 +44,7 @@ export function NotificationPanel({
         {/* List */}
         <ul className="max-h-96 overflow-y-auto divide-y divide-gray-50">
           {notifications.length === 0 ? (
-            <li className="px-4 py-8 text-center text-sm text-gray-400">
-              No notifications
-            </li>
+            <li className="px-4 py-8 text-center text-sm text-gray-400">No notifications</li>
           ) : (
             notifications.map((n) => (
               <li

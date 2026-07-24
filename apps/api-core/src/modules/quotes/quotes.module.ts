@@ -1,6 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { OrdersModule } from '../orders/orders.module';
+import { AuthModule } from '../auth/auth.module';
 import { QUOTE_REPOSITORY } from './repositories/quote.repository.port';
 import { InMemoryQuoteRepository } from './repositories/in-memory-quote.repository';
 import { QuotesController } from './controllers/quotes.controller';
@@ -21,7 +22,7 @@ const quoteRepoProvider = {
 };
 
 @Module({
-  imports: [NotificationsModule, forwardRef(() => OrdersModule)],
+  imports: [NotificationsModule, forwardRef(() => OrdersModule), AuthModule],
   controllers: [QuotesController],
   providers: [
     quoteRepoProvider,

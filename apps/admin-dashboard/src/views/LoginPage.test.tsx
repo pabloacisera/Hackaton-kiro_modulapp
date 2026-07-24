@@ -27,22 +27,34 @@ describe('LoginPage', () => {
   });
 
   it('renders email and password fields', () => {
-    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <LoginPage />
+      </MemoryRouter>,
+    );
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
   });
 
   it('renders sign in button', () => {
-    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <LoginPage />
+      </MemoryRouter>,
+    );
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });
 
   it('calls login with email and password on submit', async () => {
     mockLogin.mockResolvedValue('token-abc');
-    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <LoginPage />
+      </MemoryRouter>,
+    );
 
     fireEvent.change(screen.getByLabelText(/email/i), {
-      target: { value: 'admin@modula.com' },
+      target: { value: 'admin@modulapp.com' },
     });
     fireEvent.change(screen.getByLabelText(/password/i), {
       target: { value: 'password123' },
@@ -50,18 +62,22 @@ describe('LoginPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
     await waitFor(() => {
-      expect(mockLogin).toHaveBeenCalledWith('admin@modula.com', 'password123');
+      expect(mockLogin).toHaveBeenCalledWith('admin@modulapp.com', 'password123');
     });
   });
 
   it('navigates to dashboard on successful login', async () => {
     mockLogin.mockResolvedValue('token-abc');
-    render(<MemoryRouter><LoginPage /></MemoryRouter>);
+    render(
+      <MemoryRouter>
+        <LoginPage />
+      </MemoryRouter>,
+    );
 
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'a@b.com' } });
     fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'pass1234' } });
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
-    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/admin/dashboard'));
+    await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/'));
   });
 });

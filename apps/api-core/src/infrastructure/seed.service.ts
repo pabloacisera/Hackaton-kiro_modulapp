@@ -12,7 +12,11 @@ import {
 
 /**
  * Seeds the in-memory catalog with sample prototypes and a default admin
- * for development/testing. Only runs when NODE_ENV !== 'production'.
+ * user for development/testing. Only runs when NODE_ENV !== 'production'.
+ *
+ * Default admin credentials (override via env vars):
+ *   email:    ADMIN_SEED_EMAIL    (default: admin@modulapp.com.com)
+ *   password: ADMIN_SEED_PASSWORD (default: Password123456)
  */
 @Injectable()
 export class SeedService implements OnModuleInit {
@@ -28,6 +32,23 @@ export class SeedService implements OnModuleInit {
   async onModuleInit() {
     if (process.env.NODE_ENV === 'production') return;
 
+    await this.seedAdmin();
+    await this.seedPrototypes();
+  }
+
+  private async seedAdmin() {
+    const email = process.env.ADMIN_SEED_EMAIL ?? 'admin@modulapp.com.com';
+    const password = process.env.ADMIN_SEED_PASSWORD ?? 'Password123456';
+
+    const existing = await this.adminUserRepo.findByEmail(email);
+    if (existing) return;
+
+    const admin = await AdminUser.create(email, password);
+    await this.adminUserRepo.save(admin);
+    this.logger.log(`Seeded default admin user: ${email}`);
+  }
+
+  private async seedPrototypes() {
     const existing = await this.protoRepo.findAll({ page: 1, pageSize: 1 });
     if (existing.total > 0) return; // already seeded
 
@@ -109,13 +130,5 @@ export class SeedService implements OnModuleInit {
     }
 
     this.logger.log(`Seeded ${prototypes.length} prototypes for development`);
-
-    // ── Seed default admin user ───────────────────────────────────────────
-    const existingAdmin = await this.adminUserRepo.findByEmail('admin@modula.com');
-    if (!existingAdmin) {
-      const admin = await AdminUser.create('admin@modula.com', 'Admin123!');
-      await this.adminUserRepo.save(admin);
-      this.logger.log('Seeded default admin: admin@modula.com / Admin123!');
-    }
   }
 }

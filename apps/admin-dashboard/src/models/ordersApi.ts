@@ -40,16 +40,10 @@ export async function fetchOrders(params?: {
   return res.data;
 }
 
-export async function acceptOrder(
-  orderId: string,
-  estimatedDeliveryDate: string,
-): Promise<void> {
+export async function acceptOrder(orderId: string, estimatedDeliveryDate: string): Promise<void> {
   await httpClient.patch(`/orders/${orderId}/accept`, { estimatedDeliveryDate });
 }
 
-export async function rejectOrder(
-  orderId: string,
-  reason: string,
-): Promise<void> {
+export async function rejectOrder(orderId: string, reason: string): Promise<void> {
   await httpClient.patch(`/orders/${orderId}/reject`, { reason });
 }

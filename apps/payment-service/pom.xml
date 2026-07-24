@@ -7,7 +7,8 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.2.5</version>
+    <!-- 3.4+ ships RestTemplateBuilder#connectTimeout / #readTimeout and Flyway 10 -->
+    <version>3.4.5</version>
     <relativePath/>
   </parent>
 
@@ -19,6 +20,8 @@
 
   <properties>
     <java.version>17</java.version>
+    <!-- Override Spring Boot 3.2 default (Flyway 9.x) to enable flyway-database-postgresql (Flyway 10+) -->
+    <flyway.version>10.20.1</flyway.version>
   </properties>
 
   <dependencies>
@@ -47,14 +50,16 @@
       <scope>runtime</scope>
     </dependency>
 
-    <!-- Flyway -->
+    <!-- Flyway (10.x split PostgreSQL support into a separate artifact) -->
     <dependency>
       <groupId>org.flywaydb</groupId>
       <artifactId>flyway-core</artifactId>
+      <version>${flyway.version}</version>
     </dependency>
     <dependency>
       <groupId>org.flywaydb</groupId>
       <artifactId>flyway-database-postgresql</artifactId>
+      <version>${flyway.version}</version>
     </dependency>
 
     <!-- Lombok -->

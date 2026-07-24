@@ -1,5 +1,10 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+# Native build toolchain required by node-gyp (argon2 and other native deps)
+RUN apk add --no-cache python3 make g++ libc6-compat \
+  && ln -sf python3 /usr/bin/python
+
 RUN npm install -g pnpm@9
 
 # Copy workspace root files for dependency resolution
@@ -21,8 +26,10 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY --from=builder /app/apps/api-core/dist ./dist
-COPY --from=builder /app/apps/api-core/node_modules ./node_modules
-COPY --from=builder /app/node_modules/.pnpm ./node_modules/.pnpm
+# With shamefully-hoist=true, all deps are hoisted at the workspace root
+# node_modules and symlinked into apps/*/node_modules. Copying the workspace
+# root node_modules keeps the .pnpm store + hoisted symlinks resolvable.
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api-core/package.json ./package.json
 
 ENV NODE_ENV=production

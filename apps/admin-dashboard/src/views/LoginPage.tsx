@@ -12,7 +12,9 @@ export function LoginPage() {
     e.preventDefault();
     try {
       await login(email, password);
-      navigate('/admin/dashboard');
+      // Navigate to root of the admin SPA. The actual URL will be /admin/
+      // because BrowserRouter uses basename='/admin/' (set via Vite base config).
+      navigate('/');
     } catch {
       // error already set in useAuth state
     }

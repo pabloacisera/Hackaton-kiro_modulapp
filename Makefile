@@ -33,10 +33,10 @@ dev-payment: ## Start payment-service (Java) separately
 	cd apps/payment-service && mvn spring-boot:run
 
 stop: ## Stop Docker Compose services
-	docker compose -f infra/docker/docker-compose.yml down
+	docker compose -f infra/docker/docker-compose.yml -f infra/docker/docker-compose.dev.yml down
 
 logs: ## Tail Docker Compose logs
-	docker compose -f infra/docker/docker-compose.yml logs -f
+	docker compose -f infra/docker/docker-compose.yml -f infra/docker/docker-compose.dev.yml logs -f
 
 # ── Tailscale (HTTPS for PayPal) ──────────────────────────────────────────────
 

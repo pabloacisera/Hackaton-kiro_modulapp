@@ -1,6 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { OrdersModule } from '../orders/orders.module';
+import { AuthModule } from '../auth/auth.module';
 import { COMPLAINT_REPOSITORY } from './repositories/complaint.repository.port';
 import { InMemoryComplaintRepository } from './repositories/in-memory-complaint.repository';
 import { ComplaintsController } from './controllers/complaints.controller';
@@ -19,7 +20,7 @@ const complaintRepoProvider = {
 };
 
 @Module({
-  imports: [NotificationsModule, forwardRef(() => OrdersModule)],
+  imports: [NotificationsModule, forwardRef(() => OrdersModule), AuthModule],
   controllers: [ComplaintsController],
   providers: [
     complaintRepoProvider,

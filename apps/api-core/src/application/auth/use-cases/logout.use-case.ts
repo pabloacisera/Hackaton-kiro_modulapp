@@ -1,6 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { IRefreshTokenRepository, REFRESH_TOKEN_REPOSITORY } from '../../../domain/auth/repositories/refresh-token.repository.port';
+import {
+  IRefreshTokenRepository,
+  REFRESH_TOKEN_REPOSITORY,
+} from '../../../domain/auth/repositories/refresh-token.repository.port';
 import { RefreshToken } from '../../../domain/auth/entities/refresh-token.entity';
 import { RefreshCookieService } from '../../../infrastructure/auth/jwt/refresh-cookie.service';
 

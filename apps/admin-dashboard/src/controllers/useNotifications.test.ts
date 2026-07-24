@@ -39,7 +39,7 @@ describe('useNotifications', () => {
     renderHook(() => useNotifications('my-token'));
     expect(mockIo).toHaveBeenCalledWith(
       expect.stringContaining('/admin'),
-      expect.objectContaining({ auth: { token: 'my-token' } })
+      expect.objectContaining({ auth: { token: 'my-token' } }),
     );
   });
 

@@ -162,7 +162,7 @@ describe('Orders Integration Tests', () => {
     expect(noAuth.status).toBe(401);
 
     // With valid JWT
-    const token = jwt.sign({ sub: 'admin-1', email: 'admin@modula.com' }, 'test-secret', {
+    const token = jwt.sign({ sub: 'admin-1', email: 'admin@modulapp.com' }, 'test-secret', {
       expiresIn: '15m',
     });
     const acceptRes = await request(app.getHttpServer())
@@ -187,7 +187,7 @@ describe('Orders Integration Tests', () => {
       .post('/orders/webhooks/payment-result')
       .send({ reference_id: orderId, payment_service_ref: 'pay-ref-003', status: 'confirmed' });
 
-    const token = jwt.sign({ sub: 'admin-1', email: 'admin@modula.com' }, 'test-secret', {
+    const token = jwt.sign({ sub: 'admin-1', email: 'admin@modulapp.com' }, 'test-secret', {
       expiresIn: '15m',
     });
     const rejectRes = await request(app.getHttpServer())

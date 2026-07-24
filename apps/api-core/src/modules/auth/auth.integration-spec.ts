@@ -82,11 +82,11 @@ describe('Auth Integration Tests', () => {
     refreshTokenRepo = new InMemoryRefreshTokenRepo();
 
     // Seed one active admin
-    seededAdmin = await AdminUser.create('admin@modula.com', 'Password123!');
+    seededAdmin = await AdminUser.create('admin@modulapp.com', 'Password123456');
     adminUserRepo.seed(seededAdmin);
 
     // Seed one deactivated admin
-    const deactivated = await AdminUser.create('deactivated@modula.com', 'Password123!');
+    const deactivated = await AdminUser.create('deactivated@modula.com', 'Password123456');
     adminUserRepo.seed(deactivated.deactivate());
 
     const moduleRef: TestingModule = await Test.createTestingModule({
@@ -123,7 +123,7 @@ describe('Auth Integration Tests', () => {
   it('integration.auth.login.successReturnsJWTAndCookie', async () => {
     const res = await request(app.getHttpServer())
       .post('/admin/auth/login')
-      .send({ email: 'admin@modula.com', password: 'Password123!' });
+      .send({ email: 'admin@modulapp.com', password: 'Password123456' });
 
     expect(res.status).toBe(201);
     expect(res.body).toHaveProperty('accessToken');
@@ -133,7 +133,7 @@ describe('Auth Integration Tests', () => {
   it('integration.auth.login.invalidCredentialsReturns401', async () => {
     const res = await request(app.getHttpServer())
       .post('/admin/auth/login')
-      .send({ email: 'admin@modula.com', password: 'wrongpassword' });
+      .send({ email: 'admin@modulapp.com', password: 'wrongpassword' });
 
     expect(res.status).toBe(401);
   });
@@ -141,7 +141,7 @@ describe('Auth Integration Tests', () => {
   it('integration.auth.login.deactivatedAdminReturns403', async () => {
     const res = await request(app.getHttpServer())
       .post('/admin/auth/login')
-      .send({ email: 'deactivated@modula.com', password: 'Password123!' });
+      .send({ email: 'deactivated@modula.com', password: 'Password123456' });
 
     expect(res.status).toBe(403);
   });
@@ -151,7 +151,7 @@ describe('Auth Integration Tests', () => {
 
     const res = await request(app.getHttpServer())
       .post('/admin/auth/login')
-      .send({ email: 'admin@modula.com', password: 'wrongpassword' });
+      .send({ email: 'admin@modulapp.com', password: 'wrongpassword' });
 
     expect(res.status).toBe(429);
   });
@@ -161,7 +161,7 @@ describe('Auth Integration Tests', () => {
   it('integration.auth.guard.blocksRequestWithoutJWT', async () => {
     const res = await request(app.getHttpServer())
       .post('/admin/users')
-      .send({ email: 'new@admin.com', password: 'Password123!' });
+      .send({ email: 'new@admin.com', password: 'Password123456' });
 
     expect(res.status).toBe(401);
   });
@@ -170,14 +170,14 @@ describe('Auth Integration Tests', () => {
     // Login first to get a token
     const loginRes = await request(app.getHttpServer())
       .post('/admin/auth/login')
-      .send({ email: 'admin@modula.com', password: 'Password123!' });
+      .send({ email: 'admin@modulapp.com', password: 'Password123456' });
 
     const { accessToken } = loginRes.body;
 
     const res = await request(app.getHttpServer())
       .post('/admin/users')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ email: 'new@admin.com', password: 'NewPassword123!' });
+      .send({ email: 'new@admin.com', password: 'NewPassword123456' });
 
     expect(res.status).toBe(201);
   });

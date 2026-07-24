@@ -21,7 +21,7 @@ describe('NotificationPanel', () => {
         onToggleSound={vi.fn()}
         onMarkRead={vi.fn()}
         onClose={vi.fn()}
-      />
+      />,
     );
     expect(screen.getByText('New order received')).toBeInTheDocument();
   });
@@ -34,7 +34,7 @@ describe('NotificationPanel', () => {
         onToggleSound={vi.fn()}
         onMarkRead={vi.fn()}
         onClose={vi.fn()}
-      />
+      />,
     );
     expect(screen.getByText(/no notifications/i)).toBeInTheDocument();
   });
@@ -48,7 +48,7 @@ describe('NotificationPanel', () => {
         onToggleSound={vi.fn()}
         onMarkRead={onMarkRead}
         onClose={vi.fn()}
-      />
+      />,
     );
     fireEvent.click(screen.getByRole('button', { name: /mark.*read/i }));
     expect(onMarkRead).toHaveBeenCalledWith('n-1');
@@ -63,7 +63,7 @@ describe('NotificationPanel', () => {
         onToggleSound={onToggleSound}
         onMarkRead={vi.fn()}
         onClose={vi.fn()}
-      />
+      />,
     );
     fireEvent.click(screen.getByRole('button', { name: /sound/i }));
     expect(onToggleSound).toHaveBeenCalled();
@@ -77,7 +77,7 @@ describe('NotificationPanel', () => {
         onToggleSound={vi.fn()}
         onMarkRead={vi.fn()}
         onClose={vi.fn()}
-      />
+      />,
     );
     expect(screen.queryByRole('button', { name: /mark.*read/i })).not.toBeInTheDocument();
   });

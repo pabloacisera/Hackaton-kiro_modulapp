@@ -3,21 +3,21 @@ import { useOrders } from '../controllers/useOrders';
 import { OrderDto, OrderStatus } from '../models/ordersApi';
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
-  created:                  'Created',
-  payment_initiated:        'Payment initiated',
-  paid_pending_acceptance:  'Pending acceptance',
-  accepted:                 'Accepted',
-  rejected:                 'Rejected',
-  payment_failed:           'Payment failed',
+  created: 'Created',
+  payment_initiated: 'Payment initiated',
+  paid_pending_acceptance: 'Pending acceptance',
+  accepted: 'Accepted',
+  rejected: 'Rejected',
+  payment_failed: 'Payment failed',
 };
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
-  created:                  'bg-gray-100 text-gray-700',
-  payment_initiated:        'bg-blue-100 text-blue-700',
-  paid_pending_acceptance:  'bg-yellow-100 text-yellow-800',
-  accepted:                 'bg-green-100 text-green-700',
-  rejected:                 'bg-red-100 text-red-700',
-  payment_failed:           'bg-orange-100 text-orange-700',
+  created: 'bg-gray-100 text-gray-700',
+  payment_initiated: 'bg-blue-100 text-blue-700',
+  paid_pending_acceptance: 'bg-yellow-100 text-yellow-800',
+  accepted: 'bg-green-100 text-green-700',
+  rejected: 'bg-red-100 text-red-700',
+  payment_failed: 'bg-orange-100 text-orange-700',
 };
 
 /**
@@ -25,9 +25,16 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
  */
 export function OrdersPage() {
   const {
-    orders, total, page, loading, error,
-    statusFilter, setStatusFilter, setPage,
-    accept, reject,
+    orders,
+    total,
+    page,
+    loading,
+    error,
+    statusFilter,
+    setStatusFilter,
+    setPage,
+    accept,
+    reject,
   } = useOrders();
 
   const [actionError, setActionError] = useState<string | null>(null);
@@ -81,19 +88,27 @@ export function OrdersPage() {
         >
           <option value="">All statuses</option>
           {(Object.keys(STATUS_LABELS) as OrderStatus[]).map((s) => (
-            <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+            <option key={s} value={s}>
+              {STATUS_LABELS[s]}
+            </option>
           ))}
         </select>
       </div>
 
       {error && (
-        <div role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+        <div
+          role="alert"
+          className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700"
+        >
           {error}
         </div>
       )}
 
       {actionError && (
-        <div role="alert" className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+        <div
+          role="alert"
+          className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700"
+        >
           {actionError}
         </div>
       )}
@@ -125,12 +140,20 @@ export function OrdersPage() {
                 </td>
               </tr>
             ) : (
-              orders.map((order) => <OrderRow
-                key={order.id}
-                order={order}
-                onAccept={() => { setAcceptingId(order.id); setActionError(null); }}
-                onReject={() => { setRejectingId(order.id); setActionError(null); }}
-              />)
+              orders.map((order) => (
+                <OrderRow
+                  key={order.id}
+                  order={order}
+                  onAccept={() => {
+                    setAcceptingId(order.id);
+                    setActionError(null);
+                  }}
+                  onReject={() => {
+                    setRejectingId(order.id);
+                    setActionError(null);
+                  }}
+                />
+              ))
             )}
           </tbody>
         </table>
@@ -176,7 +199,10 @@ export function OrdersPage() {
             aria-label="Estimated delivery date"
           />
           <div className="flex justify-end gap-2">
-            <button onClick={() => setAcceptingId(null)} className="rounded px-4 py-2 text-sm border border-gray-300">
+            <button
+              onClick={() => setAcceptingId(null)}
+              className="rounded px-4 py-2 text-sm border border-gray-300"
+            >
               Cancel
             </button>
             <button
@@ -209,7 +235,10 @@ export function OrdersPage() {
             aria-label="Rejection reason"
           />
           <div className="flex justify-end gap-2">
-            <button onClick={() => setRejectingId(null)} className="rounded px-4 py-2 text-sm border border-gray-300">
+            <button
+              onClick={() => setRejectingId(null)}
+              className="rounded px-4 py-2 text-sm border border-gray-300"
+            >
               Cancel
             </button>
             <button
@@ -228,7 +257,11 @@ export function OrdersPage() {
 
 // ── Sub-components ─────────────────────────────────────────────────────────
 
-function OrderRow({ order, onAccept, onReject }: {
+function OrderRow({
+  order,
+  onAccept,
+  onReject,
+}: {
   order: OrderDto;
   onAccept: () => void;
   onReject: () => void;
@@ -242,15 +275,15 @@ function OrderRow({ order, onAccept, onReject }: {
       </td>
       <td className="px-4 py-3">
         <p className="font-medium text-gray-800">{order.customerEmail}</p>
-        {order.customerName && (
-          <p className="text-xs text-gray-500">{order.customerName}</p>
-        )}
+        {order.customerName && <p className="text-xs text-gray-500">{order.customerName}</p>}
       </td>
       <td className="px-4 py-3 font-semibold text-gray-800">
         ${Number(order.priceUsdSnapshot).toFixed(2)}
       </td>
       <td className="px-4 py-3">
-        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[order.status]}`}>
+        <span
+          className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[order.status]}`}
+        >
           {STATUS_LABELS[order.status]}
         </span>
       </td>
@@ -286,7 +319,11 @@ function OrderRow({ order, onAccept, onReject }: {
   );
 }
 
-function Modal({ title, children, onClose }: {
+function Modal({
+  title,
+  children,
+  onClose,
+}: {
   title: string;
   children: React.ReactNode;
   onClose: () => void;

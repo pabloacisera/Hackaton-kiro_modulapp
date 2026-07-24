@@ -10,7 +10,11 @@ describe('LogoutUseCase', () => {
     update: jest.Mock;
     revokeAllForUser: jest.Mock;
   };
-  let cookieService: { setRefreshCookie: jest.Mock; clearRefreshCookie: jest.Mock; getRefreshTokenFromCookie: jest.Mock };
+  let cookieService: {
+    setRefreshCookie: jest.Mock;
+    clearRefreshCookie: jest.Mock;
+    getRefreshTokenFromCookie: jest.Mock;
+  };
   let mockReq: { cookies: Record<string, string> };
   let mockRes: { cookie: jest.Mock; clearCookie: jest.Mock };
 
@@ -30,10 +34,7 @@ describe('LogoutUseCase', () => {
     mockReq = { cookies: { refresh_token: 'raw-token-value' } };
     mockRes = { cookie: jest.fn(), clearCookie: jest.fn() };
 
-    useCase = new LogoutUseCase(
-      refreshTokenRepo as any,
-      cookieService as any,
-    );
+    useCase = new LogoutUseCase(refreshTokenRepo as any, cookieService as any);
   });
 
   it('unit.logout.revokesRefreshToken', async () => {

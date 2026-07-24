@@ -16,13 +16,14 @@ function renderLayout() {
 }
 
 describe('DashboardLayout', () => {
-  it('renders all 6 nav section links', () => {
+  it('renders all 7 nav section links', () => {
     renderLayout();
     expect(screen.getByRole('link', { name: /catalog/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /orders/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /quotes/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /supplies/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /complaints/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /deliveries/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /notifications/i })).toBeInTheDocument();
   });
 
