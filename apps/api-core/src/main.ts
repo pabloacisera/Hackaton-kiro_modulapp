@@ -1,9 +1,12 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Enable graceful shutdown — drains BullMQ queues on SIGTERM/SIGINT
+  app.enableShutdownHooks();
 
   // Global validation pipe — rejects malformed DTOs with 400 Bad Request
   app.useGlobalPipes(
@@ -25,6 +28,7 @@ async function bootstrap() {
   });
 
   await app.listen(8080);
+  Logger.log('api-core listening on port 8080', 'Bootstrap');
 }
 
 bootstrap();

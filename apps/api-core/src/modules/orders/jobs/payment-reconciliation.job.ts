@@ -1,4 +1,4 @@
-import { Injectable, Logger, Inject, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { IOrderRepository, ORDER_REPOSITORY } from '../repositories/order.repository.port';
 import { HandlePaymentWebhookUseCase } from '../use-cases/handle-payment-webhook.use-case';
 import { HttpService } from '@nestjs/axios';
@@ -8,17 +8,18 @@ import { firstValueFrom } from 'rxjs';
  * TASK-directpurchase-10: Reconciliation job for hung payments.
  *
  * Finds orders stuck in `payment_initiated` for > 10 minutes and re-checks
- * their status against payment-service. Runs every 5 minutes.
+ * their status against payment-service. Runs every 5 minutes via BullMQ.
  *
  * This covers the edge case: PayPal confirmed but webhook never arrived.
+ *
+ * NOTE: Previously used setInterval. Now scheduled via BullMQ repeatable job
+ * (see infrastructure/queue/queue.module.ts).
  */
 @Injectable()
-export class PaymentReconciliationJob implements OnModuleInit, OnModuleDestroy {
+export class PaymentReconciliationJob {
   private readonly logger = new Logger(PaymentReconciliationJob.name);
-  private intervalHandle: ReturnType<typeof setInterval> | null = null;
 
   private readonly HUNG_THRESHOLD_MINUTES = 10;
-  private readonly RUN_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
   private readonly paymentServiceUrl =
     process.env.PAYMENT_SERVICE_URL ?? 'http://payment-service:8081';
 
@@ -28,20 +29,6 @@ export class PaymentReconciliationJob implements OnModuleInit, OnModuleDestroy {
     private readonly webhookHandler: HandlePaymentWebhookUseCase,
     private readonly http: HttpService,
   ) {}
-
-  onModuleInit(): void {
-    // Schedule reconciliation (use setInterval — BullMQ would require Redis config)
-    this.intervalHandle = setInterval(() => this.runReconciliation(), this.RUN_INTERVAL_MS);
-    this.logger.log('Payment reconciliation job scheduled (every 5 min)');
-  }
-
-  onModuleDestroy(): void {
-    if (this.intervalHandle) {
-      clearInterval(this.intervalHandle);
-      this.intervalHandle = null;
-      this.logger.log('Payment reconciliation job stopped');
-    }
-  }
 
   async runReconciliation(): Promise<void> {
     const hung = await this.orderRepo.findHungPayments(this.HUNG_THRESHOLD_MINUTES);

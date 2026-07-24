@@ -10,12 +10,14 @@ import { ComplaintsModule } from './modules/complaints/complaints.module';
 import { DeliveriesModule } from './modules/deliveries/deliveries.module';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { StorageModule } from './infrastructure/storage/storage.module';
+import { QueueModule } from './infrastructure/queue/queue.module';
 import { SeedService } from './infrastructure/seed.service';
 
 @Module({
   imports: [
     PrismaModule,
     StorageModule,
+    QueueModule,
     HealthModule,
     AuthModule,
     CatalogModule,

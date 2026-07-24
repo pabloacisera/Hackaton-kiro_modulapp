@@ -21,12 +21,19 @@ import {
   IsIn,
   IsDateString,
 } from 'class-validator';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 import { JwtAuthGuard } from '../../../interface/auth/guards/jwt-auth.guard';
 import { CreateOrderUseCase } from '../use-cases/create-order.use-case';
 import { AcceptOrderUseCase } from '../use-cases/accept-order.use-case';
 import { RejectOrderUseCase } from '../use-cases/reject-order.use-case';
 import { ListOrdersUseCase } from '../use-cases/list-orders.use-case';
 import { HandlePaymentWebhookUseCase } from '../use-cases/handle-payment-webhook.use-case';
+import {
+  QUEUE_PAYMENT_WEBHOOK,
+  JOB_PROCESS_PAYMENT_RESULT,
+  DEFAULT_RETRY_OPTIONS,
+} from '../../../infrastructure/queue/queue.constants';
 import { OrderStatus } from '../domain/order.entity';
 import * as crypto from 'crypto';
 
@@ -82,6 +89,7 @@ export class OrdersController {
     private readonly rejectOrder: RejectOrderUseCase,
     private readonly listOrders: ListOrdersUseCase,
     private readonly webhookHandler: HandlePaymentWebhookUseCase,
+    @InjectQueue(QUEUE_PAYMENT_WEBHOOK) private readonly paymentQueue: Queue,
   ) {}
 
   // TASK-directpurchase-3: POST /orders (public — no JWT, customer-facing)
@@ -95,6 +103,7 @@ export class OrdersController {
   }
 
   // TASK-directpurchase-5: Webhook from payment-service (internal — HMAC auth)
+  // Enqueues to payment-webhook queue for async processing with retry.
   @Post('webhooks/payment-result')
   @HttpCode(HttpStatus.OK)
   async paymentWebhook(
@@ -102,11 +111,22 @@ export class OrdersController {
     @Headers('x-webhook-signature') signature?: string,
   ) {
     this.verifyWebhookSignature(dto, signature);
-    await this.webhookHandler.execute({
-      referenceId: dto.reference_id,
-      paymentServiceRef: dto.payment_service_ref,
-      status: dto.status,
-    });
+
+    // Enqueue for async processing — respond 200 immediately
+    await this.paymentQueue.add(
+      JOB_PROCESS_PAYMENT_RESULT,
+      {
+        referenceId: dto.reference_id,
+        paymentServiceRef: dto.payment_service_ref,
+        status: dto.status,
+      },
+      {
+        ...DEFAULT_RETRY_OPTIONS,
+        removeOnComplete: { age: 24 * 3600 },
+        removeOnFail: false,
+      },
+    );
+
     return { received: true };
   }
 
