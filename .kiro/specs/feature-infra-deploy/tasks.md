@@ -39,6 +39,27 @@
   - Assigned to: unassigned
   - Done criteria: script runs `docker compose -f infra/docker/docker-compose.prod.yml` and all production services start cleanly
 
+- [ ] TASK-infra-13: Terraform EC2 provisioning
+  - Context: Terraform configuration to provision EC2 instance with Docker Compose for production. Includes IAM role (RDS IAM auth), security group, Elastic IP, user-data bootstrap script, and Cloudflare Tunnel integration.
+  - Deliverable: `infra/terraform/` directory with all .tf files + user-data.sh
+  - Depends on: TASK-infra-6
+  - Assigned to: unassigned
+  - Done criteria: `terraform plan` succeeds without errors, all resources declared (EC2, SG, IAM, EIP), user-data installs Docker + Docker Compose + cloudflared.
+
+- [ ] TASK-infra-14: Production Docker Compose (`docker-compose.prod.yml`)
+  - Context: Production variant of docker-compose with restart policies, health checks, no exposed ports (only Nginx :80), and `--build` from source.
+  - Deliverable: `infra/docker/docker-compose.prod.yml`
+  - Depends on: TASK-infra-6
+  - Assigned to: unassigned
+  - Done criteria: `docker compose -f infra/docker/docker-compose.prod.yml config` validates, all 5 services defined, health checks present.
+
+- [ ] TASK-infra-15: Terraform developer documentation
+  - Context: Step-by-step guide for developers with zero Terraform experience. Covers installation, AWS setup, init/plan/apply/destroy workflow, troubleshooting.
+  - Deliverable: `docs/terraform-guide.md` + `docs/deployment.md`
+  - Depends on: TASK-infra-13
+  - Assigned to: unassigned
+  - Done criteria: A developer can follow the guide end-to-end and have the app running on EC2.
+
 - [ ] TASK-infra-test1: Integration test for docker-compose dev environment
   - Context: validates that `docker compose up` starts all services (api-core, payment-service, landing, admin-dashboard, Redis) and they respond correctly. This is the moment of truth for integration.
   - Deliverable: `infra/__tests__/docker-compose.integration-spec.ts` or script-based validation
