@@ -4,10 +4,15 @@ import {
   IPrototypeRepository,
   PROTOTYPE_REPOSITORY,
 } from '../modules/catalog/repositories/prototype.repository.port';
+import { AdminUser } from '../domain/auth/entities/admin-user.entity';
+import {
+  IAdminUserRepository,
+  ADMIN_USER_REPOSITORY,
+} from '../domain/auth/repositories/admin-user.repository.port';
 
 /**
- * Seeds the in-memory catalog with sample prototypes for development/testing.
- * Only runs when NODE_ENV !== 'production'.
+ * Seeds the in-memory catalog with sample prototypes and a default admin
+ * for development/testing. Only runs when NODE_ENV !== 'production'.
  */
 @Injectable()
 export class SeedService implements OnModuleInit {
@@ -16,6 +21,8 @@ export class SeedService implements OnModuleInit {
   constructor(
     @Inject(PROTOTYPE_REPOSITORY)
     private readonly protoRepo: IPrototypeRepository,
+    @Inject(ADMIN_USER_REPOSITORY)
+    private readonly adminUserRepo: IAdminUserRepository,
   ) {}
 
   async onModuleInit() {
@@ -102,5 +109,13 @@ export class SeedService implements OnModuleInit {
     }
 
     this.logger.log(`Seeded ${prototypes.length} prototypes for development`);
+
+    // ── Seed default admin user ───────────────────────────────────────────
+    const existingAdmin = await this.adminUserRepo.findByEmail('admin@modula.com');
+    if (!existingAdmin) {
+      const admin = await AdminUser.create('admin@modula.com', 'Admin123!');
+      await this.adminUserRepo.save(admin);
+      this.logger.log('Seeded default admin: admin@modula.com / Admin123!');
+    }
   }
 }
