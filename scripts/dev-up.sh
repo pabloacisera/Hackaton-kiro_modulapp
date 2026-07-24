@@ -64,10 +64,14 @@ echo "To logs:  docker compose -f infra/docker/docker-compose.yml -f infra/docke
 # ── Tailscale Funnel (HTTPS for PayPal callbacks) ────────────────────────────
 if command -v tailscale >/dev/null 2>&1; then
   echo ""
-  echo "► Tailscale detected. Exposing port 80 via Funnel for PayPal HTTPS callbacks..."
-  echo "  Run manually if needed: tailscale funnel 80"
-  echo "  Your public HTTPS URL: https://$(tailscale status --self --json 2>/dev/null | grep -o '"DNSName":"[^"]*"' | cut -d'"' -f4 | sed 's/\.$//')"
+  echo "► Activating Tailscale Funnel on port 80 (HTTPS for PayPal webhooks)..."
+  sudo tailscale funnel --bg 80 2>/dev/null || tailscale funnel --bg 80 2>/dev/null || {
+    echo "  ⚠️  Could not start funnel automatically. Run manually:"
+    echo "     sudo tailscale funnel 80"
+  }
+  FUNNEL_URL="https://$(tailscale status --self --json 2>/dev/null | grep -o '"DNSName":"[^"]*"' | cut -d'"' -f4 | sed 's/\.$//')"
+  echo "  ✓ Funnel active: $FUNNEL_URL"
   echo ""
-  echo "  Make sure APP_PUBLIC_URL in .env matches this URL."
-  echo "  PayPal webhook URL should be: \${APP_PUBLIC_URL}/payments/webhooks/paypal"
+  echo "  Make sure APP_PUBLIC_URL in .env matches: $FUNNEL_URL"
+  echo "  PayPal webhook URL: ${FUNNEL_URL}/payments/webhooks/paypal"
 fi
