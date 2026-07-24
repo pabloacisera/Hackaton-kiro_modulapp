@@ -36,7 +36,16 @@ export class PrismaNotificationRepository {
       orderBy: { createdAt: 'desc' },
       take: 100,
     });
-    return rows.map((r) => this.toDomain(r));
+    return rows.map(
+      (r: {
+        id: string;
+        type: string;
+        message: string;
+        referenceUrl: string;
+        read: boolean;
+        createdAt: Date;
+      }) => this.toDomain(r),
+    );
   }
 
   async findUnread(): Promise<AdminNotification[]> {
