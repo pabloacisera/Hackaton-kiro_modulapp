@@ -37,8 +37,9 @@ mailjet:
   from-name: ${MAILJET_FROM_NAME}
 
 supabase:
-  storage-bucket: ${SUPABASE_STORAGE_BUCKET}
-  service-role-key: ${SUPABASE_SERVICE_ROLE_KEY}
+  url: ${SUPABASE_URL:}
+  storage-bucket: ${SUPABASE_STORAGE_BUCKET:}
+  service-role-key: ${SUPABASE_SERVICE_ROLE_KEY:}
 
 api-core:
   webhook-url: ${API_CORE_WEBHOOK_URL:http://localhost:8080}
