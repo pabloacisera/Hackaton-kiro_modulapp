@@ -31,7 +31,8 @@ COPY --from=builder /app/apps/api-core/dist ./dist
 # root node_modules keeps the .pnpm store + hoisted symlinks resolvable.
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api-core/package.json ./package.json
+COPY --from=builder /app/apps/api-core/prisma ./prisma
 
 ENV NODE_ENV=production
 EXPOSE 8080
-CMD ["node", "dist/main"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
