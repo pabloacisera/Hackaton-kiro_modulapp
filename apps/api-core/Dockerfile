@@ -19,6 +19,7 @@ COPY packages/shared-types ./packages/shared-types
 COPY apps/api-core ./apps/api-core
 
 RUN pnpm --filter @modula/shared-types build
+RUN pnpm --filter @modula/api-core exec prisma generate
 RUN pnpm --filter @modula/api-core build
 
 # Production: run the built NestJS app
