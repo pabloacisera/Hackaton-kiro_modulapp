@@ -1,4 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { OrdersModule } from '../orders/orders.module';
 import { AuthModule } from '../auth/auth.module';
@@ -23,7 +24,12 @@ const quoteRepoProvider = {
 };
 
 @Module({
-  imports: [NotificationsModule, forwardRef(() => OrdersModule), AuthModule],
+  imports: [
+    HttpModule.register({ timeout: 10_000 }),
+    NotificationsModule,
+    forwardRef(() => OrdersModule),
+    AuthModule,
+  ],
   controllers: [QuotesController],
   providers: [
     quoteRepoProvider,

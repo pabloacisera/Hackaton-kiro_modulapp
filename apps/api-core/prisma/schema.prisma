@@ -235,6 +235,7 @@ enum NotificationType {
   new_complaint
   low_stock_minimum
   payment_confirmed
+  security_alert
 }
 
 model AdminNotification {

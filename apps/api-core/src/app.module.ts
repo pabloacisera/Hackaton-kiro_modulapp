@@ -11,12 +11,14 @@ import { DeliveriesModule } from './modules/deliveries/deliveries.module';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { StorageModule } from './infrastructure/storage/storage.module';
 import { QueueModule } from './infrastructure/queue/queue.module';
+import { RedisModule } from './infrastructure/redis/redis.module';
 import { SeedService } from './infrastructure/seed.service';
 
 @Module({
   imports: [
     PrismaModule,
     StorageModule,
+    RedisModule,
     QueueModule,
     HealthModule,
     AuthModule,
