@@ -6,6 +6,7 @@
     "dev": "nest start --watch",
     "build": "nest build",
     "start": "node dist/main",
+    "seed": "ts-node -e \"const{NestFactory}=require('@nestjs/core');const{AppModule}=require('./src/app.module');NestFactory.createApplicationContext(AppModule,{logger:['log','error','warn']}).then(app=>app.close()).then(()=>process.exit(0)).catch(e=>{console.error(e);process.exit(1)})\"",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix",
     "format": "prettier --write .",
