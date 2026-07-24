@@ -160,7 +160,7 @@ function Navigation() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
             M
           </div>
-          <span className="text-xl font-bold text-gray-900">Modula</span>
+          <span className="text-xl font-bold text-gray-900">ModulApp</span>
         </Link>
 
         <div className="hidden items-center gap-8 sm:flex">
@@ -205,7 +205,7 @@ function Footer() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
                 M
               </div>
-              <span className="text-lg font-bold text-white">Modula</span>
+              <span className="text-lg font-bold text-white">ModulApp</span>
             </div>
             <p className="mt-3 text-sm text-gray-400">
               Modular furniture & custom event arches. Designed and crafted with care.
@@ -247,7 +247,7 @@ function Footer() {
           </div>
         </div>
         <div className="mt-10 border-t border-gray-800 pt-6 text-center text-xs text-gray-500">
-          © {new Date().getFullYear()} Modula. All rights reserved.
+          © {new Date().getFullYear()} ModulApp. All rights reserved.
         </div>
       </div>
     </footer>

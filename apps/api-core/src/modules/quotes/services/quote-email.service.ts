@@ -20,13 +20,13 @@ export class QuoteEmailService {
     customerName: string,
     quoteId: string,
   ): Promise<void> {
-    const subject = 'Modula — Your custom quote request was received';
+    const subject = 'ModulApp — Your custom quote request was received';
     const html = `
       <p>Hi ${customerName},</p>
       <p>We received your custom quote request.</p>
       <p><strong>Reference:</strong> ${quoteId}</p>
       <p>Our team will review your request and send you a detailed quote soon.</p>
-      <p>— The Modula Team</p>
+      <p>— The ModulApp Team</p>
     `;
     await this.send(customerEmail, subject, html);
   }
@@ -44,7 +44,7 @@ export class QuoteEmailService {
     rejectUrl: string,
     quotePdfUrl?: string | null,
   ): Promise<void> {
-    const subject = `Modula — Your quote is ready: USD ${priceUsd.toFixed(2)}`;
+    const subject = `ModulApp — Your quote is ready: USD ${priceUsd.toFixed(2)}`;
     const html = `
       <p>Hi ${customerName},</p>
       <p>Your custom quote is ready:</p>
@@ -60,7 +60,7 @@ export class QuoteEmailService {
         <a href="${rejectUrl}" style="background:#ef4444;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;">✗ Reject Quote</a>
       </p>
       <p style="color:#6b7280;font-size:12px;">If you do not respond within 48 hours, the quote will expire automatically.</p>
-      <p>— The Modula Team</p>
+      <p>— The ModulApp Team</p>
     `;
     await this.send(customerEmail, subject, html);
   }
@@ -73,13 +73,13 @@ export class QuoteEmailService {
     quoteId: string,
     amountUsd: number,
   ): Promise<void> {
-    const subject = 'Modula — Payment confirmed for your custom order';
+    const subject = 'ModulApp — Payment confirmed for your custom order';
     const html = `
       <p>Your payment has been confirmed!</p>
       <p><strong>Quote ID:</strong> ${quoteId}</p>
       <p><strong>Amount paid:</strong> USD ${amountUsd.toFixed(2)}</p>
       <p>We will begin production and keep you updated on delivery.</p>
-      <p>— The Modula Team</p>
+      <p>— The ModulApp Team</p>
     `;
     await this.send(customerEmail, subject, html);
   }
@@ -87,8 +87,8 @@ export class QuoteEmailService {
   private async send(to: string, subject: string, html: string): Promise<void> {
     const apiKey = process.env.MAILJET_API_KEY ?? '';
     const apiSecret = process.env.MAILJET_API_SECRET ?? '';
-    const fromEmail = process.env.MAILJET_FROM_EMAIL ?? 'noreply@modula.app';
-    const fromName = process.env.MAILJET_FROM_NAME ?? 'Modula';
+    const fromEmail = process.env.MAILJET_FROM_EMAIL ?? 'noreply@modulapp.app';
+    const fromName = process.env.MAILJET_FROM_NAME ?? 'ModulApp';
 
     if (!apiKey || !apiSecret) {
       this.logger.warn('Mailjet credentials not set — skipping email');

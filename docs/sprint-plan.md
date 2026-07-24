@@ -76,26 +76,46 @@ Mark tasks as ✅ when done. If a day slips, carry forward to the next.
 
 ---
 
-## Day 4 — Friday Jul 24: Remaining gaps + i18n (start)
+## Day 4 — Friday Jul 24: Infrastructure hardening + UI overhaul ✅ DONE
 
-**Goal:** Close all pending integration tests + start `feature-i18n-localization`.
+**Goal:** Fix production mocks, add job queue infrastructure, structured logging, admin catalog CRUD, UI/UX professional redesign.
 
-### Pending integration tests:
+### Admin Catalog CRUD: ✅ Complete (PR #25)
 
-- [ ] TASK-catalog-test1: Integration test for catalog
-- [ ] TASK-complaint-test2: Integration test for complaints
-- [ ] TASK-delivery-test2: Integration test for deliveries
-- [ ] TASK-notif-test2: Integration test for notifications
+- ✅ Backend: 6 endpoints (create, list, get, update, deactivate, reactivate)
+- ✅ Frontend: CatalogPage + useCatalog hook + catalogApi model
+- ✅ 36 tests (18 backend + 18 frontend)
 
-### Realtime notifications gaps:
+### Job Queue Infrastructure (BullMQ): ✅ Complete (PR #24)
 
-- [ ] TASK-notif-5: mark_read event propagation
-- [ ] TASK-notif-9: Sound asset + on/off preference
-- [ ] TASK-notif-10: Reconnection with exponential backoff
+- ✅ QueueModule with env-aware Redis (local/Upstash TLS)
+- ✅ 3 queues: scheduled-jobs, payment-webhook, email-send
+- ✅ Migrated PaymentReconciliationJob from setInterval to BullMQ
+- ✅ Webhook controller → async enqueue (no more sync processing)
+- ✅ Redis added to docker-compose, graceful shutdown enabled
 
-### i18n localization (start):
+### Remove Production Mocks: ✅ Complete (PR #26)
 
-- [ ] TASK-i18n-1 through TASK-i18n-8: Translation framework + locale files
+- ✅ Shared RedisModule (global) — replaces 3 REDIS_CLIENT stubs
+- ✅ QuoteEmailService → Mailjet (was log-only)
+- ✅ ComplaintEmailService → Mailjet (was log-only)
+- ✅ EmailSendProcessor → Mailjet (was log-only)
+- ✅ LockoutNotificationService → real NotificationsService
+- ✅ Rate limiting now functional (fail-secure)
+
+### Structured Logging: ✅ Complete (PR #27)
+
+- ✅ Pino (nestjs-pino) replaces NestJS default logger
+- ✅ Structured JSON in production, pretty in dev
+- ✅ Automatic requestId per HTTP request (correlation)
+- ✅ Prisma slow query logging (> 200ms → warning)
+
+### UI/UX Overhaul: ✅ Complete (PR #28)
+
+- ✅ Landing: hero, navigation, footer, brand identity, animations
+- ✅ Admin: sidebar icons, help panel, top bar, user info
+- ✅ Custom Tailwind theme (colors, fonts, shadows)
+- ✅ 183 frontend tests passing
 
 ---
 

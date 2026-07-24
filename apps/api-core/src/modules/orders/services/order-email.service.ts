@@ -28,11 +28,7 @@ export class OrderEmailService {
     await this.send(customerEmail, subject, body);
   }
 
-  async sendOrderRejection(
-    customerEmail: string,
-    orderId: string,
-    reason: string,
-  ): Promise<void> {
+  async sendOrderRejection(customerEmail: string, orderId: string, reason: string): Promise<void> {
     const subject = 'Your Modula order was rejected — full refund initiated';
     const body = `
       <p>We are sorry, your order could not be fulfilled.</p>
@@ -45,10 +41,10 @@ export class OrderEmailService {
   }
 
   private async send(to: string, subject: string, html: string): Promise<void> {
-    const apiKey    = process.env.MAILJET_API_KEY ?? '';
+    const apiKey = process.env.MAILJET_API_KEY ?? '';
     const apiSecret = process.env.MAILJET_API_SECRET ?? '';
-    const fromEmail = process.env.MAILJET_FROM_EMAIL ?? 'noreply@modula.app';
-    const fromName  = process.env.MAILJET_FROM_NAME  ?? 'Modula';
+    const fromEmail = process.env.MAILJET_FROM_EMAIL ?? 'noreply@modulapp.app';
+    const fromName = process.env.MAILJET_FROM_NAME ?? 'ModulApp';
 
     if (!apiKey || !apiSecret) {
       this.logger.warn('Mailjet credentials not set — skipping email');
@@ -62,9 +58,9 @@ export class OrderEmailService {
           {
             Messages: [
               {
-                From:     { Email: fromEmail, Name: fromName },
-                To:       [{ Email: to }],
-                Subject:  subject,
+                From: { Email: fromEmail, Name: fromName },
+                To: [{ Email: to }],
+                Subject: subject,
                 HTMLPart: html,
               },
             ],
