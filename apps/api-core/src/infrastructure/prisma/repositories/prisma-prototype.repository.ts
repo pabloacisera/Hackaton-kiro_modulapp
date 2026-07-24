@@ -5,6 +5,7 @@ import { Prototype, ProtoImageProps } from '../../../modules/catalog/domain/prot
 import {
   IPrototypeRepository,
   ListPrototypesFilter,
+  AdminListPrototypesFilter,
   PaginatedPrototypes,
 } from '../../../modules/catalog/repositories/prototype.repository.port';
 
@@ -33,6 +34,42 @@ export class PrismaPrototypeRepository implements IPrototypeRepository {
     }
     if (filter.maxPrice !== undefined) {
       where.priceUsd = { ...(where.priceUsd as object), lte: filter.maxPrice };
+    }
+
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.prototype.findMany({
+        where,
+        include: { images: { orderBy: { order: 'asc' } } },
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.prototype.count({ where }),
+    ]);
+
+    return {
+      items: rows.map((r) => this.toDomain(r)),
+      total,
+      page,
+      pageSize,
+    };
+  }
+
+  async findAllAdmin(filter: AdminListPrototypesFilter): Promise<PaginatedPrototypes> {
+    const page = filter.page ?? 1;
+    const pageSize = filter.pageSize ?? 20;
+    const skip = (page - 1) * pageSize;
+
+    const where: Prisma.PrototypeWhereInput = {};
+
+    if (filter.category) {
+      where.category = filter.category;
+    }
+    if (filter.q) {
+      where.OR = [
+        { name: { contains: filter.q, mode: 'insensitive' } },
+        { description: { contains: filter.q, mode: 'insensitive' } },
+      ];
     }
 
     const [rows, total] = await this.prisma.$transaction([
