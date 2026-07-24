@@ -3,7 +3,7 @@ import { Redis } from '@upstash/redis';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { AuthModule } from '../auth/auth.module';
 import { SUPPLY_REPOSITORY } from './repositories/supply.repository.port';
-import { InMemorySupplyRepository } from './repositories/in-memory-supply.repository';
+import { PrismaSupplyRepository } from '../../infrastructure/prisma/repositories/prisma-supply.repository';
 import { SuppliesController } from './controllers/supplies.controller';
 import { SupplyCrudUseCase } from './use-cases/supply-crud.use-case';
 import { ImportSupplyExcelUseCase } from './use-cases/import-supply-excel.use-case';
@@ -13,7 +13,7 @@ import { LowStockCheckJob } from './jobs/low-stock-check.job';
 
 const supplyRepoProvider = {
   provide: SUPPLY_REPOSITORY,
-  useClass: InMemorySupplyRepository,
+  useClass: PrismaSupplyRepository,
 };
 
 /**

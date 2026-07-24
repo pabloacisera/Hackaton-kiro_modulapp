@@ -5,12 +5,12 @@ import { GetPrototypeUseCase } from './use-cases/get-prototype';
 import { CatalogCacheService } from './cache/catalog-cache.service';
 import { CatalogEventPublisher } from './events/catalog-event.publisher';
 import { PROTOTYPE_REPOSITORY } from './repositories/prototype.repository.port';
-import { InMemoryPrototypeRepository } from './repositories/in-memory-prototype.repository';
+import { PrismaPrototypeRepository } from '../../infrastructure/prisma/repositories/prisma-prototype.repository';
 
 @Module({
   controllers: [CatalogController],
   providers: [
-    { provide: PROTOTYPE_REPOSITORY, useClass: InMemoryPrototypeRepository },
+    { provide: PROTOTYPE_REPOSITORY, useClass: PrismaPrototypeRepository },
     {
       provide: 'REDIS_CLIENT',
       useValue: {
