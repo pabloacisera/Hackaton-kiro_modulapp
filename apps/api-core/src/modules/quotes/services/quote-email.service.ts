@@ -24,6 +24,7 @@ export class QuoteEmailService {
 
   /**
    * TASK-quoteB-8: Quote email with accept/reject buttons (deep link with token).
+   * Includes link to the PDF presupuesto if available.
    */
   async sendQuotePresented(
     customerEmail: string,
@@ -33,12 +34,14 @@ export class QuoteEmailService {
     leadTimeDays: number,
     acceptUrl: string,
     rejectUrl: string,
+    quotePdfUrl?: string | null,
   ): Promise<void> {
     this.logger.log(
       `Email [quote_presented] → ${customerEmail}: Quote ${quoteId} = USD ${priceUsd}, ` +
-        `accept: ${acceptUrl}, reject: ${rejectUrl}`,
+        `accept: ${acceptUrl}, reject: ${rejectUrl}` +
+        (quotePdfUrl ? `, pdf: ${quotePdfUrl}` : ''),
     );
-    // TODO: Wire Mailjet HTTP call with HTML template containing accept/reject buttons
+    // TODO: Wire Mailjet HTTP call with HTML template containing accept/reject buttons + PDF link
   }
 
   /**

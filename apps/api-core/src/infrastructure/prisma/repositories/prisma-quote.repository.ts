@@ -136,6 +136,13 @@ export class PrismaQuoteRepository implements IQuoteRepository {
     return this.toDomain(row);
   }
 
+  async updatePdfUrl(quoteId: string, pdfUrl: string): Promise<void> {
+    await this.prisma.quote.update({
+      where: { id: quoteId },
+      data: { quotePdfUrl: pdfUrl },
+    });
+  }
+
   private toDomain(row: {
     id: string;
     customerName: string;

@@ -22,6 +22,7 @@ export interface IQuoteRepository {
   findAll(filter: ListQuotesFilter): Promise<PaginatedQuotes>;
   save(quote: Quote): Promise<Quote>;
   update(quote: Quote): Promise<Quote>;
+  updatePdfUrl(quoteId: string, pdfUrl: string): Promise<void>;
 }
 
 export const QUOTE_REPOSITORY = Symbol('IQuoteRepository');

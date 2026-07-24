@@ -14,6 +14,7 @@ import { ArchiveQuoteUseCase } from './use-cases/archive-quote.use-case';
 import { QuotePaymentWebhookUseCase } from './use-cases/quote-payment-webhook.use-case';
 import { QuoteEmailService } from './services/quote-email.service';
 import { QuoteTokenService } from './services/quote-token.service';
+import { QuotePdfGenerator } from './services/quote-pdf-generator';
 import { QuoteExpirationJob } from './jobs/quote-expiration.job';
 
 const quoteRepoProvider = {
@@ -35,6 +36,7 @@ const quoteRepoProvider = {
     QuotePaymentWebhookUseCase,
     QuoteEmailService,
     QuoteTokenService,
+    QuotePdfGenerator,
     QuoteExpirationJob,
   ],
   exports: [QUOTE_REPOSITORY],
