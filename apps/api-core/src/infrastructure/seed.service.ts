@@ -4,10 +4,19 @@ import {
   IPrototypeRepository,
   PROTOTYPE_REPOSITORY,
 } from '../modules/catalog/repositories/prototype.repository.port';
+import { AdminUser } from '../domain/auth/entities/admin-user.entity';
+import {
+  IAdminUserRepository,
+  ADMIN_USER_REPOSITORY,
+} from '../domain/auth/repositories/admin-user.repository.port';
 
 /**
- * Seeds the in-memory catalog with sample prototypes for development/testing.
- * Only runs when NODE_ENV !== 'production'.
+ * Seeds the in-memory catalog with sample prototypes and a default admin
+ * user for development/testing. Only runs when NODE_ENV !== 'production'.
+ *
+ * Default admin credentials (override via env vars):
+ *   email:    ADMIN_SEED_EMAIL    (default: admin@modulapp)
+ *   password: ADMIN_SEED_PASSWORD (default: Password123456)
  */
 @Injectable()
 export class SeedService implements OnModuleInit {
@@ -16,11 +25,30 @@ export class SeedService implements OnModuleInit {
   constructor(
     @Inject(PROTOTYPE_REPOSITORY)
     private readonly protoRepo: IPrototypeRepository,
+    @Inject(ADMIN_USER_REPOSITORY)
+    private readonly adminUserRepo: IAdminUserRepository,
   ) {}
 
   async onModuleInit() {
     if (process.env.NODE_ENV === 'production') return;
 
+    await this.seedAdmin();
+    await this.seedPrototypes();
+  }
+
+  private async seedAdmin() {
+    const email = process.env.ADMIN_SEED_EMAIL ?? 'admin@modulapp';
+    const password = process.env.ADMIN_SEED_PASSWORD ?? 'Password123456';
+
+    const existing = await this.adminUserRepo.findByEmail(email);
+    if (existing) return;
+
+    const admin = await AdminUser.create(email, password);
+    await this.adminUserRepo.save(admin);
+    this.logger.log(`Seeded default admin user: ${email}`);
+  }
+
+  private async seedPrototypes() {
     const existing = await this.protoRepo.findAll({ page: 1, pageSize: 1 });
     if (existing.total > 0) return; // already seeded
 

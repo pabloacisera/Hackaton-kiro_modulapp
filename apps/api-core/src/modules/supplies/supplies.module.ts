@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { Redis } from '@upstash/redis';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { AuthModule } from '../auth/auth.module';
 import { SUPPLY_REPOSITORY } from './repositories/supply.repository.port';
 import { InMemorySupplyRepository } from './repositories/in-memory-supply.repository';
 import { SuppliesController } from './controllers/supplies.controller';
@@ -82,7 +83,7 @@ const redisClientProvider = {
 };
 
 @Module({
-  imports: [NotificationsModule],
+  imports: [NotificationsModule, AuthModule],
   controllers: [SuppliesController],
   providers: [
     supplyRepoProvider,

@@ -5,6 +5,9 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 COMPOSE_FILE="$ROOT_DIR/infra/docker/docker-compose.yml"
+COMPOSE_DEV_FILE="$ROOT_DIR/infra/docker/docker-compose.dev.yml"
+# Combined -f flags used for every compose invocation below.
+COMPOSE_FLAGS=("-f" "$COMPOSE_FILE" "-f" "$COMPOSE_DEV_FILE")
 TIMEOUT=180
 
 # ── Pre-flight checks ────────────────────────────────────────────────────────
@@ -17,8 +20,8 @@ fi
 command -v docker >/dev/null 2>&1 || { echo "ERROR: docker not found."; exit 1; }
 docker compose version >/dev/null 2>&1 || { echo "ERROR: docker compose not found."; exit 1; }
 
-echo "► Building and starting all services..."
-docker compose -f "$COMPOSE_FILE" up --build -d
+echo "► Building and starting all services (dev mode with source bind mounts)..."
+docker compose "${COMPOSE_FLAGS[@]}" up --build -d
 
 # ── Wait for health checks ───────────────────────────────────────────────────
 wait_healthy() {
@@ -33,7 +36,7 @@ wait_healthy() {
     if [ $elapsed -ge $TIMEOUT ]; then
       echo " TIMEOUT"
       echo "ERROR: $service did not become healthy within ${TIMEOUT}s."
-      docker compose -f "$COMPOSE_FILE" logs "$service" | tail -30
+      docker compose "${COMPOSE_FLAGS[@]}" logs "$service" | tail -30
       exit 1
     fi
     echo -n "."
@@ -55,8 +58,8 @@ echo "   API Core         → http://localhost:8080"
 echo "   Payment Service  → http://localhost:8081"
 echo "   Nginx (proxy)    → http://localhost:80"
 echo ""
-echo "To stop:  docker compose -f infra/docker/docker-compose.yml down"
-echo "To logs:  docker compose -f infra/docker/docker-compose.yml logs -f"
+echo "To stop:  docker compose -f infra/docker/docker-compose.yml -f infra/docker/docker-compose.dev.yml down"
+echo "To logs:  docker compose -f infra/docker/docker-compose.yml -f infra/docker/docker-compose.dev.yml logs -f"
 
 # ── Tailscale Funnel (HTTPS for PayPal callbacks) ────────────────────────────
 if command -v tailscale >/dev/null 2>&1; then

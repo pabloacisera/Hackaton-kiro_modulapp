@@ -14,11 +14,13 @@ async function bootstrap() {
     }),
   );
 
-  // CORS — allow landing (3000) and admin-dashboard (3001) in development
+  // CORS — allow landing (3000), admin-dashboard (3001), and localhost (Nginx reverse proxy) in development
+  const corsOrigins = process.env.CORS_ORIGINS
+    ? [...process.env.CORS_ORIGINS.split(','), 'http://localhost']
+    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost'];
+
   app.enableCors({
-    origin: process.env.CORS_ORIGINS
-      ? process.env.CORS_ORIGINS.split(',')
-      : ['http://localhost:3000', 'http://localhost:3001'],
+    origin: corsOrigins,
     credentials: true,
   });
 

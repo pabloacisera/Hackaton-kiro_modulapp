@@ -12,7 +12,7 @@ export function LoginPage() {
     e.preventDefault();
     try {
       await login(email, password);
-      navigate('/admin/dashboard');
+      navigate('/');
     } catch {
       // error already set in useAuth state
     }

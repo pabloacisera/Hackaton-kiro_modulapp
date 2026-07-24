@@ -6,8 +6,9 @@ spring:
     name: payment-service
 
   datasource:
-    url: ${PAYMENT_DATABASE_URL}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 10000
 
   jpa:
     hibernate:

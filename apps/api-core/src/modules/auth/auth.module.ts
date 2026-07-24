@@ -68,6 +68,6 @@ import { InMemoryRefreshTokenRepository } from '../../infrastructure/auth/reposi
     JwtAuthGuard,
     RateLimitGuard,
   ],
-  exports: [JwtAuthGuard, JwtService],
+  exports: [JwtAuthGuard, JwtService, ADMIN_USER_REPOSITORY],
 })
 export class AuthModule {}
