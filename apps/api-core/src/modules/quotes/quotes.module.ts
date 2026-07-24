@@ -39,6 +39,6 @@ const quoteRepoProvider = {
     QuotePdfGenerator,
     QuoteExpirationJob,
   ],
-  exports: [QUOTE_REPOSITORY],
+  exports: [QUOTE_REPOSITORY, QuoteExpirationJob],
 })
 export class QuotesModule {}

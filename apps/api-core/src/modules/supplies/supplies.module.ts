@@ -94,6 +94,6 @@ const redisClientProvider = {
     ExcelParserService,
     LowStockCheckJob,
   ],
-  exports: [SUPPLY_REPOSITORY, SupplyCrudUseCase],
+  exports: [SUPPLY_REPOSITORY, SupplyCrudUseCase, LowStockCheckJob],
 })
 export class SuppliesModule {}
