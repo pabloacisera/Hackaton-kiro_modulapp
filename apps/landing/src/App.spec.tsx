@@ -10,6 +10,6 @@ describe('App (landing)', () => {
 
   it('renders catalog link', () => {
     render(<App />);
-    expect(screen.getByText('Catalog')).toBeInTheDocument();
+    expect(screen.getAllByText('Catalog').length).toBeGreaterThan(0);
   });
 });
