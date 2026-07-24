@@ -46,10 +46,11 @@ Once `.env` is created and populated with real keys, it **cannot** be modified, 
 
 ## Storage (receipts)
 
-| Variable                    | Description                             |
-| --------------------------- | --------------------------------------- |
-| `SUPABASE_STORAGE_BUCKET`   | Bucket where PDF receipts are stored    |
-| `SUPABASE_SERVICE_ROLE_KEY` | Backend only, never exposed to frontend |
+| Variable                    | Description                                  |
+| --------------------------- | -------------------------------------------- |
+| `SUPABASE_URL`              | Project URL (e.g. https://abc.supabase.co)   |
+| `SUPABASE_STORAGE_BUCKET`   | Bucket where files are stored (images, PDFs) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Backend only, never exposed to frontend      |
 
 ## Internal Webhooks (api-core ↔ payment-service)
 
