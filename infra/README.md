@@ -1,17 +1,26 @@
 # infra
 
-Docker and Nginx configuration for development and production.
+Docker, Nginx, and Terraform configuration for development and production.
 
 ## Structure
 
 ```
 infra/
-  docker/
-    docker-compose.yml      # Development environment
-    docker-compose.prod.yml # Production environment
-  nginx/                    # Nginx configuration
-    nginx.conf              # Main config
-    conf.d/                 # Site configs
+├── docker/
+│   ├── docker-compose.yml       # Development environment
+│   └── docker-compose.prod.yml  # Production environment
+├── nginx/
+│   └── nginx.conf               # Reverse proxy config
+└── terraform/
+    ├── main.tf                  # Provider, data sources, VPC
+    ├── ec2.tf                   # EC2 instance + Elastic IP
+    ├── security-group.tf        # Firewall rules
+    ├── iam.tf                   # IAM role + instance profile
+    ├── variables.tf             # Configurable inputs
+    ├── outputs.tf               # Post-apply information
+    ├── user-data.sh             # Instance bootstrap script
+    ├── terraform.tfvars.example # Example variable values
+    └── .gitignore               # Ignores state + real tfvars
 ```
 
 ## Development
@@ -20,23 +29,33 @@ infra/
 bash scripts/dev-up.sh
 ```
 
-Starts all services:
+Starts all services locally:
+
 - Landing: http://localhost:3000
 - Admin dashboard: http://localhost:3001
 - API core: http://localhost:8080
 - Payment service: http://localhost:8081
-- PostgreSQL: localhost:5432
-- Redis: localhost:6379
 
 ## Production
 
 ```bash
-# see TASK-infra-12, not yet implemented
+# 1. Provision infrastructure with Terraform
+cd infra/terraform
+terraform init && terraform apply
+
+# 2. Upload .env to the instance
+scp -i ~/.ssh/modula-prod-key.pem .env ec2-user@<IP>:/opt/modula/.env
+
+# 3. Start the app
+ssh ec2-user@<IP> "sudo systemctl start modula-app"
 ```
 
-Nginx serves static builds and proxies API requests.
+Full guide: [docs/terraform-guide.md](../docs/terraform-guide.md)
+
+Nginx serves static builds and proxies API requests. Cloudflare Tunnel
+provides HTTPS termination externally.
 
 ## Environment variables
 
-All services read from `.env` file in the project root.
+All services read from `.env` file in the project root (or `/opt/modula/.env` in production).
 See `.kiro/steerings/09-environment-variables.md` for details.

@@ -43,6 +43,15 @@ logs/
 dump.rdb
 flows-*.zip
 
+# Terraform
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.backup
+infra/terraform/terraform.tfvars
+infra/terraform/*.auto.tfvars
+infra/terraform/*.tfplan
+infra/terraform/crash.log
+
 # Personal dev overrides
 *kscod
 *.pub
