@@ -3,7 +3,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { OrdersModule } from '../orders/orders.module';
 import { AuthModule } from '../auth/auth.module';
 import { COMPLAINT_REPOSITORY } from './repositories/complaint.repository.port';
-import { InMemoryComplaintRepository } from './repositories/in-memory-complaint.repository';
+import { PrismaComplaintRepository } from '../../infrastructure/prisma/repositories/prisma-complaint.repository';
 import { ComplaintsController } from './controllers/complaints.controller';
 import {
   CreateComplaintUseCase,
@@ -16,7 +16,7 @@ import { ComplaintEmailService } from './services/complaint-email.service';
 
 const complaintRepoProvider = {
   provide: COMPLAINT_REPOSITORY,
-  useClass: InMemoryComplaintRepository,
+  useClass: PrismaComplaintRepository,
 };
 
 @Module({

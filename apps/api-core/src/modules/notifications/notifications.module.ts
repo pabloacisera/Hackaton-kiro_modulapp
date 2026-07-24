@@ -5,10 +5,12 @@ import { NotificationsController } from './notifications.controller';
 import { JwtService } from '../../infrastructure/auth/jwt/jwt.service';
 import { Reflector } from '@nestjs/core';
 import { JwtAuthGuard } from '../../interface/auth/guards/jwt-auth.guard';
+import { PrismaNotificationRepository } from '../../infrastructure/prisma/repositories/prisma-notification.repository';
 
 @Module({
   controllers: [NotificationsController],
   providers: [
+    PrismaNotificationRepository,
     NotificationsService,
     NotificationsGateway,
     JwtService,

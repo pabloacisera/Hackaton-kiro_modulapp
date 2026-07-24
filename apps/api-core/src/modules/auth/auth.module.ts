@@ -28,15 +28,15 @@ import { ADMIN_USER_REPOSITORY } from '../../domain/auth/repositories/admin-user
 import { REFRESH_TOKEN_REPOSITORY } from '../../domain/auth/repositories/refresh-token.repository.port';
 
 // In-memory repository implementations (used until Prisma infra is wired)
-import { InMemoryAdminUserRepository } from '../../infrastructure/auth/repositories/in-memory-admin-user.repository';
-import { InMemoryRefreshTokenRepository } from '../../infrastructure/auth/repositories/in-memory-refresh-token.repository';
+import { PrismaAdminUserRepository } from '../../infrastructure/prisma/repositories/prisma-admin-user.repository';
+import { PrismaRefreshTokenRepository } from '../../infrastructure/prisma/repositories/prisma-refresh-token.repository';
 
 @Module({
   controllers: [AuthController, AdminUserController],
   providers: [
     // Repository bindings
-    { provide: ADMIN_USER_REPOSITORY, useClass: InMemoryAdminUserRepository },
-    { provide: REFRESH_TOKEN_REPOSITORY, useClass: InMemoryRefreshTokenRepository },
+    { provide: ADMIN_USER_REPOSITORY, useClass: PrismaAdminUserRepository },
+    { provide: REFRESH_TOKEN_REPOSITORY, useClass: PrismaRefreshTokenRepository },
 
     // Redis stub (real binding wired in feature-realtime-notifications)
     {

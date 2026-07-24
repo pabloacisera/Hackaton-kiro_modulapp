@@ -77,6 +77,10 @@ export class InMemoryQuoteRepository implements IQuoteRepository {
     return quote;
   }
 
+  async updatePdfUrl(quoteId: string, pdfUrl: string): Promise<void> {
+    // No-op for in-memory (PDF URL is infrastructure concern)
+  }
+
   // Test helper: clear all
   clear(): void {
     this.quotes = [];

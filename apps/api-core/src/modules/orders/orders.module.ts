@@ -12,10 +12,10 @@ import { PaymentServiceClient } from './services/payment-service.client';
 import { OrderEmailService } from './services/order-email.service';
 import { PaymentReconciliationJob } from './jobs/payment-reconciliation.job';
 import { ORDER_REPOSITORY } from './repositories/order.repository.port';
-import { InMemoryOrderRepository } from './repositories/in-memory-order.repository';
+import { PrismaOrderRepository } from '../../infrastructure/prisma/repositories/prisma-order.repository';
 
 import { PROTOTYPE_REPOSITORY } from '../catalog/repositories/prototype.repository.port';
-import { InMemoryPrototypeRepository } from '../catalog/repositories/in-memory-prototype.repository';
+import { PrismaPrototypeRepository } from '../../infrastructure/prisma/repositories/prisma-prototype.repository';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { JwtService } from '../../infrastructure/auth/jwt/jwt.service';
 import { JwtAuthGuard } from '../../interface/auth/guards/jwt-auth.guard';
@@ -24,8 +24,8 @@ import { JwtAuthGuard } from '../../interface/auth/guards/jwt-auth.guard';
   imports: [HttpModule.register({ timeout: 15_000 }), NotificationsModule],
   controllers: [OrdersController],
   providers: [
-    { provide: ORDER_REPOSITORY, useClass: InMemoryOrderRepository },
-    { provide: PROTOTYPE_REPOSITORY, useClass: InMemoryPrototypeRepository },
+    { provide: ORDER_REPOSITORY, useClass: PrismaOrderRepository },
+    { provide: PROTOTYPE_REPOSITORY, useClass: PrismaPrototypeRepository },
 
     JwtService,
     Reflector,

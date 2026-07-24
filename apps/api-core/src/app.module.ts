@@ -8,10 +8,14 @@ import { QuotesModule } from './modules/quotes/quotes.module';
 import { SuppliesModule } from './modules/supplies/supplies.module';
 import { ComplaintsModule } from './modules/complaints/complaints.module';
 import { DeliveriesModule } from './modules/deliveries/deliveries.module';
+import { PrismaModule } from './infrastructure/prisma/prisma.module';
+import { StorageModule } from './infrastructure/storage/storage.module';
 import { SeedService } from './infrastructure/seed.service';
 
 @Module({
   imports: [
+    PrismaModule,
+    StorageModule,
     HealthModule,
     AuthModule,
     CatalogModule,

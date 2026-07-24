@@ -5,9 +5,6 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 COMPOSE_FILE="$ROOT_DIR/infra/docker/docker-compose.yml"
-COMPOSE_DEV_FILE="$ROOT_DIR/infra/docker/docker-compose.dev.yml"
-# Combined -f flags used for every compose invocation below.
-COMPOSE_FLAGS=("-f" "$COMPOSE_FILE" "-f" "$COMPOSE_DEV_FILE")
 TIMEOUT=180
 
 # ── Pre-flight checks ────────────────────────────────────────────────────────
@@ -21,7 +18,7 @@ command -v docker >/dev/null 2>&1 || { echo "ERROR: docker not found."; exit 1; 
 docker compose version >/dev/null 2>&1 || { echo "ERROR: docker compose not found."; exit 1; }
 
 echo "► Building and starting all services (dev mode with source bind mounts)..."
-docker compose "${COMPOSE_FLAGS[@]}" up --build -d
+docker compose -f "$COMPOSE_FILE" up --build -d
 
 # ── Wait for health checks ───────────────────────────────────────────────────
 wait_healthy() {
@@ -36,7 +33,7 @@ wait_healthy() {
     if [ $elapsed -ge $TIMEOUT ]; then
       echo " TIMEOUT"
       echo "ERROR: $service did not become healthy within ${TIMEOUT}s."
-      docker compose "${COMPOSE_FLAGS[@]}" logs "$service" | tail -30
+      docker compose -f "$COMPOSE_FILE" logs "$service" | tail -30
       exit 1
     fi
     echo -n "."
@@ -58,16 +55,20 @@ echo "   API Core         → http://localhost:8080"
 echo "   Payment Service  → http://localhost:8081"
 echo "   Nginx (proxy)    → http://localhost:80"
 echo ""
-echo "To stop:  docker compose -f infra/docker/docker-compose.yml -f infra/docker/docker-compose.dev.yml down"
-echo "To logs:  docker compose -f infra/docker/docker-compose.yml -f infra/docker/docker-compose.dev.yml logs -f"
+echo "To stop:  docker compose -f infra/docker/docker-compose.yml down"
+echo "To logs:  docker compose -f infra/docker/docker-compose.yml logs -f"
 
 # ── Tailscale Funnel (HTTPS for PayPal callbacks) ────────────────────────────
 if command -v tailscale >/dev/null 2>&1; then
   echo ""
-  echo "► Tailscale detected. Exposing port 80 via Funnel for PayPal HTTPS callbacks..."
-  echo "  Run manually if needed: tailscale funnel 80"
-  echo "  Your public HTTPS URL: https://$(tailscale status --self --json 2>/dev/null | grep -o '"DNSName":"[^"]*"' | cut -d'"' -f4 | sed 's/\.$//')"
+  echo "► Activating Tailscale Funnel on port 80 (HTTPS for PayPal webhooks)..."
+  sudo tailscale funnel --bg 80 2>/dev/null || tailscale funnel --bg 80 2>/dev/null || {
+    echo "  ⚠️  Could not start funnel automatically. Run manually:"
+    echo "     sudo tailscale funnel 80"
+  }
+  FUNNEL_URL="https://$(tailscale status --self --json 2>/dev/null | grep -o '"DNSName":"[^"]*"' | cut -d'"' -f4 | sed 's/\.$//')"
+  echo "  ✓ Funnel active: $FUNNEL_URL"
   echo ""
-  echo "  Make sure APP_PUBLIC_URL in .env matches this URL."
-  echo "  PayPal webhook URL should be: \${APP_PUBLIC_URL}/payments/webhooks/paypal"
+  echo "  Make sure APP_PUBLIC_URL in .env matches: $FUNNEL_URL"
+  echo "  PayPal webhook URL: ${FUNNEL_URL}/payments/webhooks/paypal"
 fi

@@ -26,6 +26,7 @@ public class ReceiptService {
 
     private final ReceiptRepository receiptRepository;
     private final PdfGenerator pdfGenerator;
+    private final SupabaseStorageClient storageClient;
 
     /**
      * Generates customer + admin receipts for a confirmed payment.
@@ -89,10 +90,17 @@ public class ReceiptService {
                 audience == ReceiptAudience.customer ? "Customer" : "Admin",
                 issuedAt);
 
-        // In a real deployment, upload to Supabase Storage and store the URL.
-        // For now, store a base64 data URL so the PDF is always retrievable.
-        String pdfUrl = "data:application/pdf;base64,"
-                + java.util.Base64.getEncoder().encodeToString(pdf);
+        // Upload to Supabase Storage if configured; fall back to base64 data URL.
+        String pdfUrl;
+        String fileName = referenceId + "-" + audience.name() + ".pdf";
+        String uploadedUrl = storageClient.upload("receipts", fileName, pdf, "application/pdf");
+
+        if (uploadedUrl != null) {
+            pdfUrl = uploadedUrl;
+        } else {
+            pdfUrl = "data:application/pdf;base64,"
+                    + java.util.Base64.getEncoder().encodeToString(pdf);
+        }
 
         Receipt receipt = new Receipt();
         receipt.setPayment(payment);

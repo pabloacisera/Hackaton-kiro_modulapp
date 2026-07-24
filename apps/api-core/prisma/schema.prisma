@@ -135,6 +135,7 @@ model Quote {
   actionTokenHash       String?     @map("action_token_hash")
   actionTokenUsed       Boolean     @default(false) @map("action_token_used")
   paymentServiceRef     String?     @map("payment_service_ref")
+  quotePdfUrl           String?     @map("quote_pdf_url") @db.VarChar(512)
   locale                String      @default("es") @db.VarChar(5)
   createdAt             DateTime    @default(now()) @map("created_at")
   updatedAt             DateTime    @updatedAt @map("updated_at")

@@ -1,23 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
-import {
-  AdminNotification,
-  NotificationType,
-} from './domain/admin-notification.entity';
+import { AdminNotification, NotificationType } from './domain/admin-notification.entity';
+import { PrismaNotificationRepository } from '../../infrastructure/prisma/repositories/prisma-notification.repository';
 
 /**
  * TASK-notif-2: Central notification service.
  * `notifyAdmins()` is the single entry point used by every other module.
- * Persists + broadcasts via WebSocket (when gateway is connected).
+ * Persists via Prisma + broadcasts via WebSocket (when gateway is connected).
  */
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
 
-  /** In-memory store — replace with Prisma in production. */
-  private readonly notifications: AdminNotification[] = [];
-
   /** WebSocket gateway injects itself here to avoid circular dependency. */
   private broadcastFn: ((n: AdminNotification) => void) | null = null;
+
+  constructor(private readonly repo: PrismaNotificationRepository) {}
 
   registerBroadcast(fn: (n: AdminNotification) => void): void {
     this.broadcastFn = fn;
@@ -32,7 +29,7 @@ export class NotificationsService {
     referenceUrl: string,
   ): Promise<AdminNotification> {
     const notification = AdminNotification.create(type, message, referenceUrl);
-    this.notifications.push(notification);
+    await this.repo.save(notification);
 
     this.logger.log(`Notification [${type}]: ${message}`);
 
@@ -48,19 +45,14 @@ export class NotificationsService {
   }
 
   async findUnread(): Promise<AdminNotification[]> {
-    return this.notifications.filter((n) => !n.read);
+    return this.repo.findUnread();
   }
 
   async findAll(read?: boolean): Promise<AdminNotification[]> {
-    if (read === undefined) return [...this.notifications];
-    return this.notifications.filter((n) => n.read === read);
+    return this.repo.findAll(read);
   }
 
   async markRead(id: string): Promise<AdminNotification | null> {
-    const idx = this.notifications.findIndex((n) => n.id === id);
-    if (idx === -1) return null;
-    const updated = this.notifications[idx].markRead();
-    this.notifications[idx] = updated;
-    return updated;
+    return this.repo.markRead(id);
   }
 }

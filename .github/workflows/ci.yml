@@ -28,6 +28,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma Client
+        run: cd apps/api-core && npx prisma generate
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
+
       - name: Lint
         run: pnpm turbo lint --cache-dir=.turbo/cache
 

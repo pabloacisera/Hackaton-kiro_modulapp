@@ -21,17 +21,21 @@ class ReceiptServiceTest {
 
     private ReceiptRepository receiptRepository;
     private PdfGenerator pdfGenerator;
+    private SupabaseStorageClient storageClient;
     private ReceiptService receiptService;
 
     @BeforeEach
     void setUp() {
         receiptRepository = mock(ReceiptRepository.class);
         pdfGenerator      = mock(PdfGenerator.class);
+        storageClient     = mock(SupabaseStorageClient.class);
         when(pdfGenerator.generate(any(), any(), any(), anyBoolean(), any(), any()))
                 .thenReturn("PDF-BYTES".getBytes());
         when(receiptRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(storageClient.upload(any(), any(), any(), any()))
+                .thenReturn("https://supabase.co/storage/v1/object/public/bucket/receipts/test.pdf");
 
-        receiptService = new ReceiptService(receiptRepository, pdfGenerator);
+        receiptService = new ReceiptService(receiptRepository, pdfGenerator, storageClient);
     }
 
     // ── Payment receipts ──────────────────────────────────────────────────────
