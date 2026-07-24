@@ -18,14 +18,14 @@ export class ComplaintEmailService {
     complaintId: string,
     reason: string,
   ): Promise<void> {
-    const subject = 'Modula — Your complaint has been received';
+    const subject = 'ModulApp — Your complaint has been received';
     const html = `
       <p>Hi ${customerName},</p>
       <p>We received your complaint and will review it promptly.</p>
       <p><strong>Complaint ID:</strong> ${complaintId}</p>
       <p><strong>Reason:</strong> ${reason}</p>
       <p>We will notify you once a resolution has been determined.</p>
-      <p>— The Modula Team</p>
+      <p>— The ModulApp Team</p>
     `;
     await this.send(customerEmail, subject, html);
   }
@@ -35,13 +35,13 @@ export class ComplaintEmailService {
     complaintId: string,
     resolution: string,
   ): Promise<void> {
-    const subject = 'Modula — Your complaint has been resolved';
+    const subject = 'ModulApp — Your complaint has been resolved';
     const html = `
       <p>Your complaint has been reviewed and resolved.</p>
       <p><strong>Complaint ID:</strong> ${complaintId}</p>
       <p><strong>Resolution:</strong> ${resolution}</p>
       <p>If a refund was approved, it will appear on your original payment method within 3–5 business days.</p>
-      <p>— The Modula Team</p>
+      <p>— The ModulApp Team</p>
     `;
     await this.send(customerEmail, subject, html);
   }
@@ -49,8 +49,8 @@ export class ComplaintEmailService {
   private async send(to: string, subject: string, html: string): Promise<void> {
     const apiKey = process.env.MAILJET_API_KEY ?? '';
     const apiSecret = process.env.MAILJET_API_SECRET ?? '';
-    const fromEmail = process.env.MAILJET_FROM_EMAIL ?? 'noreply@modula.app';
-    const fromName = process.env.MAILJET_FROM_NAME ?? 'Modula';
+    const fromEmail = process.env.MAILJET_FROM_EMAIL ?? 'noreply@modulapp.app';
+    const fromName = process.env.MAILJET_FROM_NAME ?? 'ModulApp';
 
     if (!apiKey || !apiSecret) {
       this.logger.warn('Mailjet credentials not set — skipping email');

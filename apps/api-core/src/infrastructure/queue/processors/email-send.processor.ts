@@ -29,8 +29,8 @@ export class EmailSendProcessor {
 
     const apiKey = process.env.MAILJET_API_KEY ?? '';
     const apiSecret = process.env.MAILJET_API_SECRET ?? '';
-    const fromEmail = process.env.MAILJET_FROM_EMAIL ?? 'noreply@modula.app';
-    const fromName = process.env.MAILJET_FROM_NAME ?? 'Modula';
+    const fromEmail = process.env.MAILJET_FROM_EMAIL ?? 'noreply@modulapp.app';
+    const fromName = process.env.MAILJET_FROM_NAME ?? 'ModulApp';
 
     if (!apiKey || !apiSecret) {
       this.logger.warn(`Mailjet credentials not set — skipping email [${job.id}]`);

@@ -51,7 +51,7 @@ export function SideNav({ open, onClose }: SideNavProps) {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">
             M
           </div>
-          <span className="text-lg font-bold tracking-wide text-white">Modula</span>
+          <span className="text-lg font-bold tracking-wide text-white">ModulApp</span>
           <span className="ml-auto badge bg-brand-600/30 text-brand-300 text-[10px]">Admin</span>
         </div>
 

@@ -1,4 +1,4 @@
-# Modula — Modular Furniture & Events Platform
+# ModulApp — Modular Furniture & Events Platform
 
 A platform for selling modular MDF furniture and event arches, with two business flows:
 
