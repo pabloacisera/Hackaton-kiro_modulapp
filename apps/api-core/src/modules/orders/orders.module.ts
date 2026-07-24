@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
+import { BullModule } from '@nestjs/bull';
 import { Reflector } from '@nestjs/core';
 
 import { OrdersController } from './controllers/orders.controller';
@@ -19,9 +20,14 @@ import { PrismaPrototypeRepository } from '../../infrastructure/prisma/repositor
 import { NotificationsModule } from '../notifications/notifications.module';
 import { JwtService } from '../../infrastructure/auth/jwt/jwt.service';
 import { JwtAuthGuard } from '../../interface/auth/guards/jwt-auth.guard';
+import { QUEUE_PAYMENT_WEBHOOK } from '../../infrastructure/queue/queue.constants';
 
 @Module({
-  imports: [HttpModule.register({ timeout: 15_000 }), NotificationsModule],
+  imports: [
+    HttpModule.register({ timeout: 15_000 }),
+    NotificationsModule,
+    BullModule.registerQueue({ name: QUEUE_PAYMENT_WEBHOOK }),
+  ],
   controllers: [OrdersController],
   providers: [
     { provide: ORDER_REPOSITORY, useClass: PrismaOrderRepository },
