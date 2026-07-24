@@ -12,10 +12,12 @@ import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { StorageModule } from './infrastructure/storage/storage.module';
 import { QueueModule } from './infrastructure/queue/queue.module';
 import { RedisModule } from './infrastructure/redis/redis.module';
+import { LoggerModule } from './infrastructure/logger/logger.module';
 import { SeedService } from './infrastructure/seed.service';
 
 @Module({
   imports: [
+    LoggerModule,
     PrismaModule,
     StorageModule,
     RedisModule,
