@@ -4,7 +4,8 @@ export type NotificationType =
   | 'quote_response'
   | 'new_complaint'
   | 'low_stock_minimum'
-  | 'payment_confirmed';
+  | 'payment_confirmed'
+  | 'security_alert';
 
 export interface AdminNotificationProps {
   id: string;
@@ -27,11 +28,7 @@ export class AdminNotification {
     Object.assign(this, props);
   }
 
-  static create(
-    type: NotificationType,
-    message: string,
-    referenceUrl: string,
-  ): AdminNotification {
+  static create(type: NotificationType, message: string, referenceUrl: string): AdminNotification {
     if (!message || !referenceUrl) {
       throw new Error('Notification must have a message and referenceUrl');
     }

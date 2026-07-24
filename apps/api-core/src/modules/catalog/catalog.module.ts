@@ -7,28 +7,21 @@ import { CatalogCacheService } from './cache/catalog-cache.service';
 import { CatalogEventPublisher } from './events/catalog-event.publisher';
 import { PROTOTYPE_REPOSITORY } from './repositories/prototype.repository.port';
 import { PrismaPrototypeRepository } from '../../infrastructure/prisma/repositories/prisma-prototype.repository';
-import { JwtService } from '../../infrastructure/auth/jwt/jwt.service';
-import { Reflector } from '@nestjs/core';
+import { AuthModule } from '../auth/auth.module';
 
+/**
+ * Issue #15: Removed REDIS_CLIENT no-op stub — now uses shared RedisModule (global).
+ * Issue #15: Removed manual JwtService/Reflector — now imports AuthModule properly.
+ */
 @Module({
+  imports: [AuthModule],
   controllers: [CatalogController, AdminCatalogController],
   providers: [
     { provide: PROTOTYPE_REPOSITORY, useClass: PrismaPrototypeRepository },
-    {
-      provide: 'REDIS_CLIENT',
-      useValue: {
-        get: async () => null,
-        set: async () => null,
-        keys: async () => [],
-        del: async () => null,
-      },
-    },
     ListPrototypesUseCase,
     GetPrototypeUseCase,
     CatalogCacheService,
     CatalogEventPublisher,
-    JwtService,
-    Reflector,
   ],
   exports: [
     CatalogEventPublisher,

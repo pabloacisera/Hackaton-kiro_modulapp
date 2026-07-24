@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 // Controllers
 import { AuthController } from '../../interface/auth/controllers/auth.controller';
@@ -27,27 +28,21 @@ import { LockoutNotificationService } from '../../infrastructure/auth/notificati
 import { ADMIN_USER_REPOSITORY } from '../../domain/auth/repositories/admin-user.repository.port';
 import { REFRESH_TOKEN_REPOSITORY } from '../../domain/auth/repositories/refresh-token.repository.port';
 
-// In-memory repository implementations (used until Prisma infra is wired)
+// Prisma implementations
 import { PrismaAdminUserRepository } from '../../infrastructure/prisma/repositories/prisma-admin-user.repository';
 import { PrismaRefreshTokenRepository } from '../../infrastructure/prisma/repositories/prisma-refresh-token.repository';
 
+/**
+ * Issue #15: Removed REDIS_CLIENT no-op stub — now uses shared RedisModule (global).
+ * Rate limiting now works with real Redis (fail-secure if credentials missing).
+ */
 @Module({
+  imports: [forwardRef(() => NotificationsModule)],
   controllers: [AuthController, AdminUserController],
   providers: [
     // Repository bindings
     { provide: ADMIN_USER_REPOSITORY, useClass: PrismaAdminUserRepository },
     { provide: REFRESH_TOKEN_REPOSITORY, useClass: PrismaRefreshTokenRepository },
-
-    // Redis stub (real binding wired in feature-realtime-notifications)
-    {
-      provide: 'REDIS_CLIENT',
-      useValue: {
-        incr: async () => 1,
-        expire: async () => 1,
-        get: async () => '0',
-        del: async () => 1,
-      },
-    },
 
     // Infrastructure
     JwtService,

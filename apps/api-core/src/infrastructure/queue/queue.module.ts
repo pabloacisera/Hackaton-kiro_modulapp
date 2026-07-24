@@ -1,4 +1,5 @@
 import { Module, OnModuleInit, Logger, forwardRef } from '@nestjs/common';
+import { HttpModule } from '@nestjs/axios';
 import { BullModule, InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 import { createBullConfig } from './queue-config.factory';
@@ -25,6 +26,7 @@ import { SuppliesModule } from '../../modules/supplies/supplies.module';
  */
 @Module({
   imports: [
+    HttpModule.register({ timeout: 10_000 }),
     BullModule.forRoot(createBullConfig()),
     BullModule.registerQueue(
       { name: QUEUE_SCHEDULED_JOBS },

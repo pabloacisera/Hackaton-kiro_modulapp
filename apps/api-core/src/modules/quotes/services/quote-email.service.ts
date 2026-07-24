@@ -1,14 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 /**
  * TASK-quoteB-5, TASK-quoteB-8: Sends transactional emails for quote events.
- *
- * Uses the same Mailjet pattern as OrderEmailService.
- * In-memory stub for now (no HttpService injected yet to keep tests simple).
+ * Issue #15: Wired to Mailjet (same pattern as OrderEmailService).
  */
 @Injectable()
 export class QuoteEmailService {
   private readonly logger = new Logger(QuoteEmailService.name);
+
+  constructor(private readonly http: HttpService) {}
 
   /**
    * FR3: Confirmation email sent to customer when request is received.
@@ -18,13 +20,19 @@ export class QuoteEmailService {
     customerName: string,
     quoteId: string,
   ): Promise<void> {
-    this.logger.log(`Email [request_received] → ${customerEmail}: Quote ${quoteId} received`);
-    // TODO: Wire Mailjet HTTP call (same as OrderEmailService.send)
+    const subject = 'Modula — Your custom quote request was received';
+    const html = `
+      <p>Hi ${customerName},</p>
+      <p>We received your custom quote request.</p>
+      <p><strong>Reference:</strong> ${quoteId}</p>
+      <p>Our team will review your request and send you a detailed quote soon.</p>
+      <p>— The Modula Team</p>
+    `;
+    await this.send(customerEmail, subject, html);
   }
 
   /**
    * TASK-quoteB-8: Quote email with accept/reject buttons (deep link with token).
-   * Includes link to the PDF presupuesto if available.
    */
   async sendQuotePresented(
     customerEmail: string,
@@ -36,12 +44,25 @@ export class QuoteEmailService {
     rejectUrl: string,
     quotePdfUrl?: string | null,
   ): Promise<void> {
-    this.logger.log(
-      `Email [quote_presented] → ${customerEmail}: Quote ${quoteId} = USD ${priceUsd}, ` +
-        `accept: ${acceptUrl}, reject: ${rejectUrl}` +
-        (quotePdfUrl ? `, pdf: ${quotePdfUrl}` : ''),
-    );
-    // TODO: Wire Mailjet HTTP call with HTML template containing accept/reject buttons + PDF link
+    const subject = `Modula — Your quote is ready: USD ${priceUsd.toFixed(2)}`;
+    const html = `
+      <p>Hi ${customerName},</p>
+      <p>Your custom quote is ready:</p>
+      <ul>
+        <li><strong>Quote ID:</strong> ${quoteId}</li>
+        <li><strong>Price:</strong> USD ${priceUsd.toFixed(2)}</li>
+        <li><strong>Estimated lead time:</strong> ${leadTimeDays} days</li>
+      </ul>
+      ${quotePdfUrl ? `<p><a href="${quotePdfUrl}">📄 Download Quote PDF</a></p>` : ''}
+      <p>You have <strong>48 hours</strong> to respond:</p>
+      <p>
+        <a href="${acceptUrl}" style="background:#22c55e;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;margin-right:12px;">✓ Accept Quote</a>
+        <a href="${rejectUrl}" style="background:#ef4444;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;">✗ Reject Quote</a>
+      </p>
+      <p style="color:#6b7280;font-size:12px;">If you do not respond within 48 hours, the quote will expire automatically.</p>
+      <p>— The Modula Team</p>
+    `;
+    await this.send(customerEmail, subject, html);
   }
 
   /**
@@ -52,9 +73,47 @@ export class QuoteEmailService {
     quoteId: string,
     amountUsd: number,
   ): Promise<void> {
-    this.logger.log(
-      `Email [payment_confirmed] → ${customerEmail}: Quote ${quoteId} paid USD ${amountUsd}`,
-    );
-    // TODO: Wire Mailjet HTTP call
+    const subject = 'Modula — Payment confirmed for your custom order';
+    const html = `
+      <p>Your payment has been confirmed!</p>
+      <p><strong>Quote ID:</strong> ${quoteId}</p>
+      <p><strong>Amount paid:</strong> USD ${amountUsd.toFixed(2)}</p>
+      <p>We will begin production and keep you updated on delivery.</p>
+      <p>— The Modula Team</p>
+    `;
+    await this.send(customerEmail, subject, html);
+  }
+
+  private async send(to: string, subject: string, html: string): Promise<void> {
+    const apiKey = process.env.MAILJET_API_KEY ?? '';
+    const apiSecret = process.env.MAILJET_API_SECRET ?? '';
+    const fromEmail = process.env.MAILJET_FROM_EMAIL ?? 'noreply@modula.app';
+    const fromName = process.env.MAILJET_FROM_NAME ?? 'Modula';
+
+    if (!apiKey || !apiSecret) {
+      this.logger.warn('Mailjet credentials not set — skipping email');
+      return;
+    }
+
+    try {
+      await firstValueFrom(
+        this.http.post(
+          'https://api.mailjet.com/v3.1/send',
+          {
+            Messages: [
+              {
+                From: { Email: fromEmail, Name: fromName },
+                To: [{ Email: to }],
+                Subject: subject,
+                HTMLPart: html,
+              },
+            ],
+          },
+          { auth: { username: apiKey, password: apiSecret } },
+        ),
+      );
+    } catch (err) {
+      this.logger.error(`Email send failed to ${to}: ${(err as Error).message}`);
+    }
   }
 }
