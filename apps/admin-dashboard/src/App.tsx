@@ -7,6 +7,7 @@ import { SuppliesPage } from './views/SuppliesPage';
 import { ComplaintsPage } from './views/ComplaintsPage';
 import { ExcelImportWizard } from './views/ExcelImportWizard';
 import { DeliveriesPage } from './views/DeliveriesPage';
+import { CatalogPage } from './views/CatalogPage';
 import { useAuth } from './controllers/useAuth';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -27,7 +28,8 @@ export default function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="/orders" replace />} />
+          <Route index element={<Navigate to="/catalog" replace />} />
+          <Route path="/catalog" element={<CatalogPage />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/quotes" element={<QuotesPage />} />
           <Route path="/supplies" element={<SuppliesPage />} />

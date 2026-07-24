@@ -3,6 +3,7 @@ import { Prototype } from '../domain/prototype.entity';
 import {
   IPrototypeRepository,
   ListPrototypesFilter,
+  AdminListPrototypesFilter,
   PaginatedPrototypes,
 } from './prototype.repository.port';
 
@@ -19,9 +20,7 @@ export class InMemoryPrototypeRepository implements IPrototypeRepository {
     if (filter.q) {
       const q = filter.q.toLowerCase();
       results = results.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q),
+        (p) => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q),
       );
     }
     if (filter.minPrice !== undefined) {
@@ -34,6 +33,26 @@ export class InMemoryPrototypeRepository implements IPrototypeRepository {
     const total = results.length;
     const page = filter.page ?? 1;
     const pageSize = filter.pageSize ?? 12;
+    const items = results.slice((page - 1) * pageSize, page * pageSize);
+    return { items, total, page, pageSize };
+  }
+
+  async findAllAdmin(filter: AdminListPrototypesFilter): Promise<PaginatedPrototypes> {
+    let results = [...this.items.values()];
+
+    if (filter.category) {
+      results = results.filter((p) => p.category === filter.category);
+    }
+    if (filter.q) {
+      const q = filter.q.toLowerCase();
+      results = results.filter(
+        (p) => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q),
+      );
+    }
+
+    const total = results.length;
+    const page = filter.page ?? 1;
+    const pageSize = filter.pageSize ?? 20;
     const items = results.slice((page - 1) * pageSize, page * pageSize);
     return { items, total, page, pageSize };
   }

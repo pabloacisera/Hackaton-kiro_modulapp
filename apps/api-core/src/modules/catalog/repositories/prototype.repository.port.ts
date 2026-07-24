@@ -9,6 +9,13 @@ export interface ListPrototypesFilter {
   pageSize?: number;
 }
 
+export interface AdminListPrototypesFilter {
+  category?: 'modular_furniture' | 'arches';
+  q?: string;
+  page?: number;
+  pageSize?: number;
+}
+
 export interface PaginatedPrototypes {
   items: Prototype[];
   total: number;
@@ -18,6 +25,7 @@ export interface PaginatedPrototypes {
 
 export interface IPrototypeRepository {
   findAll(filter: ListPrototypesFilter): Promise<PaginatedPrototypes>;
+  findAllAdmin(filter: AdminListPrototypesFilter): Promise<PaginatedPrototypes>;
   findById(id: string): Promise<Prototype | null>;
   save(prototype: Prototype): Promise<Prototype>;
 }
