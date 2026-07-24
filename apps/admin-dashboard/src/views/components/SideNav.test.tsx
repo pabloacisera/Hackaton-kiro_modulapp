@@ -3,6 +3,12 @@ import { describe, it, expect, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { SideNav } from './SideNav';
 
+vi.mock('../../controllers/useAuth', () => ({
+  useAuth: () => ({
+    accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImFkbWluQG1vZHVsYS5hcHAifQ.fake',
+  }),
+}));
+
 describe('SideNav', () => {
   it('renders all nav links', () => {
     render(

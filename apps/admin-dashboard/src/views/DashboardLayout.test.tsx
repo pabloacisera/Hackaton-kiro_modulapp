@@ -1,7 +1,13 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { DashboardLayout } from './DashboardLayout';
+
+vi.mock('../controllers/useAuth', () => ({
+  useAuth: () => ({
+    accessToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImFkbWluQG1vZHVsYS5hcHAifQ.fake',
+  }),
+}));
 
 function renderLayout() {
   return render(
@@ -43,5 +49,10 @@ describe('DashboardLayout', () => {
   it('renders outlet content', () => {
     renderLayout();
     expect(screen.getByText('Dashboard content')).toBeInTheDocument();
+  });
+
+  it('renders help button', () => {
+    renderLayout();
+    expect(screen.getByRole('button', { name: /open help/i })).toBeInTheDocument();
   });
 });

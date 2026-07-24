@@ -39,7 +39,7 @@ describe('PrototypeCard', () => {
 
   it('displays estimated delivery', () => {
     render(<PrototypeCard prototype={proto} onSelect={vi.fn()} />);
-    expect(screen.getByText(/14d delivery/i)).toBeInTheDocument();
+    expect(screen.getByText(/~14d/)).toBeInTheDocument();
   });
 
   it('calls onSelect with prototype id on click', () => {
