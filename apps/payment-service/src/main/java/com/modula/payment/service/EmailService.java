@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -28,7 +27,6 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@EnableRetry
 public class EmailService {
 
     private final RestTemplate restTemplate;

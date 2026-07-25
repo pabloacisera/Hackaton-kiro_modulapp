@@ -4,6 +4,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
@@ -15,6 +16,7 @@ import java.time.Duration;
  */
 @Configuration
 @EnableConfigurationProperties(PayPalProperties.class)
+@EnableRetry
 public class AppConfig {
 
     @Bean

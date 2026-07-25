@@ -1,0 +1,73 @@
+============================================================
+  BUILD ERROR REPORT — 2026-07-24
+============================================================
+
+SERVICE: payment-service (Java/Spring Boot)
+STATUS:  COMPILATION FAILURE
+------------------------------------------------------------
+
+ERROR 1 (CRITICAL — compilation error):
+  File: apps/payment-service/src/main/java/com/modula/payment/PaymentServiceApplication.java
+  Line: 14
+
+  Code:
+    app.addEnvironmentPostProcessor(new DatabaseUrlEnvironmentPostProcessor());
+
+  Problem:
+    SpringApplication has NO method addEnvironmentPostProcessor().
+    This method does not exist in the Spring Boot API.
+
+  Fix:
+    Remove line 14 and the unused import on line 3.
+    The DatabaseUrlEnvironmentPostProcessor is already registered
+    automatically via META-INF/spring/org.springframework.boot.env.EnvironmentPostProcessor.imports
+    (Spring Boot discovers it before the app context starts).
+
+  Corrected main():
+    public static void main(String[] args) {
+        SpringApplication.run(PaymentServiceApplication.class, args);
+    }
+
+------------------------------------------------------------
+
+ERROR 2 (WARNING — wrong behavior, compiles but @Retryable won't work):
+  File: apps/payment-service/src/main/java/com/modula/payment/service/EmailService.java
+  Line: 31
+
+  Code:
+    @EnableRetry
+    public class EmailService {
+
+  Problem:
+    @EnableRetry triggers BeanPostProcessor registration and must be
+    on a @Configuration class. On a @Service it may not be processed
+    depending on bean ordering, causing @Retryable on
+    sendReceiptEmail() to silently do nothing — no retries at all.
+
+  Fix:
+    Remove @EnableRetry from EmailService.java.
+    Add @EnableRetry to AppConfig.java (which is already @Configuration).
+
+============================================================
+
+SERVICE: api-core (TypeScript/NestJS)
+STATUS:  BUILD CANCELED (not failed)
+------------------------------------------------------------
+
+The api-core build was CANCELED at step 13/13 (pnpm --filter @modula/api-core build)
+after 46.1s because payment-service failed first and Docker aborted all builds.
+The api-core build itself may succeed on its own once payment-service is fixed.
+
+Potential runtime issues found (NOT build errors):
+
+  a) cookie-parser is in dependencies but NOT initialized in main.ts.
+     RefreshCookieService reads cookies from requests — without
+     app.use(cookieParser()) the refresh token cookie won't be parsed.
+
+  b) NotificationsEmailService reads .hbs template files from __dirname,
+     but nest-cli.json does not include "assets" for .hbs files.
+     Templates won't be copied to dist/ — will fail at runtime.
+
+  c) @EnableRetry placement (see payment-service Error 2 above).
+
+============================================================

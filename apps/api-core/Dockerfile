@@ -23,7 +23,7 @@ RUN pnpm --filter @modula/api-core exec prisma generate
 RUN pnpm --filter @modula/api-core build
 
 # Production: run the built NestJS app
-FROM node:20-alpine
+FROM node:20-slim
 WORKDIR /app
 
 COPY --from=builder /app/apps/api-core/dist ./dist

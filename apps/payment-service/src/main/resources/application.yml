@@ -6,6 +6,7 @@ spring:
     name: payment-service
 
   datasource:
+    url: jdbc:${PAYMENT_DATABASE_URL}
     driver-class-name: org.postgresql.Driver
     hikari:
       connection-timeout: 10000
@@ -20,6 +21,7 @@ spring:
 
   flyway:
     enabled: true
+    url: jdbc:${PAYMENT_DATABASE_URL}
     locations: classpath:db/migration
     baseline-on-migrate: true
 

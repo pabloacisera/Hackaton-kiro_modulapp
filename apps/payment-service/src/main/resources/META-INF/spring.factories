@@ -1,0 +1,2 @@
+org.springframework.boot.env.EnvironmentPostProcessor=\
+com.modula.payment.config.DatabaseUrlEnvironmentPostProcessor
