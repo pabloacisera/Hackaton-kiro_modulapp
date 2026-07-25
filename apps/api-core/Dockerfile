@@ -26,6 +26,10 @@ RUN pnpm --filter @modula/api-core build
 FROM node:20-slim
 WORKDIR /app
 
+# Prisma requires OpenSSL; argon2 native addon needs musl (built in Alpine)
+RUN apt-get update -y && apt-get install -y openssl musl wget && rm -rf /var/lib/apt/lists/* \
+  && ln -s /usr/lib/x86_64-linux-musl/libc.so /usr/lib/libc.musl-x86_64.so.1
+
 COPY --from=builder /app/apps/api-core/dist ./dist
 # With shamefully-hoist=true, all deps are hoisted at the workspace root
 # node_modules and symlinked into apps/*/node_modules. Copying the workspace
