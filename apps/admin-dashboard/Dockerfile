@@ -14,11 +14,14 @@ COPY packages/shared-types ./packages/shared-types
 COPY apps/admin-dashboard ./apps/admin-dashboard
 
 RUN pnpm --filter @modula/shared-types build
+
+ARG VITE_API_URL=/api
+ENV VITE_API_URL=${VITE_API_URL}
 RUN pnpm --filter @modula/admin-dashboard build
 
 # Production: serve static files with nginx
 FROM nginx:alpine
 COPY --from=builder /app/apps/admin-dashboard/dist /usr/share/nginx/html
-# SPA fallback: all routes serve index.html
-RUN echo 'server { listen 80; root /usr/share/nginx/html; location / { try_files $uri $uri/ /index.html; } }' > /etc/nginx/conf.d/default.conf
+# SPA fallback: serve admin SPA under /admin/ prefix (matches Vite base config)
+COPY apps/admin-dashboard/nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80

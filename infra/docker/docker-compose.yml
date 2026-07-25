@@ -43,6 +43,8 @@ services:
     build:
       context: ../..
       dockerfile: apps/admin-dashboard/Dockerfile
+      args:
+        - VITE_API_URL=/api
     ports:
       - '3001:80'
     restart: unless-stopped
@@ -54,6 +56,8 @@ services:
     ports:
       - '8080:8080'
     env_file: ../../.env
+    environment:
+      - NODE_ENV=development
     depends_on:
       redis:
         condition: service_healthy
