@@ -1,4 +1,5 @@
 import { FormEvent, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createQuoteRequest } from '../models/quotesApi';
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
  * Client-side validates mandatory fields; real validation is server-side.
  */
 export function QuoteRequestForm({ onSuccess, onCancel }: Props) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -53,15 +55,13 @@ export function QuoteRequestForm({ onSuccess, onCancel }: Props) {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
-      <h2 className="mb-2 text-2xl font-bold text-gray-900">Request a Custom Quote</h2>
-      <p className="mb-6 text-sm text-gray-600">
-        Tell us what you need — we&apos;ll get back to you with a price and timeline.
-      </p>
+      <h2 className="mb-2 text-2xl font-bold text-gray-900">{t('quote.title')}</h2>
+      <p className="mb-6 text-sm text-gray-600">{t('quote.subtitle')}</p>
 
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         <div>
           <label htmlFor="quote-name" className="mb-1 block text-sm font-medium text-gray-700">
-            Full name <span className="text-red-500">*</span>
+            {t('quote.fields.name')} <span className="text-red-500">*</span>
           </label>
           <input
             id="quote-name"
@@ -77,7 +77,7 @@ export function QuoteRequestForm({ onSuccess, onCancel }: Props) {
 
         <div>
           <label htmlFor="quote-email" className="mb-1 block text-sm font-medium text-gray-700">
-            Email address <span className="text-red-500">*</span>
+            {t('quote.fields.email')} <span className="text-red-500">*</span>
           </label>
           <input
             id="quote-email"
@@ -93,7 +93,7 @@ export function QuoteRequestForm({ onSuccess, onCancel }: Props) {
 
         <div>
           <label htmlFor="quote-phone" className="mb-1 block text-sm font-medium text-gray-700">
-            Phone number <span className="text-red-500">*</span>
+            {t('quote.fields.phone')} <span className="text-red-500">*</span>
           </label>
           <input
             id="quote-phone"
@@ -112,7 +112,7 @@ export function QuoteRequestForm({ onSuccess, onCancel }: Props) {
             htmlFor="quote-description"
             className="mb-1 block text-sm font-medium text-gray-700"
           >
-            What do you need?
+            {t('quote.fields.description')}
           </label>
           <textarea
             id="quote-description"
@@ -120,13 +120,13 @@ export function QuoteRequestForm({ onSuccess, onCancel }: Props) {
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Describe what you're looking for: dimensions, theme, materials..."
+            placeholder={t('quote.fields.descriptionPlaceholder')}
           />
         </div>
 
         <div>
           <label htmlFor="quote-date" className="mb-1 block text-sm font-medium text-gray-700">
-            When do you need it by?
+            {t('quote.fields.neededBy')}
           </label>
           <input
             id="quote-date"
@@ -153,7 +153,7 @@ export function QuoteRequestForm({ onSuccess, onCancel }: Props) {
             onClick={onCancel}
             className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
-            Cancel
+            {t('quote.cancel')}
           </button>
           <button
             type="submit"
@@ -161,7 +161,7 @@ export function QuoteRequestForm({ onSuccess, onCancel }: Props) {
             className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
             aria-busy={loading}
           >
-            {loading ? 'Submitting…' : 'Submit Request'}
+            {loading ? t('quote.submitting') : t('quote.submit')}
           </button>
         </div>
       </form>

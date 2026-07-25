@@ -7,7 +7,18 @@
   },
   "home": {
     "title": "Modula",
-    "subtitle": "Muebles modulares y arcos para eventos a medida"
+    "subtitle": "Muebles modulares y arcos para eventos a medida",
+    "description": "Muebles modulares de MDF y elegantes arcos para eventos — diseñados para adaptarse a tu espacio y estilo. Explorá piezas listas o solicitá una cotización personalizada.",
+    "featurePayments": "Pagos seguros con PayPal",
+    "featureCustom": "Diseños personalizados",
+    "featureDelivery": "Entrega rápida",
+    "howItWorks": "Cómo funciona",
+    "step1Title": "Explorá o solicitá",
+    "step1Desc": "Elegí una pieza lista o describí tu idea personalizada",
+    "step2Title": "Pagá con seguridad",
+    "step2Desc": "Completá el pago vía PayPal — no necesitás cuenta",
+    "step3Title": "Recibilo en tu puerta",
+    "step3Desc": "Lo construimos y te lo entregamos"
   },
   "catalog": {
     "title": "Catálogo",
@@ -109,5 +120,10 @@
     "required": "Obligatorio",
     "error": "Error",
     "back": "Volver"
+  },
+  "footer": {
+    "quickLinks": "Enlaces rápidos",
+    "payment": "Pagos",
+    "paymentDesc": "Pagos seguros vía PayPal. No necesitás cuenta."
   }
 }

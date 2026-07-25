@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { PrototypeDto } from '../models/catalogApi';
 import { PrototypeCard } from './PrototypeCard';
 
@@ -8,6 +9,8 @@ interface Props {
 }
 
 export function CatalogGrid({ items, loading, onSelectPrototype }: Props) {
+  const { t } = useTranslation();
+
   if (loading) {
     return (
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -21,7 +24,7 @@ export function CatalogGrid({ items, loading, onSelectPrototype }: Props) {
   if (items.length === 0) {
     return (
       <div className="py-16 text-center text-gray-500" role="status">
-        No prototypes found matching your filters.
+        {t('catalog.empty')}
       </div>
     );
   }
@@ -29,7 +32,7 @@ export function CatalogGrid({ items, loading, onSelectPrototype }: Props) {
   return (
     <div
       className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-      aria-label="Prototype catalog"
+      aria-label={t('catalog.title')}
     >
       {items.map((p) => (
         <PrototypeCard key={p.id} prototype={p} onSelect={onSelectPrototype} />

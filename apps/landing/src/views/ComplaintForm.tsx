@@ -1,4 +1,5 @@
 import { FormEvent, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createComplaint } from '../models/complaintsApi';
 
 interface Props {
@@ -11,6 +12,7 @@ interface Props {
  * name, email, phone (optional), reason.
  */
 export function ComplaintForm({ onSuccess }: Props) {
+  const { t } = useTranslation();
   const [referenceType, setReferenceType] = useState<'order' | 'quote' | 'unknown'>('order');
   const [referenceId, setReferenceId] = useState('');
   const [name, setName] = useState('');
@@ -47,10 +49,8 @@ export function ComplaintForm({ onSuccess }: Props) {
 
   return (
     <div className="mx-auto max-w-lg px-4 py-8">
-      <h2 className="mb-2 text-2xl font-bold text-gray-900">Complaints & Refunds</h2>
-      <p className="mb-6 text-sm text-gray-600">
-        Have an issue with your order? Submit a complaint and we&apos;ll get back to you.
-      </p>
+      <h2 className="mb-2 text-2xl font-bold text-gray-900">{t('complaint.title')}</h2>
+      <p className="mb-6 text-sm text-gray-600">{t('complaint.subtitle')}</p>
 
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         <div>
@@ -58,7 +58,7 @@ export function ComplaintForm({ onSuccess }: Props) {
             htmlFor="complaint-ref-type"
             className="mb-1 block text-sm font-medium text-gray-700"
           >
-            Reference type
+            {t('complaint.fields.referenceType')}
           </label>
           <select
             id="complaint-ref-type"
@@ -66,9 +66,9 @@ export function ComplaintForm({ onSuccess }: Props) {
             onChange={(e) => setReferenceType(e.target.value as 'order' | 'quote' | 'unknown')}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
           >
-            <option value="order">Order</option>
-            <option value="quote">Quote</option>
-            <option value="unknown">I don&apos;t have my reference</option>
+            <option value="order">{t('complaint.referenceTypes.order')}</option>
+            <option value="quote">{t('complaint.referenceTypes.quote')}</option>
+            <option value="unknown">{t('complaint.referenceTypes.unknown')}</option>
           </select>
         </div>
 
@@ -78,7 +78,7 @@ export function ComplaintForm({ onSuccess }: Props) {
               htmlFor="complaint-ref-id"
               className="mb-1 block text-sm font-medium text-gray-700"
             >
-              Order/Quote ID (optional)
+              {t('complaint.fields.referenceId')}
             </label>
             <input
               id="complaint-ref-id"
@@ -93,7 +93,7 @@ export function ComplaintForm({ onSuccess }: Props) {
 
         <div>
           <label htmlFor="complaint-name" className="mb-1 block text-sm font-medium text-gray-700">
-            Full name <span className="text-red-500">*</span>
+            {t('complaint.fields.name')} <span className="text-red-500">*</span>
           </label>
           <input
             id="complaint-name"
@@ -108,7 +108,7 @@ export function ComplaintForm({ onSuccess }: Props) {
 
         <div>
           <label htmlFor="complaint-email" className="mb-1 block text-sm font-medium text-gray-700">
-            Email <span className="text-red-500">*</span>
+            {t('complaint.fields.email')} <span className="text-red-500">*</span>
           </label>
           <input
             id="complaint-email"
@@ -123,7 +123,7 @@ export function ComplaintForm({ onSuccess }: Props) {
 
         <div>
           <label htmlFor="complaint-phone" className="mb-1 block text-sm font-medium text-gray-700">
-            Phone (optional)
+            {t('complaint.fields.phone')}
           </label>
           <input
             id="complaint-phone"
@@ -139,7 +139,7 @@ export function ComplaintForm({ onSuccess }: Props) {
             htmlFor="complaint-reason"
             className="mb-1 block text-sm font-medium text-gray-700"
           >
-            Reason <span className="text-red-500">*</span>
+            {t('complaint.fields.reason')} <span className="text-red-500">*</span>
           </label>
           <textarea
             id="complaint-reason"
@@ -149,7 +149,7 @@ export function ComplaintForm({ onSuccess }: Props) {
             aria-required="true"
             rows={4}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-            placeholder="Describe the issue..."
+            placeholder={t('complaint.fields.reasonPlaceholder')}
           />
         </div>
 
@@ -168,7 +168,7 @@ export function ComplaintForm({ onSuccess }: Props) {
           className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
           aria-busy={loading}
         >
-          {loading ? 'Submitting...' : 'Submit Complaint'}
+          {loading ? t('complaint.submitting') : t('complaint.submit')}
         </button>
       </form>
     </div>

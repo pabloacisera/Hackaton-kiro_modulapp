@@ -7,7 +7,18 @@
   },
   "home": {
     "title": "Modula",
-    "subtitle": "Modular furniture & custom event arches"
+    "subtitle": "Modular furniture & custom event arches",
+    "description": "Custom MDF furniture and elegant event arches — designed to fit your space and style. Browse ready-made pieces or request a custom quote.",
+    "featurePayments": "PayPal Secure Payments",
+    "featureCustom": "Custom Designs",
+    "featureDelivery": "Fast Delivery",
+    "howItWorks": "How it works",
+    "step1Title": "Browse or Request",
+    "step1Desc": "Pick a ready-made piece or describe your custom idea",
+    "step2Title": "Pay Securely",
+    "step2Desc": "Complete payment via PayPal — no account needed",
+    "step3Title": "Get It Delivered",
+    "step3Desc": "We build and deliver to your door"
   },
   "catalog": {
     "title": "Catalog",
@@ -109,5 +120,10 @@
     "required": "Required",
     "error": "Error",
     "back": "Back"
+  },
+  "footer": {
+    "quickLinks": "Quick Links",
+    "payment": "Payment",
+    "paymentDesc": "Secure payments via PayPal. No account required."
   }
 }
