@@ -1,16 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    // Buffer logs until Pino logger is ready
-    bufferLogs: true,
-  });
-
-  // Use Pino as the application logger (replaces default NestJS logger)
-  app.useLogger(app.get(Logger));
+  const app = await NestFactory.create(AppModule);
 
   // Enable graceful shutdown — drains BullMQ queues on SIGTERM/SIGINT
   app.enableShutdownHooks();
@@ -37,4 +30,7 @@ async function bootstrap() {
   await app.listen(8080);
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('Fatal: bootstrap() failed', err);
+  process.exit(1);
+});

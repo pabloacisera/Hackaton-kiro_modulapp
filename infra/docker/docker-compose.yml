@@ -54,6 +54,13 @@ services:
     ports:
       - '8080:8080'
     env_file: ../../.env
+    environment:
+      # Override DATABASE_URL to add connection params needed by Prisma in Docker
+      DATABASE_URL: postgresql://postgres:ModulaTest2024@database-modulapp.cp8qyc4u6dpy.us-east-2.rds.amazonaws.com:5432/postgres?sslmode=require&connect_timeout=10
+      # BullMQ connects to the local redis container (not Upstash REST API)
+      REDIS_HOST: redis
+      # Unset UPSTASH_REDIS_URL so BullMQ uses local redis for job queues
+      UPSTASH_REDIS_URL: ''
     depends_on:
       redis:
         condition: service_healthy
@@ -71,12 +78,17 @@ services:
     ports:
       - '8081:8081'
     env_file: ../../.env
+    environment:
+      # Conexión directa a RDS
+      PAYMENT_DB_HOST: database-modulapp.cp8qyc4u6dpy.us-east-2.rds.amazonaws.com
+      PAYMENT_DB_PASSWORD: ModulaTest2024
     restart: unless-stopped
     healthcheck:
       test: ['CMD', 'wget', '-qO-', 'http://localhost:8081/health']
-      interval: 10s
+      interval: 15s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 60s
 
 volumes:
   redis-data:

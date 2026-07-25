@@ -47,13 +47,13 @@ public class PayPalRefundClient {
         );
 
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(
+            @SuppressWarnings("unchecked")
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                     props.getBaseUrl() + "/v2/payments/captures/" + captureId + "/refund",
                     HttpMethod.POST,
                     new HttpEntity<>(body, headers),
-                    Map.class
+                    (Class<Map<String, Object>>) (Class<?>) Map.class
             );
-            @SuppressWarnings("unchecked")
             Map<String, Object> data = response.getBody();
             String refundId = (String) data.get("id");
             String status   = (String) data.get("status");

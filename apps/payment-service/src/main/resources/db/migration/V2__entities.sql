@@ -1,3 +1,6 @@
+-- Ensure uuid extension is available (may have been skipped if baseline was applied)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 -- =============================================================================
 -- ENUMS
 -- =============================================================================

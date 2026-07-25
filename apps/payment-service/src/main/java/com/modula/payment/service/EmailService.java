@@ -32,10 +32,10 @@ public class EmailService {
     private final RestTemplate restTemplate;
     private final ReceiptRepository receiptRepository;
 
-    @Value("${mailjet.api-key}")       private String apiKey;
-    @Value("${mailjet.api-secret}")    private String apiSecret;
-    @Value("${mailjet.from-email}")    private String fromEmail;
-    @Value("${mailjet.from-name}")     private String fromName;
+    @Value("${mailjet.api-key:}")       private String apiKey;
+    @Value("${mailjet.api-secret:}")    private String apiSecret;
+    @Value("${mailjet.from-email:}")    private String fromEmail;
+    @Value("${mailjet.from-name:}")     private String fromName;
 
     private static final String MAILJET_URL =
             "https://api.mailjet.com/v3.1/send";
@@ -51,6 +51,11 @@ public class EmailService {
         backoff = @Backoff(delay = 1000, multiplier = 2)
     )
     public void sendReceiptEmail(Receipt receipt, String customerEmail) {
+        if (apiKey == null || apiKey.isBlank() || apiSecret == null || apiSecret.isBlank()) {
+            log.warn("Mailjet not configured — skipping receipt email to {}", customerEmail);
+            return;
+        }
+
         String pdfBase64 = receipt.getPdfUrl().contains("base64,")
                 ? receipt.getPdfUrl().split("base64,")[1]
                 : receipt.getPdfUrl();

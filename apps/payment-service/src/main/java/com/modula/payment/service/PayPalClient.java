@@ -71,14 +71,14 @@ public class PayPalClient {
         );
 
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(
+            @SuppressWarnings("unchecked")
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                     props.getBaseUrl() + "/v2/checkout/orders",
                     HttpMethod.POST,
                     new HttpEntity<>(body, headers),
-                    Map.class
+                    (Class<Map<String, Object>>) (Class<?>) Map.class
             );
 
-            @SuppressWarnings("unchecked")
             Map<String, Object> data = response.getBody();
             String orderId = (String) data.get("id");
             String approvalUrl = extractApprovalUrl(data);
@@ -101,14 +101,14 @@ public class PayPalClient {
         HttpHeaders headers = jsonHeaders(token);
 
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(
+            @SuppressWarnings("unchecked")
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                     props.getBaseUrl() + "/v2/checkout/orders/" + paypalOrderId + "/capture",
                     HttpMethod.POST,
                     new HttpEntity<>(Map.of(), headers),
-                    Map.class
+                    (Class<Map<String, Object>>) (Class<?>) Map.class
             );
 
-            @SuppressWarnings("unchecked")
             Map<String, Object> data = response.getBody();
             String captureId = extractCaptureId(data);
             String status    = (String) data.get("status");
@@ -134,13 +134,13 @@ public class PayPalClient {
         form.add("grant_type", "client_credentials");
 
         try {
-            ResponseEntity<Map> response = restTemplate.exchange(
+            @SuppressWarnings("unchecked")
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                     props.getBaseUrl() + "/v1/oauth2/token",
                     HttpMethod.POST,
                     new HttpEntity<>(form, headers),
-                    Map.class
+                    (Class<Map<String, Object>>) (Class<?>) Map.class
             );
-            @SuppressWarnings("unchecked")
             Map<String, Object> body = response.getBody();
             cachedToken = (String) body.get("access_token");
             int expiresIn = (Integer) body.getOrDefault("expires_in", 32400);

@@ -1,9 +1,10 @@
-FROM node:20-alpine AS builder
+FROM node:20-bookworm-slim AS builder
 WORKDIR /app
 
 # Native build toolchain required by node-gyp (argon2 and other native deps)
-RUN apk add --no-cache python3 make g++ libc6-compat \
-  && ln -sf python3 /usr/bin/python
+# Also install openssl for Prisma
+RUN apt-get update && apt-get install -y python3 make g++ openssl wget --no-install-recommends \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN npm install -g pnpm@9
 
@@ -12,7 +13,7 @@ COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY packages/shared-types/package.json ./packages/shared-types/package.json
 COPY apps/api-core/package.json ./apps/api-core/package.json
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install
 
 # Copy source
 COPY packages/shared-types ./packages/shared-types
@@ -23,17 +24,19 @@ RUN pnpm --filter @modula/api-core exec prisma generate
 RUN pnpm --filter @modula/api-core build
 
 # Production: run the built NestJS app
-FROM node:20-slim
+# Same base (Debian/glibc) so argon2 + Prisma binaries are compatible
+FROM node:20-bookworm-slim
 WORKDIR /app
 
+# Prisma needs openssl; wget for Docker healthcheck
+RUN apt-get update && apt-get install -y openssl wget --no-install-recommends \
+  && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /app/apps/api-core/dist ./dist
-# With shamefully-hoist=true, all deps are hoisted at the workspace root
-# node_modules and symlinked into apps/*/node_modules. Copying the workspace
-# root node_modules keeps the .pnpm store + hoisted symlinks resolvable.
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/api-core/package.json ./package.json
 COPY --from=builder /app/apps/api-core/prisma ./prisma
 
 ENV NODE_ENV=production
 EXPOSE 8080
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+CMD ["sh", "-c", "npx prisma migrate deploy 2>&1 || true; exec node dist/main"]

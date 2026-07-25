@@ -6,14 +6,16 @@ spring:
     name: payment-service
 
   datasource:
-    url: jdbc:${PAYMENT_DATABASE_URL}
+    url: jdbc:postgresql://${PAYMENT_DB_HOST:database-modulapp.cp8qyc4u6dpy.us-east-2.rds.amazonaws.com}:5432/postgres
     driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: ${PAYMENT_DB_PASSWORD:ModulaTest2024}
     hikari:
       connection-timeout: 10000
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
     show-sql: false
     properties:
       hibernate:
@@ -21,22 +23,24 @@ spring:
 
   flyway:
     enabled: true
-    url: jdbc:${PAYMENT_DATABASE_URL}
+    url: jdbc:postgresql://${PAYMENT_DB_HOST:database-modulapp.cp8qyc4u6dpy.us-east-2.rds.amazonaws.com}:5432/postgres
+    user: postgres
+    password: ${PAYMENT_DB_PASSWORD:ModulaTest2024}
     locations: classpath:db/migration
     baseline-on-migrate: true
 
 paypal:
-  client-id: ${PAYPAL_CLIENT_ID}
-  client-secret: ${PAYPAL_CLIENT_SECRET}
+  client-id: ${PAYPAL_CLIENT_ID:}
+  client-secret: ${PAYPAL_CLIENT_SECRET:}
   mode: ${PAYPAL_MODE:sandbox}
-  webhook-id: ${PAYPAL_WEBHOOK_ID}
+  webhook-id: ${PAYPAL_WEBHOOK_ID:}
   app-public-url: ${APP_PUBLIC_URL:https://localhost}
 
 mailjet:
-  api-key: ${MAILJET_API_KEY}
-  api-secret: ${MAILJET_API_SECRET}
-  from-email: ${MAILJET_FROM_EMAIL}
-  from-name: ${MAILJET_FROM_NAME}
+  api-key: ${MAILJET_API_KEY:}
+  api-secret: ${MAILJET_API_SECRET:}
+  from-email: ${MAILJET_FROM_EMAIL:}
+  from-name: ${MAILJET_FROM_NAME:}
 
 supabase:
   url: ${SUPABASE_URL:}

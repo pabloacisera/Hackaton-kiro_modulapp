@@ -1,6 +1,5 @@
 package com.modula.payment.service;
 
-import com.modula.payment.config.PayPalProperties;
 import com.modula.payment.domain.Payment;
 import com.modula.payment.domain.Receipt;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +33,6 @@ public class WebhookService {
     private final ReceiptService receiptService;
     private final EmailService emailService;
     private final ApiCoreWebhookClient apiCoreWebhookClient;
-    private final PayPalProperties props;
 
     /** In-process deduplication store (replace with Redis in production). */
     private final Set<String> processedEventIds = ConcurrentHashMap.newKeySet();
