@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Outlet } from 'react-router-dom';
 import { SideNav } from './components/SideNav';
 import { HelpPanel } from './components/HelpPanel';
@@ -6,6 +6,10 @@ import { NotificationBell } from './components/NotificationBell';
 import { NotificationPanel } from './components/NotificationPanel';
 import { useNotifications } from '../controllers/useNotifications';
 import { useAuth } from '../controllers/useAuth';
+
+/** Notification types that map to sidebar tabs */
+const QUOTE_TYPES = ['new_quote_request', 'quote_response'];
+const COMPLAINT_TYPES = ['new_complaint'];
 
 export function DashboardLayout() {
   const [sideNavOpen, setSideNavOpen] = useState(false);
@@ -15,9 +19,21 @@ export function DashboardLayout() {
   const { notifications, unreadCount, soundEnabled, toggleSound, markRead } =
     useNotifications(accessToken);
 
+  // Compute badge counts for sidebar tabs from unread notifications
+  const sidebarBadges = useMemo(() => {
+    const unread = notifications.filter((n) => !n.read);
+    const quotesCount = unread.filter((n) => QUOTE_TYPES.includes(n.type)).length;
+    const complaintsCount = unread.filter((n) => COMPLAINT_TYPES.includes(n.type)).length;
+
+    const badges: Record<string, number> = {};
+    if (quotesCount > 0) badges['/quotes'] = quotesCount;
+    if (complaintsCount > 0) badges['/complaints'] = complaintsCount;
+    return badges;
+  }, [notifications]);
+
   return (
     <div className="flex h-screen overflow-hidden bg-surface-50">
-      <SideNav open={sideNavOpen} onClose={() => setSideNavOpen(false)} />
+      <SideNav open={sideNavOpen} onClose={() => setSideNavOpen(false)} badges={sidebarBadges} />
 
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top bar */}

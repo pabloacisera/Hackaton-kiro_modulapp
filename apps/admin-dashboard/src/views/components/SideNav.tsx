@@ -15,9 +15,10 @@ const NAV_ITEMS = [
 interface SideNavProps {
   open: boolean;
   onClose: () => void;
+  badges?: Record<string, number>;
 }
 
-export function SideNav({ open, onClose }: SideNavProps) {
+export function SideNav({ open, onClose, badges = {} }: SideNavProps) {
   const { accessToken } = useAuth();
   // Extract email from JWT payload (base64 decode)
   let adminEmail = 'Admin';
@@ -58,24 +59,35 @@ export function SideNav({ open, onClose }: SideNavProps) {
 
         {/* Navigation */}
         <ul className="mt-4 flex-1 space-y-1 px-3 overflow-y-auto">
-          {NAV_ITEMS.map(({ to, label, icon }) => (
-            <li key={to}>
-              <NavLink
-                to={to}
-                onClick={onClose}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
-                    isActive
-                      ? 'bg-brand-600/20 text-white shadow-sm border-l-2 border-brand-400'
-                      : 'text-gray-400 hover:bg-sidebar-hover hover:text-white'
-                  }`
-                }
-              >
-                <span className="text-base">{icon}</span>
-                {label}
-              </NavLink>
-            </li>
-          ))}
+          {NAV_ITEMS.map(({ to, label, icon }) => {
+            const badgeCount = badges[to] ?? 0;
+            return (
+              <li key={to}>
+                <NavLink
+                  to={to}
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
+                      isActive
+                        ? 'bg-brand-600/20 text-white shadow-sm border-l-2 border-brand-400'
+                        : 'text-gray-400 hover:bg-sidebar-hover hover:text-white'
+                    }`
+                  }
+                >
+                  <span className="text-base">{icon}</span>
+                  <span className="flex-1">{label}</span>
+                  {badgeCount > 0 && (
+                    <span
+                      className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white"
+                      aria-label={`${badgeCount} ${badgeCount === 1 ? 'nueva notificación' : 'nuevas notificaciones'}`}
+                    >
+                      {badgeCount > 99 ? '99+' : badgeCount}
+                    </span>
+                  )}
+                </NavLink>
+              </li>
+            );
+          })}
         </ul>
 
         {/* User info */}
