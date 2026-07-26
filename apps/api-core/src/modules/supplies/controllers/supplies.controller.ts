@@ -48,7 +48,7 @@ class ConfirmImportDto {
 
 // ── Controller ────────────────────────────────────────────────────────────────
 
-@Controller('api/admin/supplies')
+@Controller('admin/supplies')
 @UseGuards(JwtAuthGuard)
 export class SuppliesController {
   constructor(

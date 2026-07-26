@@ -1,12 +1,11 @@
 package com.modula.payment.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 /**
  * Strongly typed binding for PayPal configuration from application.yml.
+ * Registered via @EnableConfigurationProperties in AppConfig.
  */
-@Component
 @ConfigurationProperties(prefix = "paypal")
 public class PayPalProperties {
 

@@ -30,16 +30,16 @@ export async function fetchComplaints(params?: {
   q?: string;
   page?: number;
 }): Promise<PaginatedComplaints> {
-  const res = await httpClient.get<PaginatedComplaints>('/api/complaints', { params });
+  const res = await httpClient.get<PaginatedComplaints>('/complaints', { params });
   return res.data;
 }
 
 export async function reviewComplaint(id: string): Promise<void> {
-  await httpClient.patch(`/api/complaints/${id}/review`);
+  await httpClient.patch(`/complaints/${id}/review`);
 }
 
 export async function approveRefund(id: string): Promise<void> {
-  await httpClient.patch(`/api/complaints/${id}/approve-refund`);
+  await httpClient.patch(`/complaints/${id}/approve-refund`);
 }
 
 export async function resolveComplaint(
@@ -47,5 +47,5 @@ export async function resolveComplaint(
   resolutionNotes: string,
   status: 'resolved_other_way' | 'rejected',
 ): Promise<void> {
-  await httpClient.patch(`/api/complaints/${id}/resolve`, { resolutionNotes, status });
+  await httpClient.patch(`/complaints/${id}/resolve`, { resolutionNotes, status });
 }

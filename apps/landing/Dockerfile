@@ -14,6 +14,9 @@ COPY packages/shared-types ./packages/shared-types
 COPY apps/landing ./apps/landing
 
 RUN pnpm --filter @modula/shared-types build
+
+ARG VITE_API_URL=/api
+ENV VITE_API_URL=${VITE_API_URL}
 RUN pnpm --filter @modula/landing build
 
 # Production: serve static files with nginx

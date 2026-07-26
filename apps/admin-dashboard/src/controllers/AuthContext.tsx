@@ -1,5 +1,6 @@
-import { createContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useState, useCallback, useEffect, ReactNode } from 'react';
 import { loginApi, logoutApi, refreshApi } from '../models/auth';
+import { setAccessToken, setSessionExpiredHandler } from '../models/http-client';
 
 export interface AuthState {
   accessToken: string | null;
@@ -26,6 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, loading: true, error: null }));
     try {
       const { accessToken } = await loginApi({ email, password });
+      setAccessToken(accessToken);
       setState({ accessToken, loading: false, error: null });
       return accessToken;
     } catch (err: unknown) {
@@ -38,9 +40,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     try {
       const { accessToken } = await refreshApi();
+      setAccessToken(accessToken);
       setState((s) => ({ ...s, accessToken }));
       return accessToken;
     } catch {
+      setAccessToken(null);
       setState({ accessToken: null, loading: false, error: null });
       throw new Error('Session expired');
     }
@@ -48,7 +52,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     await logoutApi().catch(() => null);
+    setAccessToken(null);
     setState({ accessToken: null, loading: false, error: null });
+  }, []);
+
+  // Sync token on mount if refresh succeeds
+  useEffect(() => {
+    setSessionExpiredHandler(() => {
+      setAccessToken(null);
+      setState({ accessToken: null, loading: false, error: null });
+    });
+    refreshApi()
+      .then(({ accessToken }) => {
+        setAccessToken(accessToken);
+        setState((s) => ({ ...s, accessToken }));
+      })
+      .catch(() => {
+        // No valid session — that's fine, user will log in
+      });
   }, []);
 
   return (

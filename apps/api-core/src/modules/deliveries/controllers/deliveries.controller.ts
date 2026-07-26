@@ -20,7 +20,7 @@ class PostponeDto {
   newDate!: string;
 }
 
-@Controller('api/admin/deliveries')
+@Controller('admin/deliveries')
 @UseGuards(JwtAuthGuard)
 export class DeliveriesController {
   constructor(private readonly deliveryUseCase: DeliveryUseCase) {}

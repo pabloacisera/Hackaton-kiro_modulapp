@@ -112,3 +112,46 @@ export async function deletePrototypeImage(
   );
   return res.data;
 }
+
+// ── Excel Import/Export ──────────────────────────────────────────────────────
+
+export interface CatalogImportPreviewResponse {
+  previewId: string;
+  toCreate: { name: string; category: string; action: string }[];
+  toUpdate: { name: string; category: string; action: string; changes?: Record<string, unknown> }[];
+  toDeactivate: { name: string; category: string; action: string }[];
+  errors: { row: number; field: string; message: string }[];
+}
+
+export interface CatalogConfirmImportResponse {
+  applied: number;
+  errors: { name: string; message: string }[];
+}
+
+export async function importCatalogExcelPreview(
+  rows: Record<string, unknown>[],
+): Promise<CatalogImportPreviewResponse> {
+  const res = await httpClient.post<CatalogImportPreviewResponse>(
+    '/api/admin/catalog/prototypes/import-excel',
+    { rows },
+  );
+  return res.data;
+}
+
+export async function importCatalogExcelConfirm(
+  previewId: string,
+): Promise<CatalogConfirmImportResponse> {
+  const res = await httpClient.post<CatalogConfirmImportResponse>(
+    '/api/admin/catalog/prototypes/import-excel/confirm',
+    { previewId },
+  );
+  return res.data;
+}
+
+export async function exportCatalogPrototypes(): Promise<{
+  headers: string[];
+  rows: Record<string, unknown>[];
+}> {
+  const res = await httpClient.get('/api/admin/catalog/prototypes/export-excel');
+  return res.data;
+}

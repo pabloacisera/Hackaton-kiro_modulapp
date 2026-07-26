@@ -25,12 +25,12 @@ export async function fetchDeliveries(params?: {
   q?: string;
   page?: number;
 }): Promise<PaginatedDeliveries> {
-  const res = await httpClient.get<PaginatedDeliveries>('/api/admin/deliveries', { params });
+  const res = await httpClient.get<PaginatedDeliveries>('/admin/deliveries', { params });
   return res.data;
 }
 
 export async function markDelivered(origin: DeliveryOrigin, id: string): Promise<void> {
-  await httpClient.patch(`/api/admin/deliveries/${origin}/${id}/deliver`);
+  await httpClient.patch(`/admin/deliveries/${origin}/${id}/deliver`);
 }
 
 export async function postponeDelivery(
@@ -38,5 +38,5 @@ export async function postponeDelivery(
   id: string,
   newDate: string,
 ): Promise<void> {
-  await httpClient.patch(`/api/admin/deliveries/${origin}/${id}/postpone`, { newDate });
+  await httpClient.patch(`/admin/deliveries/${origin}/${id}/postpone`, { newDate });
 }

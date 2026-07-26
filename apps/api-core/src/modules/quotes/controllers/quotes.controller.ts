@@ -84,7 +84,7 @@ class QuotePaymentWebhookDto {
 
 // ── Controller ────────────────────────────────────────────────────────────────
 
-@Controller('api/quotes')
+@Controller('quotes')
 export class QuotesController {
   constructor(
     private readonly createQuote: CreateQuoteUseCase,

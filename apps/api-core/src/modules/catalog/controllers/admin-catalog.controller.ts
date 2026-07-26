@@ -28,6 +28,8 @@ import { Inject } from '@nestjs/common';
 import { Prototype } from '../domain/prototype.entity';
 import { CatalogEventPublisher } from '../events/catalog-event.publisher';
 import { CatalogCacheService } from '../cache/catalog-cache.service';
+import { ImportCatalogExcelUseCase } from '../use-cases/import-catalog-excel.use-case';
+import { ConfirmCatalogImportUseCase } from '../use-cases/confirm-catalog-import.use-case';
 
 // ── DTOs ─────────────────────────────────────────────────────────────────────
 
@@ -115,6 +117,8 @@ export class AdminCatalogController {
     private readonly storage: StorageService,
     private readonly events: CatalogEventPublisher,
     private readonly cache: CatalogCacheService,
+    private readonly importExcel: ImportCatalogExcelUseCase,
+    private readonly confirmImport: ConfirmCatalogImportUseCase,
   ) {}
 
   // ── CRUD ─────────────────────────────────────────────────────────────────
@@ -173,6 +177,41 @@ export class AdminCatalogController {
       total: result.total,
       page: result.page,
       pageSize: result.pageSize,
+    };
+  }
+
+  /**
+   * Export all prototypes as JSON (for template generation).
+   * GET /api/admin/catalog/prototypes/export-excel
+   * NOTE: Must be defined before :id route to avoid path collision.
+   */
+  @Get('prototypes/export-excel')
+  async exportExcel() {
+    const result = await this.protoRepo.findAllAdmin({ pageSize: 10000 });
+    return {
+      headers: [
+        'name',
+        'description',
+        'category',
+        'price_usd',
+        'stock_qty',
+        'build_on_demand',
+        'estimated_delivery_days',
+        'active',
+      ],
+      rows: result.items.map((p) => {
+        const props = p.toProps();
+        return {
+          name: props.name,
+          description: props.description,
+          category: props.category,
+          price_usd: props.priceUsd,
+          stock_qty: props.stockQty,
+          build_on_demand: props.buildOnDemand,
+          estimated_delivery_days: props.estimatedDeliveryDays ?? '',
+          active: props.active,
+        };
+      }),
     };
   }
 
@@ -377,6 +416,26 @@ export class AdminCatalogController {
     this.events.publishUpdated(props.id, props.priceUsd, props.stockQty);
 
     return { deleted: true };
+  }
+
+  // ── Excel Import/Export ──────────────────────────────────────────────────
+
+  /**
+   * Preview import from Excel/CSV data.
+   * POST /api/admin/catalog/prototypes/import-excel
+   */
+  @Post('prototypes/import-excel')
+  async importPreview(@Body() dto: { rows: Record<string, unknown>[] }) {
+    return this.importExcel.preview(dto.rows);
+  }
+
+  /**
+   * Confirm a previewed import.
+   * POST /api/admin/catalog/prototypes/import-excel/confirm
+   */
+  @Post('prototypes/import-excel/confirm')
+  async importConfirm(@Body() dto: { previewId: string }) {
+    return this.confirmImport.execute(dto.previewId);
   }
 
   // ── Helpers ──────────────────────────────────────────────────────────────

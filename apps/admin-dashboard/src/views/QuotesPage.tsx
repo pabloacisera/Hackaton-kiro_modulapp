@@ -3,16 +3,16 @@ import { useQuotes } from '../controllers/useQuotes';
 import type { QuoteDto, QuoteStatus } from '../models/quotesApi';
 
 const STATUS_OPTIONS: { value: QuoteStatus | ''; label: string }[] = [
-  { value: '', label: 'All' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'quoted', label: 'Quoted' },
-  { value: 'accepted', label: 'Accepted' },
-  { value: 'rejected', label: 'Rejected' },
-  { value: 'expired', label: 'Expired' },
-  { value: 'payment_initiated', label: 'Payment Initiated' },
-  { value: 'paid', label: 'Paid' },
-  { value: 'payment_expired', label: 'Payment Expired' },
-  { value: 'archived', label: 'Archived' },
+  { value: '', label: 'Todas' },
+  { value: 'pending', label: 'Pendiente' },
+  { value: 'quoted', label: 'Cotizada' },
+  { value: 'accepted', label: 'Aceptada' },
+  { value: 'rejected', label: 'Rechazada' },
+  { value: 'expired', label: 'Expirada' },
+  { value: 'payment_initiated', label: 'Pago iniciado' },
+  { value: 'paid', label: 'Pagada' },
+  { value: 'payment_expired', label: 'Pago expirado' },
+  { value: 'archived', label: 'Archivada' },
 ];
 
 /**
@@ -22,6 +22,7 @@ export function QuotesPage() {
   const { quotes, total, loading, error, statusFilter, setStatusFilter, present, archive, reload } =
     useQuotes();
   const [presentModal, setPresentModal] = useState<QuoteDto | null>(null);
+  const [detailQuote, setDetailQuote] = useState<QuoteDto | null>(null);
   const [priceUsd, setPriceUsd] = useState('');
   const [leadTimeDays, setLeadTimeDays] = useState('');
   const [estimatedDeliveryDate, setEstimatedDeliveryDate] = useState('');
@@ -32,7 +33,7 @@ export function QuotesPage() {
     const price = parseFloat(priceUsd);
     const days = parseInt(leadTimeDays, 10);
     if (isNaN(price) || price <= 0 || isNaN(days) || days <= 0 || !estimatedDeliveryDate) {
-      setActionError('Please fill in all fields with valid values.');
+      setActionError('Por favor completa todos los campos con valores válidos.');
       return;
     }
     try {
@@ -43,7 +44,7 @@ export function QuotesPage() {
       setEstimatedDeliveryDate('');
       setActionError(null);
     } catch (err: unknown) {
-      setActionError(err instanceof Error ? err.message : 'Failed to present quote');
+      setActionError(err instanceof Error ? err.message : 'Error al presentar cotización');
     }
   };
 
@@ -51,7 +52,7 @@ export function QuotesPage() {
     try {
       await archive(quoteId);
     } catch (err: unknown) {
-      setActionError(err instanceof Error ? err.message : 'Failed to archive');
+      setActionError(err instanceof Error ? err.message : 'Error al archivar');
     }
   };
 
@@ -62,14 +63,14 @@ export function QuotesPage() {
   return (
     <div className="px-6 py-4">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Quotes</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Cotizaciones</h1>
         <span className="text-sm text-gray-500">{total} total</span>
       </div>
 
       {/* Filters */}
       <div className="mb-4 flex items-center gap-4">
         <label htmlFor="quote-status-filter" className="text-sm font-medium text-gray-700">
-          Status:
+          Estado:
         </label>
         <select
           id="quote-status-filter"
@@ -89,7 +90,7 @@ export function QuotesPage() {
           onClick={reload}
           className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50"
         >
-          Refresh
+          Actualizar
         </button>
       </div>
 
@@ -103,25 +104,29 @@ export function QuotesPage() {
       )}
 
       {loading ? (
-        <p className="text-gray-500">Loading quotes...</p>
+        <p className="text-gray-500">Cargando cotizaciones...</p>
       ) : quotes.length === 0 ? (
-        <p className="text-gray-500">No quotes found.</p>
+        <p className="text-gray-500">No se encontraron cotizaciones.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm" aria-label="Quotes table">
             <thead className="border-b bg-gray-50 text-xs uppercase text-gray-600">
               <tr>
-                <th className="px-4 py-3">Customer</th>
-                <th className="px-4 py-3">Description</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Price</th>
-                <th className="px-4 py-3">Needed By</th>
-                <th className="px-4 py-3">Actions</th>
+                <th className="px-4 py-3">Cliente</th>
+                <th className="px-4 py-3">Descripción</th>
+                <th className="px-4 py-3">Estado</th>
+                <th className="px-4 py-3">Precio</th>
+                <th className="px-4 py-3">Fecha límite</th>
+                <th className="px-4 py-3">Acciones</th>
               </tr>
             </thead>
             <tbody>
               {quotes.map((q) => (
-                <tr key={q.id} className="border-b hover:bg-gray-50">
+                <tr
+                  key={q.id}
+                  className="border-b hover:bg-gray-50 cursor-pointer"
+                  onClick={() => setDetailQuote(q)}
+                >
                   <td className="px-4 py-3">
                     <p className="font-medium">{q.customerName}</p>
                     <p className="text-xs text-gray-500">{q.customerEmail}</p>
@@ -139,20 +144,35 @@ export function QuotesPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDetailQuote(q);
+                        }}
+                        className="rounded border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100"
+                      >
+                        Ver
+                      </button>
                       {canPresent(q) && (
                         <button
-                          onClick={() => setPresentModal(q)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPresentModal(q);
+                          }}
                           className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
                         >
-                          Present Quote
+                          Cotizar
                         </button>
                       )}
                       {canArchive(q) && (
                         <button
-                          onClick={() => handleArchive(q.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleArchive(q.id);
+                          }}
                           className="rounded border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100"
                         >
-                          Archive
+                          Archivar
                         </button>
                       )}
                     </div>
@@ -164,6 +184,169 @@ export function QuotesPage() {
         </div>
       )}
 
+      {/* Quote Detail Modal */}
+      {detailQuote && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="mx-4 w-full max-w-lg rounded-lg bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">
+                Detalle de Solicitud de Cotización
+              </h2>
+              <button
+                onClick={() => setDetailQuote(null)}
+                className="text-gray-400 hover:text-gray-600 text-xl leading-none"
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Cliente */}
+            <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">Cliente</h3>
+              <div className="space-y-1">
+                <p className="text-sm">
+                  <span className="text-gray-500">Nombre:</span>{' '}
+                  <span className="font-medium text-gray-900">{detailQuote.customerName}</span>
+                </p>
+                <p className="text-sm">
+                  <span className="text-gray-500">Email:</span>{' '}
+                  <span className="text-gray-900">{detailQuote.customerEmail}</span>
+                </p>
+                <p className="text-sm">
+                  <span className="text-gray-500">Teléfono:</span>{' '}
+                  <span className="text-gray-900">{detailQuote.customerPhone}</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Descripción del pedido */}
+            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+              <h3 className="text-sm font-semibold text-blue-800 mb-2">Descripción del pedido</h3>
+              <p className="text-sm text-gray-800 whitespace-pre-wrap">
+                {detailQuote.description || 'Sin descripción proporcionada'}
+              </p>
+            </div>
+
+            {/* Información de la solicitud */}
+            <div className="mb-4 space-y-3">
+              <h3 className="text-sm font-semibold text-gray-700">Información</h3>
+              <QuoteDetailRow label="Estado" value={detailQuote.status.replace(/_/g, ' ')} />
+              <QuoteDetailRow
+                label="Fecha necesaria"
+                value={
+                  detailQuote.neededByDate
+                    ? new Date(detailQuote.neededByDate).toLocaleDateString()
+                    : 'No especificada'
+                }
+              />
+              <QuoteDetailRow
+                label="Fecha de creación"
+                value={new Date(detailQuote.createdAt).toLocaleString()}
+              />
+            </div>
+
+            {/* Cotización (si fue presentada) */}
+            {detailQuote.quotedPriceUsd && (
+              <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-4">
+                <h3 className="text-sm font-semibold text-green-800 mb-2">Cotización presentada</h3>
+                <div className="space-y-1">
+                  <p className="text-sm">
+                    <span className="text-gray-600">Precio:</span>{' '}
+                    <span className="font-bold text-green-800">
+                      ${detailQuote.quotedPriceUsd} USD
+                    </span>
+                  </p>
+                  {detailQuote.quotedLeadTimeDays && (
+                    <p className="text-sm">
+                      <span className="text-gray-600">Tiempo de producción:</span>{' '}
+                      <span className="text-gray-900">{detailQuote.quotedLeadTimeDays} días</span>
+                    </p>
+                  )}
+                  {detailQuote.estimatedDeliveryDate && (
+                    <p className="text-sm">
+                      <span className="text-gray-600">Entrega estimada:</span>{' '}
+                      <span className="text-gray-900">
+                        {new Date(detailQuote.estimatedDeliveryDate).toLocaleDateString()}
+                      </span>
+                    </p>
+                  )}
+                  {detailQuote.quoteSentAt && (
+                    <p className="text-sm">
+                      <span className="text-gray-600">Cotización enviada:</span>{' '}
+                      <span className="text-gray-900">
+                        {new Date(detailQuote.quoteSentAt).toLocaleString()}
+                      </span>
+                    </p>
+                  )}
+                  {detailQuote.quoteResponseDeadline && (
+                    <p className="text-sm">
+                      <span className="text-gray-600">Vence:</span>{' '}
+                      <span className="text-gray-900">
+                        {new Date(detailQuote.quoteResponseDeadline).toLocaleString()}
+                      </span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Fechas de resolución */}
+            {(detailQuote.acceptedAt || detailQuote.rejectedAt || detailQuote.paidAt) && (
+              <div className="mb-4 space-y-1">
+                {detailQuote.acceptedAt && (
+                  <QuoteDetailRow
+                    label="Aceptada"
+                    value={new Date(detailQuote.acceptedAt).toLocaleString()}
+                  />
+                )}
+                {detailQuote.rejectedAt && (
+                  <QuoteDetailRow
+                    label="Rechazada"
+                    value={new Date(detailQuote.rejectedAt).toLocaleString()}
+                  />
+                )}
+                {detailQuote.paidAt && (
+                  <QuoteDetailRow
+                    label="Pagada"
+                    value={new Date(detailQuote.paidAt).toLocaleString()}
+                  />
+                )}
+                {detailQuote.paymentDeadline && (
+                  <QuoteDetailRow
+                    label="Vencimiento de pago"
+                    value={new Date(detailQuote.paymentDeadline).toLocaleString()}
+                  />
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 mt-6">
+              {canPresent(detailQuote) && (
+                <button
+                  onClick={() => {
+                    setDetailQuote(null);
+                    setPresentModal(detailQuote);
+                  }}
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                >
+                  Cotizar
+                </button>
+              )}
+              <button
+                onClick={() => setDetailQuote(null)}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Present Quote Modal */}
       {presentModal && (
         <div
@@ -172,11 +355,11 @@ export function QuotesPage() {
           aria-modal="true"
         >
           <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-            <h2 className="mb-4 text-lg font-bold text-gray-900">Present Quote</h2>
+            <h2 className="mb-4 text-lg font-bold text-gray-900">Presentar Cotización</h2>
             <p className="mb-1 text-sm text-gray-600">
-              Customer: <strong>{presentModal.customerName}</strong> ({presentModal.customerEmail})
+              Cliente: <strong>{presentModal.customerName}</strong> ({presentModal.customerEmail})
             </p>
-            <p className="mb-4 text-sm text-gray-600">Request: {presentModal.description}</p>
+            <p className="mb-4 text-sm text-gray-600">Solicitud: {presentModal.description}</p>
 
             <div className="flex flex-col gap-3">
               <div>
@@ -184,7 +367,7 @@ export function QuotesPage() {
                   htmlFor="present-price"
                   className="mb-1 block text-sm font-medium text-gray-700"
                 >
-                  Price (USD) <span className="text-red-500">*</span>
+                  Precio (USD) <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="present-price"
@@ -202,7 +385,7 @@ export function QuotesPage() {
                   htmlFor="present-days"
                   className="mb-1 block text-sm font-medium text-gray-700"
                 >
-                  Lead time (days) <span className="text-red-500">*</span>
+                  Tiempo de producción (días) <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="present-days"
@@ -219,7 +402,7 @@ export function QuotesPage() {
                   htmlFor="present-delivery-date"
                   className="mb-1 block text-sm font-medium text-gray-700"
                 >
-                  Estimated delivery date <span className="text-red-500">*</span>
+                  Fecha estimada de entrega <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="present-delivery-date"
@@ -248,19 +431,28 @@ export function QuotesPage() {
                   }}
                   className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
-                  Cancel
+                  Cancelar
                 </button>
                 <button
                   onClick={handlePresent}
                   className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                 >
-                  Send Quote
+                  Enviar cotización
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function QuoteDetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <span className="text-sm text-gray-500 shrink-0">{label}</span>
+      <span className="text-sm text-gray-900 text-right">{value}</span>
     </div>
   );
 }

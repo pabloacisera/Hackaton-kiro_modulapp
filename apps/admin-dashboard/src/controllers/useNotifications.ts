@@ -47,7 +47,6 @@ export function useNotifications(accessToken: string | null): UseNotificationsRe
     const now = Date.now();
     if (now - lastSoundRef.current < SOUND_DEBOUNCE_MS) return;
     lastSoundRef.current = now;
-    // Play a short beep using Web Audio API (no external asset needed)
     try {
       const ctx = new AudioContext();
       const osc = ctx.createOscillator();
@@ -68,15 +67,20 @@ export function useNotifications(accessToken: string | null): UseNotificationsRe
     if (!accessToken) return;
 
     function connect() {
-      const socket = io(`${API_BASE}/admin`, {
+      // When behind Nginx reverse proxy, connect to /api path
+      // Socket.IO namespace '/admin' is sent as part of the protocol
+      const url = API_BASE === '/api' ? '/api/admin' : API_BASE + '/admin';
+      const socket = io(url, {
+        path: '/socket.io',
         auth: { token: accessToken },
-        reconnection: false, // we manage reconnection ourselves
+        reconnection: false,
+        transports: ['websocket', 'polling'],
       });
       socketRef.current = socket;
 
       socket.on('notifications.unread', (data: AdminNotification[]) => {
         setNotifications(data);
-        backoffRef.current = 1000; // reset on success
+        backoffRef.current = 1000;
       });
 
       socket.on('notification.new', (n: AdminNotification) => {
@@ -90,7 +94,6 @@ export function useNotifications(accessToken: string | null): UseNotificationsRe
       });
 
       socket.on('disconnect', () => {
-        // TASK-notif-10: reconnect with backoff
         setTimeout(() => {
           if (socketRef.current?.connected === false) {
             socket.close();
