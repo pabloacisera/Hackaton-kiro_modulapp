@@ -2,10 +2,18 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { SideNav } from './components/SideNav';
 import { HelpPanel } from './components/HelpPanel';
+import { NotificationBell } from './components/NotificationBell';
+import { NotificationPanel } from './components/NotificationPanel';
+import { useNotifications } from '../controllers/useNotifications';
+import { useAuth } from '../controllers/useAuth';
 
 export function DashboardLayout() {
   const [sideNavOpen, setSideNavOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [notifPanelOpen, setNotifPanelOpen] = useState(false);
+  const { accessToken } = useAuth();
+  const { notifications, unreadCount, soundEnabled, toggleSound, markRead } =
+    useNotifications(accessToken);
 
   return (
     <div className="flex h-screen overflow-hidden bg-surface-50">
@@ -17,7 +25,7 @@ export function DashboardLayout() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSideNavOpen(true)}
-              aria-label="Open navigation menu"
+              aria-label="Abrir menú de navegación"
               className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 sm:hidden"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -29,18 +37,35 @@ export function DashboardLayout() {
                 />
               </svg>
             </button>
-            <h2 className="text-sm font-semibold text-gray-700 sm:text-base">Dashboard</h2>
+            <h2 className="text-sm font-semibold text-gray-700 sm:text-base">Panel de Control</h2>
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Notification bell */}
+            <div className="relative">
+              <NotificationBell
+                unreadCount={unreadCount}
+                onClick={() => setNotifPanelOpen((v) => !v)}
+              />
+              {notifPanelOpen && (
+                <NotificationPanel
+                  notifications={notifications}
+                  soundEnabled={soundEnabled}
+                  onToggleSound={toggleSound}
+                  onMarkRead={markRead}
+                  onClose={() => setNotifPanelOpen(false)}
+                />
+              )}
+            </div>
+
             {/* Help button */}
             <button
               onClick={() => setHelpOpen(true)}
               className="flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-50 hover:text-brand-600"
-              aria-label="Open help panel"
+              aria-label="Abrir panel de ayuda"
             >
               <span>❓</span>
-              <span className="hidden sm:inline">Help</span>
+              <span className="hidden sm:inline">Ayuda</span>
             </button>
           </div>
         </header>

@@ -8,91 +8,97 @@ interface HelpPanelProps {
 const HELP_SECTIONS = [
   {
     id: 'catalog',
-    title: '📦 Catalog Management',
+    title: '📦 Gestión de Catálogo',
     content: `
-**Creating a prototype:**
-1. Go to Catalog → Click "Add Prototype"
-2. Fill in name, description, category, price, and stock
-3. Save → The product appears on the landing page instantly (via SSE)
+**Crear un prototipo:**
+1. Ve a Catálogo → Clic en "+ Agregar prototipo"
+2. Completa nombre, descripción, categoría, precio y stock
+3. Guardar → El producto aparece en la landing inmediatamente (vía SSE)
 
-**Editing:** Click "Edit" on any row to modify fields.
+**Editar:** Clic en "Editar" en cualquier fila para modificar campos.
 
-**Deactivating:** Removes the product from the public catalog without deleting it. You can reactivate later.
+**Desactivar:** Quita el producto del catálogo público sin eliminarlo. Puedes reactivarlo después.
 
-**Images:** After creating a prototype, click "Edit" and use the image upload section. Supported: JPEG, PNG, WebP (max 5MB).
+**Imágenes:** Después de crear un prototipo, haz clic en "Editar" y usa la sección de subida de imágenes. Soporta: JPEG, PNG, WebP (máx 5MB).
+
+**Importar Excel:** Puedes crear/actualizar múltiples prototipos a la vez subiendo un CSV. Usa el botón "Importar Excel" en la página del catálogo.
     `,
   },
   {
     id: 'orders',
-    title: '🛒 Orders (Flow A)',
+    title: '🛒 Órdenes (Flujo A)',
     content: `
-**Flow:** Customer pays → Order created → You review → Accept or Reject
+**Flujo:** Cliente paga → Se crea la orden → Tú revisas → Aceptar o Rechazar
 
-**Accept:** Sets estimated delivery date, deducts stock, sends confirmation email.
+**Aceptar:** Establece fecha estimada de entrega, descuenta stock, envía email de confirmación.
 
-**Reject:** Triggers automatic refund via PayPal, notifies customer.
+**Rechazar:** Genera reembolso automático vía PayPal, notifica al cliente.
 
-**Important:** Stock is only deducted when you ACCEPT. If you reject, no stock changes.
+**Importante:** El stock solo se descuenta cuando ACEPTAS. Si rechazas, no hay cambios de stock.
+
+**Ver detalle:** Haz clic en "Ver" o en la fila para ver toda la información de la orden, incluyendo el producto comprado.
     `,
   },
   {
     id: 'quotes',
-    title: '📋 Quotes (Flow B)',
+    title: '📋 Cotizaciones (Flujo B)',
     content: `
-**Flow:** Customer requests → You price it → Customer accepts/rejects → Payment
+**Flujo:** Cliente solicita → Tú cotizas → Cliente acepta/rechaza → Pago
 
-**Quoting:** Click "Present Quote" to set price and lead time. Customer receives email with accept/reject buttons.
+**Cotizar:** Clic en "Cotizar" para establecer precio y tiempo de producción. El cliente recibe un email con botones para aceptar o rechazar.
 
-**Deadlines:**
-- Customer has 48h to respond to your quote
-- If accepted, 24h to pay
-- Expired quotes are marked automatically (check daily)
+**Plazos:**
+- El cliente tiene 48h para responder a tu cotización
+- Si acepta, tiene 24h para pagar
+- Las cotizaciones expiradas se marcan automáticamente
 
-**Archiving:** Rejected/expired quotes can be archived to keep the list clean.
+**Archivar:** Las cotizaciones rechazadas/expiradas se pueden archivar para mantener la lista limpia.
+
+**Ver detalle:** Haz clic en "Ver" para leer la descripción completa del pedido del cliente.
     `,
   },
   {
     id: 'supplies',
-    title: '🏗️ Supplies & Stock',
+    title: '🏗️ Suministros y Stock',
     content: `
-**Low stock alerts:** The system checks every hour. If a supply drops below its minimum, you get a notification (bell icon + sound).
+**Alertas de stock bajo:** El sistema verifica cada hora. Si un suministro cae por debajo del mínimo, recibes una notificación (icono de campana + sonido).
 
-**Excel import:** Upload a spreadsheet to bulk-update supply quantities.
+**Importar Excel:** Sube una hoja de cálculo para actualizar cantidades en masa.
 
-**Stock ≠ Supplies:** Stock is finished products (prototypes). Supplies are raw materials used to make them.
+**Stock ≠ Suministros:** Stock son productos terminados (prototipos). Suministros son materias primas para fabricarlos.
     `,
   },
   {
     id: 'complaints',
-    title: '📨 Complaints & Refunds',
+    title: '📨 Reclamos y Reembolsos',
     content: `
-**Flow:** Customer submits → You review → Approve refund OR resolve without refund
+**Flujo:** Cliente envía reclamo → Tú revisas → Aprobar reembolso O resolver sin reembolso
 
-**Approve refund:** Triggers automatic PayPal refund. Customer is notified.
+**Aprobar reembolso:** Genera reembolso automático vía PayPal. Se notifica al cliente.
 
-**Resolve:** Mark as resolved with an explanation. No refund issued.
+**Resolver:** Marca como resuelto con una explicación. No se emite reembolso.
 
-**Important:** You cannot refund a payment that was already refunded (idempotency protection).
+**Importante:** No puedes reembolsar un pago que ya fue reembolsado (protección de idempotencia).
     `,
   },
   {
     id: 'deliveries',
-    title: '🚚 Deliveries',
+    title: '🚚 Entregas',
     content: `
-**Scheduling:** After accepting an order, the delivery is automatically created based on the estimated date you set.
+**Programación:** Al aceptar una orden, la entrega se crea automáticamente basándose en la fecha estimada que estableciste.
 
-**Status updates:** Mark deliveries as shipped, in-transit, or delivered. Customers are not directly notified yet (future feature).
+**Actualización de estado:** Marca entregas como enviadas, en tránsito o entregadas.
     `,
   },
   {
     id: 'notifications',
-    title: '🔔 Notifications',
+    title: '🔔 Notificaciones',
     content: `
-**Real-time:** Notifications arrive via WebSocket — you'll hear a sound and see the bell badge update.
+**Tiempo real:** Las notificaciones llegan vía WebSocket — escucharás un sonido y verás actualizarse el badge de la campana.
 
-**Types:** New orders, new quotes, complaints, low stock alerts, security alerts.
+**Tipos:** Nuevas órdenes, nuevas cotizaciones, reclamos, alertas de stock bajo, alertas de seguridad.
 
-**Mark as read:** Click on a notification to mark it read. The unread count updates across tabs.
+**Marcar como leída:** Clic en una notificación para marcarla como leída. El contador se actualiza en todas las pestañas.
     `,
   },
 ];
@@ -116,18 +122,18 @@ export function HelpPanel({ open, onClose }: HelpPanelProps) {
         className="fixed inset-y-0 right-0 z-50 w-full max-w-md overflow-y-auto bg-white shadow-elevated animate-slide-in-right"
         role="dialog"
         aria-modal="true"
-        aria-label="Help panel"
+        aria-label="Panel de ayuda"
       >
         {/* Header */}
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white px-6 py-4">
           <div>
-            <h2 className="text-lg font-bold text-gray-900">Help & Documentation</h2>
-            <p className="text-xs text-gray-500">How to use the admin panel</p>
+            <h2 className="text-lg font-bold text-gray-900">Ayuda y Documentación</h2>
+            <p className="text-xs text-gray-500">Cómo usar el panel de administración</p>
           </div>
           <button
             onClick={onClose}
             className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-            aria-label="Close help panel"
+            aria-label="Cerrar panel de ayuda"
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -178,12 +184,14 @@ export function HelpPanel({ open, onClose }: HelpPanelProps) {
 
           {/* Quick tips */}
           <div className="mt-8 rounded-xl bg-brand-50 p-4">
-            <h3 className="text-sm font-semibold text-brand-800">💡 Quick Tips</h3>
+            <h3 className="text-sm font-semibold text-brand-800">💡 Tips rápidos</h3>
             <ul className="mt-2 space-y-1.5 text-xs text-brand-700">
-              <li>• Changes to catalog are reflected on the landing page in real-time</li>
-              <li>• All monetary operations use PayPal — refunds are automatic</li>
-              <li>• Notifications play a sound — check your browser permissions</li>
-              <li>• Rate limiting protects login — 5 attempts per 15 minutes</li>
+              <li>• Los cambios en el catálogo se reflejan en la landing en tiempo real</li>
+              <li>
+                • Todas las operaciones monetarias usan PayPal — los reembolsos son automáticos
+              </li>
+              <li>• Las notificaciones reproducen un sonido — verifica permisos del navegador</li>
+              <li>• Rate limiting protege el login — 5 intentos cada 15 minutos</li>
             </ul>
           </div>
         </div>

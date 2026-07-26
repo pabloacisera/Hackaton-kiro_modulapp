@@ -2,10 +2,10 @@ import { useDeliveries } from '../controllers/useDeliveries';
 import type { DeliveryStatus } from '../models/deliveriesApi';
 
 const STATUS_OPTIONS: { value: DeliveryStatus | ''; label: string }[] = [
-  { value: '', label: 'All' },
-  { value: 'pending', label: 'Pending' },
-  { value: 'overdue', label: 'Overdue' },
-  { value: 'delivered', label: 'Delivered' },
+  { value: '', label: 'Todos' },
+  { value: 'pending', label: 'Pendiente' },
+  { value: 'overdue', label: 'Vencido' },
+  { value: 'delivered', label: 'Entregado' },
 ];
 
 /**
@@ -29,7 +29,7 @@ export function DeliveriesPage() {
   return (
     <div className="px-6 py-4">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Delivery Schedule</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Calendario de Entregas</h1>
         <span className="text-sm text-gray-500">{total} total</span>
       </div>
 
@@ -40,7 +40,7 @@ export function DeliveriesPage() {
             setStatusFilter(e.target.value ? (e.target.value as DeliveryStatus) : undefined)
           }
           className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
-          aria-label="Filter by status"
+          aria-label="Filtrar por estado"
         >
           {STATUS_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -52,7 +52,7 @@ export function DeliveriesPage() {
           onClick={reload}
           className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50"
         >
-          Refresh
+          Actualizar
         </button>
       </div>
 
@@ -66,19 +66,19 @@ export function DeliveriesPage() {
       )}
 
       {loading ? (
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500">Cargando...</p>
       ) : deliveries.length === 0 ? (
-        <p className="text-gray-500">No deliveries scheduled.</p>
+        <p className="text-gray-500">No hay entregas programadas.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm" aria-label="Deliveries table">
+          <table className="w-full text-left text-sm" aria-label="Tabla de entregas">
             <thead className="border-b bg-gray-50 text-xs uppercase text-gray-600">
               <tr>
-                <th className="px-3 py-2">Customer</th>
-                <th className="px-3 py-2">Origin</th>
-                <th className="px-3 py-2">Delivery Date</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">Actions</th>
+                <th className="px-3 py-2">Cliente</th>
+                <th className="px-3 py-2">Origen</th>
+                <th className="px-3 py-2">Fecha de entrega</th>
+                <th className="px-3 py-2">Estado</th>
+                <th className="px-3 py-2">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -119,16 +119,16 @@ export function DeliveriesPage() {
                           onClick={() => deliver(d.origin, d.id)}
                           className="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700"
                         >
-                          Mark Delivered
+                          Marcar entregado
                         </button>
                         <button
                           onClick={() => {
-                            const newDate = prompt('New delivery date (YYYY-MM-DD):');
+                            const newDate = prompt('Nueva fecha de entrega (AAAA-MM-DD):');
                             if (newDate) postpone(d.origin, d.id, newDate);
                           }}
                           className="rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-100"
                         >
-                          Postpone
+                          Posponer
                         </button>
                       </div>
                     )}

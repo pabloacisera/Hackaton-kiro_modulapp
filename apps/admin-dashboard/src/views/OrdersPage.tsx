@@ -1,14 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useOrders } from '../controllers/useOrders';
 import { OrderDto, OrderStatus } from '../models/ordersApi';
+import { fetchAdminPrototypeById, AdminPrototypeDto } from '../models/catalogApi';
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
-  created: 'Created',
-  payment_initiated: 'Payment initiated',
-  paid_pending_acceptance: 'Pending acceptance',
-  accepted: 'Accepted',
-  rejected: 'Rejected',
-  payment_failed: 'Payment failed',
+  created: 'Creada',
+  payment_initiated: 'Pago iniciado',
+  paid_pending_acceptance: 'Pendiente de aceptación',
+  accepted: 'Aceptada',
+  rejected: 'Rechazada',
+  payment_failed: 'Pago fallido',
 };
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
@@ -39,6 +40,9 @@ export function OrdersPage() {
 
   const [actionError, setActionError] = useState<string | null>(null);
 
+  // ── Detail modal state ────────────────────────────────────────────────────
+  const [detailOrder, setDetailOrder] = useState<OrderDto | null>(null);
+
   // ── Accept dialog state ───────────────────────────────────────────────────
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [eta, setEta] = useState('');
@@ -55,7 +59,7 @@ export function OrdersPage() {
       setAcceptingId(null);
       setEta('');
     } catch (err: unknown) {
-      setActionError(err instanceof Error ? err.message : 'Accept failed');
+      setActionError(err instanceof Error ? err.message : 'Error al aceptar');
     }
   };
 
@@ -67,14 +71,14 @@ export function OrdersPage() {
       setRejectingId(null);
       setRejectReason('');
     } catch (err: unknown) {
-      setActionError(err instanceof Error ? err.message : 'Reject failed');
+      setActionError(err instanceof Error ? err.message : 'Error al rechazar');
     }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-xl font-bold text-gray-900">Orders</h1>
+        <h1 className="text-xl font-bold text-gray-900">Órdenes</h1>
 
         {/* Status filter */}
         <select
@@ -84,9 +88,9 @@ export function OrdersPage() {
             setPage(1);
           }}
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
-          aria-label="Filter by status"
+          aria-label="Filtrar por estado"
         >
-          <option value="">All statuses</option>
+          <option value="">Todos los estados</option>
           {(Object.keys(STATUS_LABELS) as OrderStatus[]).map((s) => (
             <option key={s} value={s}>
               {STATUS_LABELS[s]}
@@ -130,13 +134,13 @@ export function OrdersPage() {
             {loading ? (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
-                  Loading…
+                  Cargando…
                 </td>
               </tr>
             ) : orders.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-8 text-center text-gray-400">
-                  No orders found.
+                  No se encontraron órdenes.
                 </td>
               </tr>
             ) : (
@@ -144,6 +148,7 @@ export function OrdersPage() {
                 <OrderRow
                   key={order.id}
                   order={order}
+                  onDetail={() => setDetailOrder(order)}
                   onAccept={() => {
                     setAcceptingId(order.id);
                     setActionError(null);
@@ -167,27 +172,30 @@ export function OrdersPage() {
             onClick={() => setPage(page - 1)}
             className="rounded px-3 py-1 text-sm border border-gray-300 disabled:opacity-40"
           >
-            ← Prev
+            ← Anterior
           </button>
-          <span className="text-sm text-gray-600">Page {page}</span>
+          <span className="text-sm text-gray-600">Página {page}</span>
           <button
             disabled={page * 20 >= total}
             onClick={() => setPage(page + 1)}
             className="rounded px-3 py-1 text-sm border border-gray-300 disabled:opacity-40"
           >
-            Next →
+            Siguiente →
           </button>
         </div>
       )}
 
+      {/* Order Detail modal */}
+      {detailOrder && <OrderDetailModal order={detailOrder} onClose={() => setDetailOrder(null)} />}
+
       {/* Accept modal */}
       {acceptingId && (
-        <Modal title="Accept order" onClose={() => setAcceptingId(null)}>
+        <Modal title="Aceptar orden" onClose={() => setAcceptingId(null)}>
           <p className="mb-4 text-sm text-gray-600">
-            Set an estimated delivery date for the customer.
+            Establece una fecha estimada de entrega para el cliente.
           </p>
           <label htmlFor="accept-eta" className="mb-1 block text-sm font-medium text-gray-700">
-            Estimated delivery date <span className="text-red-500">*</span>
+            Fecha estimada de entrega <span className="text-red-500">*</span>
           </label>
           <input
             id="accept-eta"
@@ -196,21 +204,21 @@ export function OrdersPage() {
             onChange={(e) => setEta(e.target.value)}
             min={new Date().toISOString().split('T')[0]}
             className="mb-4 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
-            aria-label="Estimated delivery date"
+            aria-label="Fecha estimada de entrega"
           />
           <div className="flex justify-end gap-2">
             <button
               onClick={() => setAcceptingId(null)}
               className="rounded px-4 py-2 text-sm border border-gray-300"
             >
-              Cancel
+              Cancelar
             </button>
             <button
               onClick={handleAccept}
               disabled={!eta}
               className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50"
             >
-              Confirm acceptance
+              Confirmar aceptación
             </button>
           </div>
         </Modal>
@@ -218,35 +226,35 @@ export function OrdersPage() {
 
       {/* Reject modal */}
       {rejectingId && (
-        <Modal title="Reject order" onClose={() => setRejectingId(null)}>
+        <Modal title="Rechazar orden" onClose={() => setRejectingId(null)}>
           <p className="mb-2 text-sm text-red-600 font-medium">
-            This will automatically trigger a full refund to the customer.
+            Esto generará automáticamente un reembolso completo al cliente.
           </p>
           <label htmlFor="reject-reason" className="mb-1 block text-sm font-medium text-gray-700">
-            Reason for rejection <span className="text-red-500">*</span>
+            Motivo del rechazo <span className="text-red-500">*</span>
           </label>
           <textarea
             id="reject-reason"
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
             rows={3}
-            placeholder="e.g. Out of stock in warehouse, material unavailable…"
+            placeholder="Ej: Sin stock en almacén, material no disponible…"
             className="mb-4 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm resize-none"
-            aria-label="Rejection reason"
+            aria-label="Motivo del rechazo"
           />
           <div className="flex justify-end gap-2">
             <button
               onClick={() => setRejectingId(null)}
               className="rounded px-4 py-2 text-sm border border-gray-300"
             >
-              Cancel
+              Cancelar
             </button>
             <button
               onClick={handleReject}
               disabled={!rejectReason.trim()}
               className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
             >
-              Reject & refund
+              Rechazar y reembolsar
             </button>
           </div>
         </Modal>
@@ -261,15 +269,17 @@ function OrderRow({
   order,
   onAccept,
   onReject,
+  onDetail,
 }: {
   order: OrderDto;
   onAccept: () => void;
   onReject: () => void;
+  onDetail: () => void;
 }) {
   const isPending = order.status === 'paid_pending_acceptance';
 
   return (
-    <tr className="hover:bg-gray-50">
+    <tr className="hover:bg-gray-50 cursor-pointer" onClick={onDetail}>
       <td className="px-4 py-3 font-mono text-xs text-gray-500">
         #{order.id.slice(0, 8).toUpperCase()}
       </td>
@@ -291,31 +301,187 @@ function OrderRow({
         {new Date(order.createdAt).toLocaleDateString()}
       </td>
       <td className="px-4 py-3">
-        {isPending && (
-          <div className="flex gap-2">
-            <button
-              onClick={onAccept}
-              className="rounded bg-green-600 px-3 py-1 text-xs font-semibold text-white hover:bg-green-700"
-              aria-label={`Accept order ${order.id}`}
-            >
-              Accept
-            </button>
-            <button
-              onClick={onReject}
-              className="rounded bg-red-600 px-3 py-1 text-xs font-semibold text-white hover:bg-red-700"
-              aria-label={`Reject order ${order.id}`}
-            >
-              Reject
-            </button>
-          </div>
-        )}
+        <div className="flex gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDetail();
+            }}
+            className="rounded border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100"
+            aria-label={`Ver detalle orden ${order.id}`}
+          >
+            Ver
+          </button>
+          {isPending && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAccept();
+                }}
+                className="rounded bg-green-600 px-3 py-1 text-xs font-semibold text-white hover:bg-green-700"
+                aria-label={`Accept order ${order.id}`}
+              >
+                Aceptar
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onReject();
+                }}
+                className="rounded bg-red-600 px-3 py-1 text-xs font-semibold text-white hover:bg-red-700"
+                aria-label={`Reject order ${order.id}`}
+              >
+                Rechazar
+              </button>
+            </>
+          )}
+        </div>
         {order.status === 'rejected' && order.rejectionReason && (
-          <p className="text-xs text-gray-500 max-w-xs truncate" title={order.rejectionReason}>
+          <p className="text-xs text-gray-500 max-w-xs truncate mt-1" title={order.rejectionReason}>
             {order.rejectionReason}
           </p>
         )}
       </td>
     </tr>
+  );
+}
+
+function OrderDetailModal({ order, onClose }: { order: OrderDto; onClose: () => void }) {
+  const [prototype, setPrototype] = useState<AdminPrototypeDto | null>(null);
+  const [loadingProto, setLoadingProto] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoadingProto(true);
+    fetchAdminPrototypeById(order.prototypeId)
+      .then((p) => {
+        if (!cancelled) setPrototype(p);
+      })
+      .catch(() => {
+        if (!cancelled) setPrototype(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingProto(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [order.prototypeId]);
+
+  return (
+    <>
+      <div className="fixed inset-0 z-40 bg-black/40" onClick={onClose} aria-hidden="true" />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Detalle de orden"
+        className="fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Detalle de Orden</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 text-xl leading-none"
+          >
+            &times;
+          </button>
+        </div>
+
+        {/* Producto */}
+        <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">Producto</h3>
+          {loadingProto ? (
+            <p className="text-sm text-gray-400">Cargando producto...</p>
+          ) : prototype ? (
+            <div className="flex gap-3">
+              {prototype.images.length > 0 && (
+                <img
+                  src={prototype.images[0].url}
+                  alt={prototype.name}
+                  className="w-16 h-16 rounded-lg object-cover border border-gray-200"
+                />
+              )}
+              <div>
+                <p className="font-medium text-gray-900">{prototype.name}</p>
+                <p className="text-xs text-gray-500 capitalize">
+                  {prototype.category.replace('_', ' ')}
+                </p>
+                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{prototype.description}</p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400">
+              Producto no encontrado (ID: {order.prototypeId.slice(0, 8)})
+            </p>
+          )}
+        </div>
+
+        {/* Info de la orden */}
+        <div className="space-y-3">
+          <DetailRow label="ID de Orden" value={`#${order.id.slice(0, 8).toUpperCase()}`} mono />
+          <DetailRow
+            label="Estado"
+            value={STATUS_LABELS[order.status]}
+            badge={STATUS_COLORS[order.status]}
+          />
+          <DetailRow label="Monto" value={`$${Number(order.priceUsdSnapshot).toFixed(2)} USD`} />
+          <DetailRow label="Cliente" value={order.customerName || '—'} />
+          <DetailRow label="Email" value={order.customerEmail} />
+          <DetailRow label="Fecha de creación" value={new Date(order.createdAt).toLocaleString()} />
+          <DetailRow
+            label="Última actualización"
+            value={new Date(order.updatedAt).toLocaleString()}
+          />
+          {order.estimatedDeliveryDate && (
+            <DetailRow
+              label="Entrega estimada"
+              value={new Date(order.estimatedDeliveryDate).toLocaleDateString()}
+            />
+          )}
+          {order.rejectionReason && (
+            <DetailRow label="Motivo de rechazo" value={order.rejectionReason} />
+          )}
+          {order.paymentServiceRef && (
+            <DetailRow label="Ref. de pago" value={order.paymentServiceRef} mono />
+          )}
+        </div>
+
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function DetailRow({
+  label,
+  value,
+  mono,
+  badge,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+  badge?: string;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <span className="text-sm text-gray-500 shrink-0">{label}</span>
+      {badge ? (
+        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${badge}`}>{value}</span>
+      ) : (
+        <span className={`text-sm text-gray-900 text-right ${mono ? 'font-mono' : ''}`}>
+          {value}
+        </span>
+      )}
+    </div>
   );
 }
 

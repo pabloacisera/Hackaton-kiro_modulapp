@@ -40,4 +40,4 @@ COPY --from=builder /app/apps/api-core/prisma ./prisma
 
 ENV NODE_ENV=production
 EXPOSE 8080
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/main"]

@@ -26,25 +26,25 @@ export function NotificationPanel({
       {/* Panel */}
       <div
         role="dialog"
-        aria-label="Notifications panel"
+        aria-label="Panel de notificaciones"
         className="absolute right-0 top-10 z-40 w-80 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl"
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-          <h2 className="text-sm font-semibold text-gray-900">Notifications</h2>
+          <h2 className="text-sm font-semibold text-gray-900">Notificaciones</h2>
           <button
             onClick={onToggleSound}
             className="text-xs text-gray-500 hover:text-gray-700"
-            aria-label={soundEnabled ? 'Disable notification sound' : 'Enable notification sound'}
+            aria-label={soundEnabled ? 'Desactivar sonido' : 'Activar sonido'}
           >
-            {soundEnabled ? '🔔 Sound on' : '🔕 Sound off'}
+            {soundEnabled ? '🔔 Sonido on' : '🔕 Sonido off'}
           </button>
         </div>
 
         {/* List */}
         <ul className="max-h-96 overflow-y-auto divide-y divide-gray-50">
           {notifications.length === 0 ? (
-            <li className="px-4 py-8 text-center text-sm text-gray-400">No notifications</li>
+            <li className="px-4 py-8 text-center text-sm text-gray-400">Sin notificaciones</li>
           ) : (
             notifications.map((n) => (
               <li
@@ -68,9 +68,9 @@ export function NotificationPanel({
                   <button
                     onClick={() => onMarkRead(n.id)}
                     className="shrink-0 text-xs text-blue-600 hover:underline"
-                    aria-label={`Mark "${n.message}" as read`}
+                    aria-label={`Marcar "${n.message}" como leída`}
                   >
-                    Mark read
+                    Marcar leída
                   </button>
                 )}
               </li>

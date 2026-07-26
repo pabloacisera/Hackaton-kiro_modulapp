@@ -46,7 +46,7 @@ export async function fetchQuotes(params?: {
   page?: number;
   pageSize?: number;
 }): Promise<PaginatedQuotes> {
-  const res = await httpClient.get<PaginatedQuotes>('/api/quotes', { params });
+  const res = await httpClient.get<PaginatedQuotes>('/quotes', { params });
   return res.data;
 }
 
@@ -54,9 +54,9 @@ export async function presentQuote(
   quoteId: string,
   data: { priceUsd: number; leadTimeDays: number; estimatedDeliveryDate: string },
 ): Promise<void> {
-  await httpClient.patch(`/api/quotes/${quoteId}/present`, data);
+  await httpClient.patch(`/quotes/${quoteId}/present`, data);
 }
 
 export async function archiveQuote(quoteId: string): Promise<void> {
-  await httpClient.patch(`/api/quotes/${quoteId}/archive`);
+  await httpClient.patch(`/quotes/${quoteId}/archive`);
 }

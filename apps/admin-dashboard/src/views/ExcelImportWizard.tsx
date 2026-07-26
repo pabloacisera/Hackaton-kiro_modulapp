@@ -36,26 +36,26 @@ export function ExcelImportWizard() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6">
-      <h2 className="mb-4 text-xl font-bold text-gray-900">Import Supplies from Excel</h2>
+      <h2 className="mb-4 text-xl font-bold text-gray-900">Importar Suministros desde Excel</h2>
 
       {/* Step 1: Upload */}
       {step === 'upload' && (
         <div className="rounded-lg border-2 border-dashed border-gray-300 p-8 text-center">
           <p className="mb-4 text-sm text-gray-600">
-            Upload a JSON or CSV file with columns: sku, name, unit, current_qty, min_stock,
+            Sube un archivo JSON o CSV con columnas: sku, name, unit, current_qty, min_stock,
             unit_cost_usd, supplier
           </p>
           <label className="inline-block cursor-pointer rounded-lg bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-            Choose File
+            Seleccionar archivo
             <input
               type="file"
               accept=".json,.csv,.xlsx"
               onChange={handleFileUpload}
               className="hidden"
-              aria-label="Upload supply file"
+              aria-label="Subir archivo de suministros"
             />
           </label>
-          {loading && <p className="mt-4 text-sm text-gray-500">Parsing file...</p>}
+          {loading && <p className="mt-4 text-sm text-gray-500">Procesando archivo...</p>}
           {error && (
             <div
               role="alert"
@@ -71,9 +71,9 @@ export function ExcelImportWizard() {
       {step === 'preview' && preview && (
         <div>
           <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Preview Changes</h3>
+            <h3 className="text-lg font-semibold">Vista previa de cambios</h3>
             <button onClick={reset} className="text-sm text-gray-500 hover:underline">
-              Cancel
+              Cancelar
             </button>
           </div>
 
@@ -81,7 +81,7 @@ export function ExcelImportWizard() {
           {preview.toCreate.length > 0 && (
             <div className="mb-4">
               <h4 className="mb-2 text-sm font-medium text-green-700">
-                ✅ To Create ({preview.toCreate.length})
+                ✅ Se crearán ({preview.toCreate.length})
               </h4>
               <ul className="space-y-1">
                 {preview.toCreate.map((item) => (
@@ -97,7 +97,7 @@ export function ExcelImportWizard() {
           {preview.toUpdate.length > 0 && (
             <div className="mb-4">
               <h4 className="mb-2 text-sm font-medium text-yellow-700">
-                ✏️ To Update ({preview.toUpdate.length})
+                ✏️ Se actualizarán ({preview.toUpdate.length})
               </h4>
               <ul className="space-y-1">
                 {preview.toUpdate.map((item) => (
@@ -113,7 +113,7 @@ export function ExcelImportWizard() {
           {preview.errors.length > 0 && (
             <div className="mb-4">
               <h4 className="mb-2 text-sm font-medium text-red-700">
-                ❌ Errors ({preview.errors.length})
+                ❌ Errores ({preview.errors.length})
               </h4>
               <ul className="space-y-1">
                 {preview.errors.map((err, i) => (
@@ -139,7 +139,7 @@ export function ExcelImportWizard() {
               onClick={reset}
               className="flex-1 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-gray-50"
             >
-              Cancel
+              Cancelar
             </button>
             <button
               onClick={confirm}
@@ -147,7 +147,7 @@ export function ExcelImportWizard() {
               className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
               aria-busy={loading}
             >
-              {loading ? 'Applying...' : 'Confirm Import'}
+              {loading ? 'Aplicando...' : 'Confirmar importación'}
             </button>
           </div>
         </div>
@@ -157,13 +157,13 @@ export function ExcelImportWizard() {
       {step === 'done' && confirmResult && (
         <div className="text-center">
           <div className="mb-4 text-4xl">✅</div>
-          <h3 className="mb-2 text-lg font-bold text-gray-900">Import Complete</h3>
+          <h3 className="mb-2 text-lg font-bold text-gray-900">Importación completada</h3>
           <p className="text-sm text-gray-600">
-            {confirmResult.applied} supplies applied successfully.
+            {confirmResult.applied} suministros procesados exitosamente.
           </p>
           {confirmResult.errors.length > 0 && (
             <div className="mt-4 text-left">
-              <h4 className="text-sm font-medium text-red-700">Errors:</h4>
+              <h4 className="text-sm font-medium text-red-700">Errores:</h4>
               <ul className="mt-1 space-y-1">
                 {confirmResult.errors.map((err, i) => (
                   <li key={i} className="text-xs text-red-600">
@@ -177,7 +177,7 @@ export function ExcelImportWizard() {
             onClick={reset}
             className="mt-6 rounded-lg bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700"
           >
-            Import Another
+            Importar otro archivo
           </button>
         </div>
       )}

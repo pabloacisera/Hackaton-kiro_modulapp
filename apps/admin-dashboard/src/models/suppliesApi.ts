@@ -39,7 +39,7 @@ export async function fetchSupplies(params?: {
   page?: number;
   pageSize?: number;
 }): Promise<PaginatedSupplies> {
-  const res = await httpClient.get<PaginatedSupplies>('/api/admin/supplies', { params });
+  const res = await httpClient.get<PaginatedSupplies>('/admin/supplies', { params });
   return res.data;
 }
 
@@ -52,7 +52,7 @@ export async function createSupply(data: {
   unitCostUsd: number;
   supplier?: string;
 }): Promise<SupplyDto> {
-  const res = await httpClient.post<SupplyDto>('/api/admin/supplies', data);
+  const res = await httpClient.post<SupplyDto>('/admin/supplies', data);
   return res.data;
 }
 
@@ -67,28 +67,27 @@ export async function updateSupply(
     supplier: string;
   }>,
 ): Promise<SupplyDto> {
-  const res = await httpClient.patch<SupplyDto>(`/api/admin/supplies/${id}`, data);
+  const res = await httpClient.patch<SupplyDto>(`/admin/supplies/${id}`, data);
   return res.data;
 }
 
 export async function deleteSupply(id: string): Promise<void> {
-  await httpClient.delete(`/api/admin/supplies/${id}`);
+  await httpClient.delete(`/admin/supplies/${id}`);
 }
 
 export async function importExcelPreview(
   rows: Record<string, unknown>[],
 ): Promise<ImportPreviewResponse> {
-  const res = await httpClient.post<ImportPreviewResponse>('/api/admin/supplies/import-excel', {
+  const res = await httpClient.post<ImportPreviewResponse>('/admin/supplies/import-excel', {
     rows,
   });
   return res.data;
 }
 
 export async function importExcelConfirm(previewId: string): Promise<ConfirmImportResponse> {
-  const res = await httpClient.post<ConfirmImportResponse>(
-    '/api/admin/supplies/import-excel/confirm',
-    { previewId },
-  );
+  const res = await httpClient.post<ConfirmImportResponse>('/admin/supplies/import-excel/confirm', {
+    previewId,
+  });
   return res.data;
 }
 
@@ -96,6 +95,6 @@ export async function exportSupplies(): Promise<{
   headers: string[];
   rows: Record<string, unknown>[];
 }> {
-  const res = await httpClient.get('/api/admin/supplies/export-excel');
+  const res = await httpClient.get('/admin/supplies/export-excel');
   return res.data;
 }

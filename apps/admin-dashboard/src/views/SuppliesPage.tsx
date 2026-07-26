@@ -62,7 +62,7 @@ export function SuppliesPage() {
       });
       resetForm();
     } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : 'Failed to create');
+      setFormError(err instanceof Error ? err.message : 'Error al crear');
     }
   };
 
@@ -79,7 +79,7 @@ export function SuppliesPage() {
       });
       resetForm();
     } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : 'Failed to update');
+      setFormError(err instanceof Error ? err.message : 'Error al actualizar');
     }
   };
 
@@ -100,7 +100,7 @@ export function SuppliesPage() {
   return (
     <div className="px-6 py-4">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Supplies</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Suministros</h1>
         <button
           onClick={() => {
             resetForm();
@@ -108,7 +108,7 @@ export function SuppliesPage() {
           }}
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
         >
-          Add Supply
+          Agregar suministro
         </button>
       </div>
 
@@ -116,11 +116,11 @@ export function SuppliesPage() {
       <div className="mb-4 flex flex-wrap items-center gap-4">
         <input
           type="text"
-          placeholder="Search by name or SKU..."
+          placeholder="Buscar por nombre o SKU..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
-          aria-label="Search supplies"
+          aria-label="Buscar suministros"
         />
         <label className="flex items-center gap-2 text-sm">
           <input
@@ -128,13 +128,13 @@ export function SuppliesPage() {
             checked={belowMinOnly}
             onChange={(e) => setBelowMinOnly(e.target.checked)}
           />
-          Below minimum only
+          Solo bajo mínimo
         </label>
         <button
           onClick={reload}
           className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50"
         >
-          Refresh
+          Actualizar
         </button>
         <span className="text-sm text-gray-500">{total} total</span>
       </div>
@@ -149,21 +149,21 @@ export function SuppliesPage() {
       )}
 
       {loading ? (
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500">Cargando...</p>
       ) : supplies.length === 0 ? (
-        <p className="text-gray-500">No supplies found.</p>
+        <p className="text-gray-500">No se encontraron suministros.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm" aria-label="Supplies table">
+          <table className="w-full text-left text-sm" aria-label="Tabla de suministros">
             <thead className="border-b bg-gray-50 text-xs uppercase text-gray-600">
               <tr>
                 <th className="px-3 py-2">SKU</th>
-                <th className="px-3 py-2">Name</th>
-                <th className="px-3 py-2">Qty</th>
-                <th className="px-3 py-2">Min</th>
-                <th className="px-3 py-2">Cost</th>
-                <th className="px-3 py-2">Supplier</th>
-                <th className="px-3 py-2">Actions</th>
+                <th className="px-3 py-2">Nombre</th>
+                <th className="px-3 py-2">Cant.</th>
+                <th className="px-3 py-2">Mín.</th>
+                <th className="px-3 py-2">Costo</th>
+                <th className="px-3 py-2">Proveedor</th>
+                <th className="px-3 py-2">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -185,13 +185,13 @@ export function SuppliesPage() {
                       onClick={() => startEdit(s)}
                       className="text-blue-600 hover:underline text-xs"
                     >
-                      Edit
+                      Editar
                     </button>
                     <button
                       onClick={() => remove(s.id)}
                       className="text-red-600 hover:underline text-xs"
                     >
-                      Delete
+                      Eliminar
                     </button>
                   </td>
                 </tr>
@@ -209,7 +209,9 @@ export function SuppliesPage() {
           aria-modal="true"
         >
           <div className="mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-            <h2 className="mb-4 text-lg font-bold">{editId ? 'Edit Supply' : 'New Supply'}</h2>
+            <h2 className="mb-4 text-lg font-bold">
+              {editId ? 'Editar Suministro' : 'Nuevo Suministro'}
+            </h2>
             <div className="flex flex-col gap-3">
               {!editId && (
                 <input
@@ -221,49 +223,49 @@ export function SuppliesPage() {
                 />
               )}
               <input
-                placeholder="Name"
+                placeholder="Nombre"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="rounded border px-3 py-2 text-sm"
-                aria-label="Name"
+                aria-label="Nombre"
               />
               <input
-                placeholder="Unit"
+                placeholder="Unidad"
                 value={formData.unit}
                 onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
                 className="rounded border px-3 py-2 text-sm"
-                aria-label="Unit"
+                aria-label="Unidad"
               />
               <input
                 type="number"
-                placeholder="Qty"
+                placeholder="Cantidad"
                 value={formData.currentQty}
                 onChange={(e) => setFormData({ ...formData, currentQty: e.target.value })}
                 className="rounded border px-3 py-2 text-sm"
-                aria-label="Current quantity"
+                aria-label="Cantidad actual"
               />
               <input
                 type="number"
-                placeholder="Min Stock"
+                placeholder="Stock mínimo"
                 value={formData.minStock}
                 onChange={(e) => setFormData({ ...formData, minStock: e.target.value })}
                 className="rounded border px-3 py-2 text-sm"
-                aria-label="Minimum stock"
+                aria-label="Stock mínimo"
               />
               <input
                 type="number"
-                placeholder="Unit Cost USD"
+                placeholder="Costo unitario USD"
                 value={formData.unitCostUsd}
                 onChange={(e) => setFormData({ ...formData, unitCostUsd: e.target.value })}
                 className="rounded border px-3 py-2 text-sm"
-                aria-label="Unit cost"
+                aria-label="Costo unitario"
               />
               <input
-                placeholder="Supplier (optional)"
+                placeholder="Proveedor (opcional)"
                 value={formData.supplier}
                 onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
                 className="rounded border px-3 py-2 text-sm"
-                aria-label="Supplier"
+                aria-label="Proveedor"
               />
               {formError && (
                 <div role="alert" className="text-xs text-red-600">
@@ -272,13 +274,13 @@ export function SuppliesPage() {
               )}
               <div className="flex gap-3 pt-2">
                 <button onClick={resetForm} className="flex-1 rounded-lg border px-4 py-2 text-sm">
-                  Cancel
+                  Cancelar
                 </button>
                 <button
                   onClick={editId ? handleUpdate : handleCreate}
                   className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                 >
-                  {editId ? 'Update' : 'Create'}
+                  {editId ? 'Actualizar' : 'Crear'}
                 </button>
               </div>
             </div>

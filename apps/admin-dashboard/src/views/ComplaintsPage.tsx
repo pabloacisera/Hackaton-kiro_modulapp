@@ -2,12 +2,12 @@ import { useComplaints } from '../controllers/useComplaints';
 import type { ComplaintStatus } from '../models/complaintsApi';
 
 const STATUS_OPTIONS: { value: ComplaintStatus | ''; label: string }[] = [
-  { value: '', label: 'All' },
-  { value: 'received', label: 'Received' },
-  { value: 'under_review', label: 'Under Review' },
-  { value: 'refund_approved', label: 'Refund Approved' },
-  { value: 'resolved_other_way', label: 'Resolved' },
-  { value: 'rejected', label: 'Rejected' },
+  { value: '', label: 'Todos' },
+  { value: 'received', label: 'Recibido' },
+  { value: 'under_review', label: 'En revisión' },
+  { value: 'refund_approved', label: 'Reembolso aprobado' },
+  { value: 'resolved_other_way', label: 'Resuelto' },
+  { value: 'rejected', label: 'Rechazado' },
 ];
 
 /**
@@ -34,7 +34,7 @@ export function ComplaintsPage() {
   return (
     <div className="px-6 py-4">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Complaints</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Reclamos</h1>
         <span className="text-sm text-gray-500">{total} total</span>
       </div>
 
@@ -45,7 +45,7 @@ export function ComplaintsPage() {
             setStatusFilter(e.target.value ? (e.target.value as ComplaintStatus) : undefined)
           }
           className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm"
-          aria-label="Filter by status"
+          aria-label="Filtrar por estado"
         >
           {STATUS_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -57,7 +57,7 @@ export function ComplaintsPage() {
           onClick={reload}
           className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm hover:bg-gray-50"
         >
-          Refresh
+          Actualizar
         </button>
       </div>
 
@@ -71,20 +71,20 @@ export function ComplaintsPage() {
       )}
 
       {loading ? (
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500">Cargando...</p>
       ) : complaints.length === 0 ? (
-        <p className="text-gray-500">No complaints found.</p>
+        <p className="text-gray-500">No se encontraron reclamos.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm" aria-label="Complaints table">
+          <table className="w-full text-left text-sm" aria-label="Tabla de reclamos">
             <thead className="border-b bg-gray-50 text-xs uppercase text-gray-600">
               <tr>
-                <th className="px-3 py-2">Customer</th>
-                <th className="px-3 py-2">Reference</th>
-                <th className="px-3 py-2">Reason</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">Date</th>
-                <th className="px-3 py-2">Actions</th>
+                <th className="px-3 py-2">Cliente</th>
+                <th className="px-3 py-2">Referencia</th>
+                <th className="px-3 py-2">Motivo</th>
+                <th className="px-3 py-2">Estado</th>
+                <th className="px-3 py-2">Fecha</th>
+                <th className="px-3 py-2">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -113,7 +113,7 @@ export function ComplaintsPage() {
                           onClick={() => review(c.id)}
                           className="rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700"
                         >
-                          Review
+                          Revisar
                         </button>
                       )}
                       {canRefund(c.status) && (
@@ -121,7 +121,7 @@ export function ComplaintsPage() {
                           onClick={() => refund(c.id)}
                           className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
                         >
-                          Approve Refund
+                          Aprobar reembolso
                         </button>
                       )}
                       {canResolve(c.status) && (
@@ -131,7 +131,7 @@ export function ComplaintsPage() {
                           }
                           className="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700"
                         >
-                          Resolve
+                          Resolver
                         </button>
                       )}
                     </div>

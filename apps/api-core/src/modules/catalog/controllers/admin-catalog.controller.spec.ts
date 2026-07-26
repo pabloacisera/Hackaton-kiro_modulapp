@@ -12,6 +12,8 @@ describe('AdminCatalogController', () => {
   let storage: any;
   let events: any;
   let cache: any;
+  let importExcel: any;
+  let confirmImport: any;
 
   const mockPrototype = new Prototype({
     id: 'proto-test',
@@ -49,8 +51,17 @@ describe('AdminCatalogController', () => {
     };
     events = { publishUpdated: jest.fn(), publishDeactivated: jest.fn() };
     cache = { invalidateListings: jest.fn() };
+    importExcel = { execute: jest.fn() };
+    confirmImport = { execute: jest.fn() };
 
-    controller = new AdminCatalogController(protoRepo, storage, events, cache);
+    controller = new AdminCatalogController(
+      protoRepo,
+      storage,
+      events,
+      cache,
+      importExcel,
+      confirmImport,
+    );
   });
 
   // ── CREATE ─────────────────────────────────────────────────────────────────

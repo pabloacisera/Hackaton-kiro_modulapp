@@ -61,7 +61,7 @@ class ResolveComplaintDto {
 
 // ── Controller ────────────────────────────────────────────────────────────────
 
-@Controller('api/complaints')
+@Controller('complaints')
 export class ComplaintsController {
   constructor(
     private readonly createComplaint: CreateComplaintUseCase,
