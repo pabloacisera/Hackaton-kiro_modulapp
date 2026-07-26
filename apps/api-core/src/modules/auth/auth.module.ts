@@ -1,10 +1,14 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { BullModule } from '@nestjs/bull';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { QUEUE_EMAIL_SEND } from '../../infrastructure/queue/queue.constants';
 
 // Controllers
 import { AuthController } from '../../interface/auth/controllers/auth.controller';
 import { AdminUserController } from '../../interface/auth/controllers/admin-user.controller';
+import { RegistrationController } from '../../interface/auth/controllers/registration.controller';
+import { SettingsController } from '../../interface/auth/controllers/settings.controller';
 
 // Guards
 import { JwtAuthGuard } from '../../interface/auth/guards/jwt-auth.guard';
@@ -17,6 +21,10 @@ import { LogoutUseCase } from '../../application/auth/use-cases/logout.use-case'
 import { CreateAdminUseCase } from '../../application/auth/use-cases/create-admin.use-case';
 import { DeactivateAdminUseCase } from '../../application/auth/use-cases/deactivate-admin.use-case';
 import { NotifyLockoutUseCase } from '../../application/auth/use-cases/notify-lockout.use-case';
+import { GenerateInviteCodeUseCase } from '../../application/auth/use-cases/generate-invite-code.use-case';
+import { InitiateRegistrationUseCase } from '../../application/auth/use-cases/initiate-registration.use-case';
+import { VerifyInviteCodeUseCase } from '../../application/auth/use-cases/verify-invite-code.use-case';
+import { CompleteRegistrationUseCase } from '../../application/auth/use-cases/complete-registration.use-case';
 
 // Infrastructure
 import { JwtService } from '../../infrastructure/auth/jwt/jwt.service';
@@ -33,12 +41,14 @@ import { PrismaAdminUserRepository } from '../../infrastructure/prisma/repositor
 import { PrismaRefreshTokenRepository } from '../../infrastructure/prisma/repositories/prisma-refresh-token.repository';
 
 /**
- * Issue #15: Removed REDIS_CLIENT no-op stub — now uses shared RedisModule (global).
- * Rate limiting now works with real Redis (fail-secure if credentials missing).
+ * Auth module — handles admin authentication, registration via invitation, and settings.
  */
 @Module({
-  imports: [forwardRef(() => NotificationsModule)],
-  controllers: [AuthController, AdminUserController],
+  imports: [
+    forwardRef(() => NotificationsModule),
+    BullModule.registerQueue({ name: QUEUE_EMAIL_SEND }),
+  ],
+  controllers: [AuthController, AdminUserController, RegistrationController, SettingsController],
   providers: [
     // Repository bindings
     { provide: ADMIN_USER_REPOSITORY, useClass: PrismaAdminUserRepository },
@@ -58,6 +68,10 @@ import { PrismaRefreshTokenRepository } from '../../infrastructure/prisma/reposi
     CreateAdminUseCase,
     DeactivateAdminUseCase,
     NotifyLockoutUseCase,
+    GenerateInviteCodeUseCase,
+    InitiateRegistrationUseCase,
+    VerifyInviteCodeUseCase,
+    CompleteRegistrationUseCase,
 
     // Guards
     JwtAuthGuard,

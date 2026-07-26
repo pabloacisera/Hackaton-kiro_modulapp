@@ -2,13 +2,14 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../controllers/useAuth';
 
 const NAV_ITEMS = [
-  { to: '/catalog', label: 'Catalog', icon: '📦' },
-  { to: '/orders', label: 'Orders', icon: '🛒' },
-  { to: '/quotes', label: 'Quotes', icon: '📋' },
-  { to: '/supplies', label: 'Supplies', icon: '🏗️' },
-  { to: '/complaints', label: 'Complaints', icon: '📨' },
-  { to: '/deliveries', label: 'Deliveries', icon: '🚚' },
-  { to: '/notifications', label: 'Notifications', icon: '🔔' },
+  { to: '/catalog', label: 'Catálogo', icon: '📦' },
+  { to: '/orders', label: 'Órdenes', icon: '🛒' },
+  { to: '/quotes', label: 'Cotizaciones', icon: '📋' },
+  { to: '/supplies', label: 'Suministros', icon: '🏗️' },
+  { to: '/complaints', label: 'Reclamos', icon: '📨' },
+  { to: '/deliveries', label: 'Entregas', icon: '🚚' },
+  { to: '/notifications', label: 'Notificaciones', icon: '🔔' },
+  { to: '/settings', label: 'Configuración', icon: '⚙️' },
 ];
 
 interface SideNavProps {
@@ -85,7 +86,7 @@ export function SideNav({ open, onClose }: SideNavProps) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="truncate text-xs font-medium text-gray-300">{adminEmail}</p>
-              <p className="text-[10px] text-gray-500">Administrator</p>
+              <p className="text-[10px] text-gray-500">Administrador</p>
             </div>
           </div>
         </div>

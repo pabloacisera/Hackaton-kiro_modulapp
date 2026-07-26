@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../controllers/useAuth';
 
 export function LoginPage() {
@@ -12,8 +12,6 @@ export function LoginPage() {
     e.preventDefault();
     try {
       await login(email, password);
-      // Navigate to root of the admin SPA. The actual URL will be /admin/
-      // because BrowserRouter uses basename='/admin/' (set via Vite base config).
       navigate('/');
     } catch {
       // error already set in useAuth state
@@ -23,12 +21,12 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-sm rounded-xl bg-white p-8 shadow-md">
-        <h1 className="mb-6 text-2xl font-bold text-gray-900">Admin Login</h1>
+        <h1 className="mb-6 text-2xl font-bold text-gray-900">Iniciar Sesión — Admin</h1>
 
         <form onSubmit={handleSubmit} noValidate>
           <div className="mb-4">
             <label htmlFor="email" className="mb-1 block text-sm font-medium text-gray-700">
-              Email
+              Correo electrónico
             </label>
             <input
               id="email"
@@ -38,13 +36,13 @@ export function LoginPage() {
               required
               autoComplete="email"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              aria-label="Email address"
+              aria-label="Correo electrónico"
             />
           </div>
 
           <div className="mb-6">
             <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700">
-              Password
+              Contraseña
             </label>
             <input
               id="password"
@@ -54,7 +52,7 @@ export function LoginPage() {
               required
               autoComplete="current-password"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              aria-label="Password"
+              aria-label="Contraseña"
             />
           </div>
 
@@ -70,9 +68,15 @@ export function LoginPage() {
             className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
             aria-busy={loading}
           >
-            {loading ? 'Signing in…' : 'Sign in'}
+            {loading ? 'Iniciando sesión…' : 'Iniciar sesión'}
           </button>
         </form>
+
+        <div className="mt-4 text-center">
+          <Link to="/register" className="text-sm font-medium text-blue-600 hover:text-blue-700">
+            ¿Nuevo administrador? Registrarse
+          </Link>
+        </div>
       </div>
     </div>
   );
