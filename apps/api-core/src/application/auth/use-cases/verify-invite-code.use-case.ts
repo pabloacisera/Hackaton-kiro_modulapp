@@ -14,7 +14,7 @@ export class VerifyInviteCodeUseCase {
       throw new BadRequestException('Registration link expired or invalid');
     }
 
-    // Upstash returns already-parsed objects; handle both string and object
+    // Redis wrapper may return string or parsed object depending on storage layer
     const registration = typeof regData === 'string' ? JSON.parse(regData) : regData;
 
     // 2. Check attempts limit
