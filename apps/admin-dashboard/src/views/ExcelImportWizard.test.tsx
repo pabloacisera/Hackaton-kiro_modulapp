@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ExcelImportWizard } from './ExcelImportWizard';
 
@@ -25,7 +26,11 @@ describe('ExcelImportWizard', () => {
 
   it('renders upload step with file input', () => {
     mockUseExcelImport.mockReturnValue(baseHook);
-    render(<ExcelImportWizard />);
+    render(
+      <MemoryRouter>
+        <ExcelImportWizard />
+      </MemoryRouter>,
+    );
     expect(screen.getByText(/importar suministros desde excel/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/subir archivo de suministros/i)).toBeInTheDocument();
   });
@@ -41,7 +46,11 @@ describe('ExcelImportWizard', () => {
         errors: [{ row: 3, field: 'sku', message: 'Duplicate' }],
       },
     });
-    render(<ExcelImportWizard />);
+    render(
+      <MemoryRouter>
+        <ExcelImportWizard />
+      </MemoryRouter>,
+    );
     expect(screen.getByText(/se crearán/i)).toBeInTheDocument();
     expect(screen.getByText('NEW-1')).toBeInTheDocument();
     expect(screen.getByText(/se actualizarán/i)).toBeInTheDocument();
@@ -63,7 +72,11 @@ describe('ExcelImportWizard', () => {
       },
       confirm: mockConfirm,
     });
-    render(<ExcelImportWizard />);
+    render(
+      <MemoryRouter>
+        <ExcelImportWizard />
+      </MemoryRouter>,
+    );
     fireEvent.click(screen.getByRole('button', { name: /confirmar importación/i }));
     expect(mockConfirm).toHaveBeenCalled();
   });
@@ -74,7 +87,11 @@ describe('ExcelImportWizard', () => {
       step: 'done',
       confirmResult: { applied: 5, errors: [] },
     });
-    render(<ExcelImportWizard />);
+    render(
+      <MemoryRouter>
+        <ExcelImportWizard />
+      </MemoryRouter>,
+    );
     expect(screen.getByText(/importación completada/i)).toBeInTheDocument();
     expect(screen.getByText(/5 suministros procesados exitosamente/i)).toBeInTheDocument();
   });
@@ -86,7 +103,11 @@ describe('ExcelImportWizard', () => {
       preview: { previewId: 'p-1', toCreate: [], toUpdate: [], errors: [] },
       error: 'Server failed',
     });
-    render(<ExcelImportWizard />);
+    render(
+      <MemoryRouter>
+        <ExcelImportWizard />
+      </MemoryRouter>,
+    );
     expect(screen.getByRole('alert')).toHaveTextContent('Server failed');
   });
 });
