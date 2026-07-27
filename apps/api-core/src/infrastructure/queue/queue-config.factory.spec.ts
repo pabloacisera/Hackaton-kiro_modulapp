@@ -11,8 +11,8 @@ describe('queue-config.factory', () => {
     process.env = originalEnv;
   });
 
-  it('returns Upstash TLS config when UPSTASH_REDIS_URL is set with rediss://', () => {
-    process.env.UPSTASH_REDIS_URL = 'rediss://:password123@my-redis.upstash.io:6379';
+  it('returns TLS config when BULL_REDIS_URL uses rediss://', () => {
+    process.env.BULL_REDIS_URL = 'rediss://:password123@my-redis.upstash.io:6379';
 
     const config = createBullConfig();
 
@@ -25,8 +25,8 @@ describe('queue-config.factory', () => {
     expect((config.redis as any).tls).toEqual({});
   });
 
-  it('returns Upstash config without TLS when URL uses redis:// (non-TLS)', () => {
-    process.env.UPSTASH_REDIS_URL = 'redis://:pass@host.upstash.io:6380';
+  it('returns config without TLS when BULL_REDIS_URL uses redis://', () => {
+    process.env.BULL_REDIS_URL = 'redis://:pass@host.upstash.io:6380';
 
     const config = createBullConfig();
 
@@ -39,8 +39,8 @@ describe('queue-config.factory', () => {
     expect((config.redis as any).tls).toBeUndefined();
   });
 
-  it('returns localhost config when UPSTASH_REDIS_URL is not set', () => {
-    delete process.env.UPSTASH_REDIS_URL;
+  it('returns localhost config when BULL_REDIS_URL is not set', () => {
+    delete process.env.BULL_REDIS_URL;
     delete process.env.REDIS_HOST;
     delete process.env.REDIS_PORT;
 
@@ -53,8 +53,8 @@ describe('queue-config.factory', () => {
     });
   });
 
-  it('uses REDIS_HOST and REDIS_PORT when set (no Upstash)', () => {
-    delete process.env.UPSTASH_REDIS_URL;
+  it('uses REDIS_HOST and REDIS_PORT when BULL_REDIS_URL is not set', () => {
+    delete process.env.BULL_REDIS_URL;
     process.env.REDIS_HOST = 'redis-container';
     process.env.REDIS_PORT = '6380';
 
