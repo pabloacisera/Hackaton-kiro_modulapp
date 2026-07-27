@@ -99,7 +99,10 @@ export function SuppliesPage() {
     setFormError(null);
   };
 
+  const [actionLoading, setActionLoading] = useState(false);
+
   const handleCreate = async () => {
+    setActionLoading(true);
     try {
       await create({
         sku: formData.sku,
@@ -113,11 +116,14 @@ export function SuppliesPage() {
       resetForm();
     } catch (err: unknown) {
       setFormError(err instanceof Error ? err.message : 'Error al crear');
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleUpdate = async () => {
     if (!editId) return;
+    setActionLoading(true);
     try {
       await update(editId, {
         name: formData.name,
@@ -130,6 +136,8 @@ export function SuppliesPage() {
       resetForm();
     } catch (err: unknown) {
       setFormError(err instanceof Error ? err.message : 'Error al actualizar');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -259,10 +267,18 @@ export function SuppliesPage() {
                       Editar
                     </button>
                     <button
-                      onClick={() => remove(s.id)}
-                      className="text-red-600 hover:underline text-xs"
+                      onClick={async () => {
+                        setActionLoading(true);
+                        try {
+                          await remove(s.id);
+                        } finally {
+                          setActionLoading(false);
+                        }
+                      }}
+                      disabled={actionLoading}
+                      className="text-red-600 hover:underline text-xs disabled:opacity-50"
                     >
-                      Eliminar
+                      {actionLoading ? '...' : 'Eliminar'}
                     </button>
                   </td>
                 </tr>
@@ -354,9 +370,10 @@ export function SuppliesPage() {
                 </button>
                 <button
                   onClick={editId ? handleUpdate : handleCreate}
-                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                  disabled={actionLoading}
+                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {editId ? 'Actualizar' : 'Crear'}
+                  {actionLoading ? 'Procesando...' : editId ? 'Actualizar' : 'Crear'}
                 </button>
               </div>
             </div>

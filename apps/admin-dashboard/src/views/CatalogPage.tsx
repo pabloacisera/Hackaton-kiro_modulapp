@@ -51,6 +51,7 @@ export function CatalogPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [editImages, setEditImages] = useState<{ id: string; url: string; order: number }[]>([]);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const resetForm = () => {
     setFormData({
@@ -85,24 +86,29 @@ export function CatalogPage() {
       setFormError('El stock no puede ser negativo');
       return;
     }
+    setActionLoading(true);
     try {
       const created = await createAndReturn(formData);
-      // Switch to edit mode so the user can upload images immediately
       setEditId(created.id);
       setEditImages([]);
       setFormError(null);
     } catch (err: unknown) {
       setFormError(err instanceof Error ? err.message : 'Error al crear prototipo');
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleUpdate = async () => {
     if (!editId) return;
+    setActionLoading(true);
     try {
       await update(editId, formData);
       resetForm();
     } catch (err: unknown) {
       setFormError(err instanceof Error ? err.message : 'Error al actualizar prototipo');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -299,17 +305,33 @@ export function CatalogPage() {
                     </button>
                     {p.active ? (
                       <button
-                        onClick={() => deactivate(p.id)}
-                        className="text-xs text-red-600 hover:underline"
+                        onClick={async () => {
+                          setActionLoading(true);
+                          try {
+                            await deactivate(p.id);
+                          } finally {
+                            setActionLoading(false);
+                          }
+                        }}
+                        disabled={actionLoading}
+                        className="text-xs text-red-600 hover:underline disabled:opacity-50"
                       >
-                        Desactivar
+                        {actionLoading ? '...' : 'Desactivar'}
                       </button>
                     ) : (
                       <button
-                        onClick={() => reactivate(p.id)}
-                        className="text-xs text-green-600 hover:underline"
+                        onClick={async () => {
+                          setActionLoading(true);
+                          try {
+                            await reactivate(p.id);
+                          } finally {
+                            setActionLoading(false);
+                          }
+                        }}
+                        disabled={actionLoading}
+                        className="text-xs text-green-600 hover:underline disabled:opacity-50"
                       >
-                        Reactivar
+                        {actionLoading ? '...' : 'Reactivar'}
                       </button>
                     )}
                   </td>
@@ -468,9 +490,10 @@ export function CatalogPage() {
                 </button>
                 <button
                   onClick={editId ? handleUpdate : handleCreate}
-                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                  disabled={actionLoading}
+                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {editId ? 'Guardar cambios' : 'Crear'}
+                  {actionLoading ? 'Procesando...' : editId ? 'Guardar cambios' : 'Crear'}
                 </button>
               </div>
             </div>

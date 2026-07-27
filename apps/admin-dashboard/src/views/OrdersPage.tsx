@@ -54,28 +54,35 @@ export function OrdersPage() {
   // ── Reject dialog state ───────────────────────────────────────────────────
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
   const handleAccept = async () => {
     if (!acceptingId || !eta) return;
     setActionError(null);
+    setActionLoading(true);
     try {
       await accept(acceptingId, eta);
       setAcceptingId(null);
       setEta('');
     } catch (err: unknown) {
       setActionError(err instanceof Error ? err.message : 'Error al aceptar');
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleReject = async () => {
     if (!rejectingId || !rejectReason.trim()) return;
     setActionError(null);
+    setActionLoading(true);
     try {
       await reject(rejectingId, rejectReason);
       setRejectingId(null);
       setRejectReason('');
     } catch (err: unknown) {
       setActionError(err instanceof Error ? err.message : 'Error al rechazar');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -209,10 +216,10 @@ export function OrdersPage() {
             </button>
             <button
               onClick={handleAccept}
-              disabled={!eta}
+              disabled={!eta || actionLoading}
               className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50"
             >
-              Confirmar aceptación
+              {actionLoading ? 'Procesando...' : 'Confirmar aceptación'}
             </button>
           </div>
         </Modal>
@@ -245,10 +252,10 @@ export function OrdersPage() {
             </button>
             <button
               onClick={handleReject}
-              disabled={!rejectReason.trim()}
+              disabled={!rejectReason.trim() || actionLoading}
               className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
             >
-              Rechazar y reembolsar
+              {actionLoading ? 'Procesando...' : 'Rechazar y reembolsar'}
             </button>
           </div>
         </Modal>

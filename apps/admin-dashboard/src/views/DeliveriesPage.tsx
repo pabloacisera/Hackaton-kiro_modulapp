@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useDeliveries } from '../controllers/useDeliveries';
 import { TableSearch } from './components/TableSearch';
 import { Pagination } from './components/Pagination';
@@ -31,6 +32,8 @@ export function DeliveriesPage() {
     postpone,
     reload,
   } = useDeliveries();
+
+  const [actionLoading, setActionLoading] = useState(false);
 
   return (
     <div className="px-6 py-4">
@@ -127,19 +130,34 @@ export function DeliveriesPage() {
                     {d.status !== 'delivered' && (
                       <div className="flex gap-2">
                         <button
-                          onClick={() => deliver(d.origin, d.id)}
-                          className="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700"
+                          onClick={async () => {
+                            setActionLoading(true);
+                            try {
+                              await deliver(d.origin, d.id);
+                            } finally {
+                              setActionLoading(false);
+                            }
+                          }}
+                          disabled={actionLoading}
+                          className="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700 disabled:opacity-50"
                         >
-                          Marcar entregado
+                          {actionLoading ? '...' : 'Marcar entregado'}
                         </button>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             const newDate = prompt('Nueva fecha de entrega (AAAA-MM-DD):');
-                            if (newDate) postpone(d.origin, d.id, newDate);
+                            if (!newDate) return;
+                            setActionLoading(true);
+                            try {
+                              await postpone(d.origin, d.id, newDate);
+                            } finally {
+                              setActionLoading(false);
+                            }
                           }}
-                          className="rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-100"
+                          disabled={actionLoading}
+                          className="rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-100 disabled:opacity-50"
                         >
-                          Posponer
+                          {actionLoading ? '...' : 'Posponer'}
                         </button>
                       </div>
                     )}

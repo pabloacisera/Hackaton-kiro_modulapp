@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useComplaints } from '../controllers/useComplaints';
 import { TableSearch } from './components/TableSearch';
 import { Pagination } from './components/Pagination';
@@ -33,6 +34,7 @@ export function ComplaintsPage() {
     reload,
   } = useComplaints();
 
+  const [actionLoading, setActionLoading] = useState(false);
   const canReview = (status: ComplaintStatus) => status === 'received';
   const canRefund = (status: ComplaintStatus) => status === 'under_review';
   const canResolve = (status: ComplaintStatus) => status === 'under_review';
@@ -121,28 +123,54 @@ export function ComplaintsPage() {
                     <div className="flex gap-2">
                       {canReview(c.status) && (
                         <button
-                          onClick={() => review(c.id)}
-                          className="rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700"
+                          onClick={async () => {
+                            setActionLoading(true);
+                            try {
+                              await review(c.id);
+                            } finally {
+                              setActionLoading(false);
+                            }
+                          }}
+                          disabled={actionLoading}
+                          className="rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700 disabled:opacity-50"
                         >
-                          Revisar
+                          {actionLoading ? '...' : 'Revisar'}
                         </button>
                       )}
                       {canRefund(c.status) && (
                         <button
-                          onClick={() => refund(c.id)}
-                          className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
+                          onClick={async () => {
+                            setActionLoading(true);
+                            try {
+                              await refund(c.id);
+                            } finally {
+                              setActionLoading(false);
+                            }
+                          }}
+                          disabled={actionLoading}
+                          className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700 disabled:opacity-50"
                         >
-                          Aprobar reembolso
+                          {actionLoading ? '...' : 'Aprobar reembolso'}
                         </button>
                       )}
                       {canResolve(c.status) && (
                         <button
-                          onClick={() =>
-                            resolve(c.id, 'Resolved via admin action', 'resolved_other_way')
-                          }
-                          className="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700"
+                          onClick={async () => {
+                            setActionLoading(true);
+                            try {
+                              await resolve(
+                                c.id,
+                                'Resolved via admin action',
+                                'resolved_other_way',
+                              );
+                            } finally {
+                              setActionLoading(false);
+                            }
+                          }}
+                          disabled={actionLoading}
+                          className="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700 disabled:opacity-50"
                         >
-                          Resolver
+                          {actionLoading ? '...' : 'Resolver'}
                         </button>
                       )}
                     </div>

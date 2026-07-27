@@ -41,6 +41,7 @@ export function QuotesPage() {
   const [leadTimeDays, setLeadTimeDays] = useState('');
   const [estimatedDeliveryDate, setEstimatedDeliveryDate] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const handlePresent = async () => {
     if (!presentModal) return;
@@ -50,6 +51,7 @@ export function QuotesPage() {
       setActionError('Por favor completa todos los campos con valores válidos.');
       return;
     }
+    setActionLoading(true);
     try {
       await present(presentModal.id, price, days, estimatedDeliveryDate);
       setPresentModal(null);
@@ -59,14 +61,19 @@ export function QuotesPage() {
       setActionError(null);
     } catch (err: unknown) {
       setActionError(err instanceof Error ? err.message : 'Error al presentar cotización');
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleArchive = async (quoteId: string) => {
+    setActionLoading(true);
     try {
       await archive(quoteId);
     } catch (err: unknown) {
       setActionError(err instanceof Error ? err.message : 'Error al archivar');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -189,9 +196,10 @@ export function QuotesPage() {
                             e.stopPropagation();
                             handleArchive(q.id);
                           }}
-                          className="rounded border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100"
+                          disabled={actionLoading}
+                          className="rounded border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50"
                         >
-                          Archivar
+                          {actionLoading ? '...' : 'Archivar'}
                         </button>
                       )}
                     </div>
@@ -459,9 +467,10 @@ export function QuotesPage() {
                 </button>
                 <button
                   onClick={handlePresent}
-                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                  disabled={actionLoading}
+                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
                 >
-                  Enviar cotización
+                  {actionLoading ? 'Procesando...' : 'Enviar cotización'}
                 </button>
               </div>
             </div>
