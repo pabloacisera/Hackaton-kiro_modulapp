@@ -1,4 +1,6 @@
 import { useDeliveries } from '../controllers/useDeliveries';
+import { TableSearch } from './components/TableSearch';
+import { Pagination } from './components/Pagination';
 import type { DeliveryStatus } from '../models/deliveriesApi';
 
 const STATUS_OPTIONS: { value: DeliveryStatus | ''; label: string }[] = [
@@ -17,10 +19,14 @@ export function DeliveriesPage() {
   const {
     deliveries,
     total,
+    page,
     loading,
     error,
+    search,
+    setSearch,
     statusFilter,
     setStatusFilter,
+    setPage,
     deliver,
     postpone,
     reload,
@@ -33,7 +39,12 @@ export function DeliveriesPage() {
         <span className="text-sm text-gray-500">{total} total</span>
       </div>
 
-      <div className="mb-4 flex items-center gap-4">
+      <div className="mb-4 flex flex-wrap items-center gap-4">
+        <TableSearch
+          value={search}
+          onChange={setSearch}
+          placeholder="Buscar por nombre, email..."
+        />
         <select
           value={statusFilter ?? ''}
           onChange={(e) =>
@@ -138,6 +149,11 @@ export function DeliveriesPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Pagination */}
+      {!loading && deliveries.length > 0 && (
+        <Pagination page={page} pageSize={20} total={total} onPageChange={setPage} />
       )}
     </div>
   );

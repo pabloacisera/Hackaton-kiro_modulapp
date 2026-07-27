@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useOrders } from '../controllers/useOrders';
+import { TableSearch } from './components/TableSearch';
+import { Pagination } from './components/Pagination';
 import { OrderDto, OrderStatus } from '../models/ordersApi';
 import { fetchAdminPrototypeById, AdminPrototypeDto } from '../models/catalogApi';
 
@@ -31,6 +33,8 @@ export function OrdersPage() {
     page,
     loading,
     error,
+    search,
+    setSearch,
     statusFilter,
     setStatusFilter,
     setPage,
@@ -79,6 +83,12 @@ export function OrdersPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-xl font-bold text-gray-900">Órdenes</h1>
+
+        <TableSearch
+          value={search}
+          onChange={setSearch}
+          placeholder="Buscar por email, nombre..."
+        />
 
         {/* Status filter */}
         <select
@@ -165,24 +175,8 @@ export function OrdersPage() {
       </div>
 
       {/* Pagination */}
-      {total > 20 && (
-        <div className="flex items-center justify-center gap-2">
-          <button
-            disabled={page <= 1}
-            onClick={() => setPage(page - 1)}
-            className="rounded px-3 py-1 text-sm border border-gray-300 disabled:opacity-40"
-          >
-            ← Anterior
-          </button>
-          <span className="text-sm text-gray-600">Página {page}</span>
-          <button
-            disabled={page * 20 >= total}
-            onClick={() => setPage(page + 1)}
-            className="rounded px-3 py-1 text-sm border border-gray-300 disabled:opacity-40"
-          >
-            Siguiente →
-          </button>
-        </div>
+      {!loading && orders.length > 0 && (
+        <Pagination page={page} pageSize={20} total={total} onPageChange={setPage} />
       )}
 
       {/* Order Detail modal */}

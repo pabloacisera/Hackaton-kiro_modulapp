@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useQuotes } from '../controllers/useQuotes';
+import { TableSearch } from './components/TableSearch';
+import { Pagination } from './components/Pagination';
 import type { QuoteDto, QuoteStatus } from '../models/quotesApi';
 
 const STATUS_OPTIONS: { value: QuoteStatus | ''; label: string }[] = [
-  { value: '', label: 'Todas' },
+  { value: '', label: 'Todas (sin archivadas)' },
   { value: 'pending', label: 'Pendiente' },
   { value: 'quoted', label: 'Cotizada' },
   { value: 'accepted', label: 'Aceptada' },
@@ -12,15 +14,27 @@ const STATUS_OPTIONS: { value: QuoteStatus | ''; label: string }[] = [
   { value: 'payment_initiated', label: 'Pago iniciado' },
   { value: 'paid', label: 'Pagada' },
   { value: 'payment_expired', label: 'Pago expirado' },
-  { value: 'archived', label: 'Archivada' },
 ];
 
 /**
  * TASK-quoteB-19: Admin UI — quotes management page with quoting form.
  */
 export function QuotesPage() {
-  const { quotes, total, loading, error, statusFilter, setStatusFilter, present, archive, reload } =
-    useQuotes();
+  const {
+    quotes,
+    total,
+    page,
+    loading,
+    error,
+    search,
+    setSearch,
+    statusFilter,
+    setStatusFilter,
+    setPage,
+    present,
+    archive,
+    reload,
+  } = useQuotes();
   const [presentModal, setPresentModal] = useState<QuoteDto | null>(null);
   const [detailQuote, setDetailQuote] = useState<QuoteDto | null>(null);
   const [priceUsd, setPriceUsd] = useState('');
@@ -68,7 +82,12 @@ export function QuotesPage() {
       </div>
 
       {/* Filters */}
-      <div className="mb-4 flex items-center gap-4">
+      <div className="mb-4 flex flex-wrap items-center gap-4">
+        <TableSearch
+          value={search}
+          onChange={setSearch}
+          placeholder="Buscar por nombre, email..."
+        />
         <label htmlFor="quote-status-filter" className="text-sm font-medium text-gray-700">
           Estado:
         </label>
@@ -182,6 +201,11 @@ export function QuotesPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Pagination */}
+      {!loading && quotes.length > 0 && (
+        <Pagination page={page} pageSize={20} total={total} onPageChange={setPage} />
       )}
 
       {/* Quote Detail Modal */}

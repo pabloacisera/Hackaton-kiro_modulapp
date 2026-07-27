@@ -1,4 +1,6 @@
 import { useComplaints } from '../controllers/useComplaints';
+import { TableSearch } from './components/TableSearch';
+import { Pagination } from './components/Pagination';
 import type { ComplaintStatus } from '../models/complaintsApi';
 
 const STATUS_OPTIONS: { value: ComplaintStatus | ''; label: string }[] = [
@@ -17,10 +19,14 @@ export function ComplaintsPage() {
   const {
     complaints,
     total,
+    page,
     loading,
     error,
+    search,
+    setSearch,
     statusFilter,
     setStatusFilter,
+    setPage,
     review,
     refund,
     resolve,
@@ -38,7 +44,12 @@ export function ComplaintsPage() {
         <span className="text-sm text-gray-500">{total} total</span>
       </div>
 
-      <div className="mb-4 flex items-center gap-4">
+      <div className="mb-4 flex flex-wrap items-center gap-4">
+        <TableSearch
+          value={search}
+          onChange={setSearch}
+          placeholder="Buscar por nombre, email..."
+        />
         <select
           value={statusFilter ?? ''}
           onChange={(e) =>
@@ -141,6 +152,11 @@ export function ComplaintsPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Pagination */}
+      {!loading && complaints.length > 0 && (
+        <Pagination page={page} pageSize={20} total={total} onPageChange={setPage} />
       )}
     </div>
   );

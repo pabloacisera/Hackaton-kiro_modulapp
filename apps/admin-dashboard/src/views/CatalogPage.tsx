@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useCatalog } from '../controllers/useCatalog';
+import { Pagination } from './components/Pagination';
 import {
   CreatePrototypePayload,
   uploadPrototypeImage,
@@ -15,12 +16,14 @@ export function CatalogPage() {
   const {
     prototypes,
     total,
+    page,
     loading,
     error,
     search,
     setSearch,
     category,
     setCategory,
+    setPage,
     update,
     deactivate,
     reactivate,
@@ -296,6 +299,11 @@ export function CatalogPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Pagination */}
+      {!loading && prototypes.length > 0 && (
+        <Pagination page={page} pageSize={20} total={total} onPageChange={setPage} />
       )}
 
       {/* Create/Edit Form Modal */}

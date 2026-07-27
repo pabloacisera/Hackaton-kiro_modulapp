@@ -21,6 +21,8 @@ const baseHook = {
   present: vi.fn(),
   archive: vi.fn(),
   reload: vi.fn(),
+  search: '',
+  setSearch: vi.fn(),
 };
 
 const pendingQuote = {

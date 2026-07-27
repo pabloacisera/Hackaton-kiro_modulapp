@@ -18,6 +18,10 @@ const baseHook = {
   refund: vi.fn(),
   resolve: vi.fn(),
   reload: vi.fn(),
+  page: 1,
+  search: '',
+  setSearch: vi.fn(),
+  setPage: vi.fn(),
 };
 
 const receivedComplaint = {

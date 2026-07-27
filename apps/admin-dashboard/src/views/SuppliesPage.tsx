@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSupplies } from '../controllers/useSupplies';
+import { Pagination } from './components/Pagination';
 
 /**
  * TASK-stock-8: SuppliesPage — table with search, below-minimum toggle,
@@ -9,12 +10,14 @@ export function SuppliesPage() {
   const {
     supplies,
     total,
+    page,
     loading,
     error,
     search,
     setSearch,
     belowMinOnly,
     setBelowMinOnly,
+    setPage,
     create,
     update,
     remove,
@@ -199,6 +202,11 @@ export function SuppliesPage() {
             </tbody>
           </table>
         </div>
+      )}
+
+      {/* Pagination */}
+      {!loading && supplies.length > 0 && (
+        <Pagination page={page} pageSize={20} total={total} onPageChange={setPage} />
       )}
 
       {/* Create/Edit Form Modal */}
