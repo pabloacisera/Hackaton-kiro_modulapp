@@ -306,7 +306,7 @@ export function CatalogPage() {
           aria-modal="true"
           aria-label={editId ? 'Editar prototipo' : 'Crear prototipo'}
         >
-          <div className="mx-4 w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
+          <div className="mx-4 w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-lg bg-white p-6 shadow-xl">
             <h2 className="mb-4 text-lg font-bold">
               {editId ? 'Editar Prototipo' : 'Nuevo Prototipo'}
             </h2>
