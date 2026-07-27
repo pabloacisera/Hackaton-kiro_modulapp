@@ -1,6 +1,7 @@
 package com.modula.payment.service;
 
 import com.modula.payment.config.Audited;
+import com.modula.payment.config.PayPalProperties;
 import com.modula.payment.domain.Payment;
 import com.modula.payment.domain.Payment.PaymentOrigin;
 import com.modula.payment.domain.Payment.PaymentStatus;
@@ -28,6 +29,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final PayPalClient payPalClient;
+    private final PayPalProperties payPalProperties;
 
     /**
      * Initiates a new payment or returns an existing one (idempotent).
@@ -102,10 +104,10 @@ public class PaymentService {
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private String buildApprovalUrl(String paypalOrderId) {
-        // For existing payments, reconstruct the approval URL from paypal order id.
-        // In a real flow the caller would re-initiate with PayPal to get a fresh link
-        // if the previous one expired. Simplified here.
-        return "https://www.paypal.com/checkoutnow?token=" + paypalOrderId;
+        String base = "sandbox".equalsIgnoreCase(payPalProperties.getMode())
+                ? "https://www.sandbox.paypal.com"
+                : "https://www.paypal.com";
+        return base + "/checkoutnow?token=" + paypalOrderId;
     }
 
     // ── Result types ─────────────────────────────────────────────────────────

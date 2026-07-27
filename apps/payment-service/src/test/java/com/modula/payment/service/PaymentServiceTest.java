@@ -1,5 +1,6 @@
 package com.modula.payment.service;
 
+import com.modula.payment.config.PayPalProperties;
 import com.modula.payment.domain.Payment;
 import com.modula.payment.domain.Payment.PaymentOrigin;
 import com.modula.payment.domain.Payment.PaymentStatus;
@@ -19,13 +20,15 @@ class PaymentServiceTest {
 
     private PaymentRepository paymentRepository;
     private PayPalClient payPalClient;
+    private PayPalProperties payPalProperties;
     private PaymentService service;
 
     @BeforeEach
     void setUp() {
         paymentRepository = mock(PaymentRepository.class);
         payPalClient      = mock(PayPalClient.class);
-        service           = new PaymentService(paymentRepository, payPalClient);
+        payPalProperties  = mock(PayPalProperties.class);
+        service           = new PaymentService(paymentRepository, payPalClient, payPalProperties);
     }
 
     // ── Idempotency ───────────────────────────────────────────────────────────
@@ -35,6 +38,7 @@ class PaymentServiceTest {
         Payment existing = existingPayment("IDEM-KEY-1", "PAYPAL-ORDER-001");
         when(paymentRepository.findByIdempotencyKey("IDEM-KEY-1"))
                 .thenReturn(Optional.of(existing));
+        when(payPalProperties.getMode()).thenReturn("sandbox");
 
         var result = service.initiatePayment(
                 "ref-1", PaymentOrigin.order, BigDecimal.TEN,

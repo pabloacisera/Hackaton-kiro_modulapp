@@ -165,7 +165,7 @@ public class PayPalClient {
         List<Map<String, String>> links = (List<Map<String, String>>) data.get("links");
         if (links == null) return null;
         return links.stream()
-                .filter(l -> "approve".equals(l.get("rel")))
+                .filter(l -> "approve".equals(l.get("rel")) || "payer-action".equals(l.get("rel")))
                 .map(l -> l.get("href"))
                 .findFirst()
                 .orElse(null);
