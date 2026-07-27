@@ -395,8 +395,11 @@ function Footer() {
             </div>
           </div>
         </div>
-        <div className="mt-10 border-t border-gray-800 pt-6 text-center text-xs text-gray-500">
-          © {new Date().getFullYear()} ModulApp. All rights reserved.
+        <div className="mt-10 border-t border-gray-800 pt-6 flex items-center justify-between text-xs text-gray-500">
+          <span>© {new Date().getFullYear()} ModulApp. All rights reserved.</span>
+          <a href="/admin/" className="text-gray-500 hover:text-white transition">
+            Admin
+          </a>
         </div>
       </div>
     </footer>
