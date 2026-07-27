@@ -96,9 +96,53 @@ const HELP_SECTIONS = [
     content: `
 **Tiempo real:** Las notificaciones llegan vía WebSocket — escucharás un sonido y verás actualizarse el badge de la campana.
 
-**Tipos:** Nuevas órdenes, nuevas cotizaciones, reclamos, alertas de stock bajo, alertas de seguridad.
+**Página completa:** Ve a Notificaciones en el menú lateral para ver el historial completo con búsqueda y paginación.
 
-**Marcar como leída:** Clic en una notificación para marcarla como leída. El contador se actualiza en todas las pestañas.
+**Tipos:** Nuevas órdenes, nuevas cotizaciones, reclamos, alertas de stock bajo, pagos confirmados.
+
+**Marcar como leída:** Clic en "Marcar leída" en cada notificación. El contador se actualiza en tiempo real.
+
+**Sonido:** Puedes activar/desactivar el sonido de notificaciones desde el icono de campana.
+    `,
+  },
+  {
+    id: 'archived',
+    title: '📂 Cotizaciones Archivadas',
+    content: `
+**Propósito:** Mantener limpia la tabla principal de cotizaciones moviendo las finalizadas al archivo.
+
+**Acceso:** Menú lateral → Archivadas. Vista con búsqueda y paginación propia.
+
+**Qué se puede archivar:** Cotizaciones rechazadas, expiradas o con pago expirado.
+
+**Importante:** Archivar es permanente — la cotización sale de la tabla principal y solo se ve en Archivadas.
+    `,
+  },
+  {
+    id: 'settings',
+    title: '⚙️ Configuración',
+    content: `
+**Acceso:** Menú lateral → Configuración.
+
+**Funciones disponibles:**
+- Gestión de cuenta del administrador
+- Preferencias de notificación
+- Información del sistema
+
+**Registro de admins:** Solo un admin existente puede invitar a otro. El proceso es: invitación → verificación por email → creación de contraseña.
+    `,
+  },
+  {
+    id: 'search-pagination',
+    title: '🔍 Búsqueda y Paginación',
+    content: `
+**Buscar:** Todas las tablas tienen un campo de búsqueda con filtrado en vivo (se activa después de dejar de escribir 300ms).
+
+**Paginación:** Botones Anterior/Siguiente al pie de cada tabla. Se muestran desactivados cuando no hay más páginas.
+
+**Filtros:** Cada tabla tiene filtros por estado que se combinan con la búsqueda de texto.
+
+**Registros por página:** 20 registros por página en todas las tablas.
     `,
   },
 ];
