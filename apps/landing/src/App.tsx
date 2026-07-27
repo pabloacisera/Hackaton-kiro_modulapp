@@ -1,12 +1,24 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import { useState } from 'react';
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CatalogGrid } from './views/CatalogGrid';
+import { PrototypeDetail } from './views/PrototypeDetail';
+import { CheckoutForm } from './views/CheckoutForm';
+import { PaymentSuccessScreen, PaymentCancelledScreen } from './views/PaymentResultScreen';
 import { QuoteRequestForm } from './views/QuoteRequestForm';
 import { ComplaintForm } from './views/ComplaintForm';
 import { QuoteActionResult } from './views/QuoteActionResult';
 import { LanguageSelector } from './components/LanguageSelector';
 import { useCatalog } from './controllers/useCatalog';
+import { fetchPrototypeById, PrototypeDto } from './models/catalogApi';
 
 function HeroSection() {
   const { t } = useTranslation();
@@ -98,15 +110,130 @@ function HowItWorks() {
 function HomePage() {
   const { t } = useTranslation();
   const { items, loading } = useCatalog();
+  const navigate = useNavigate();
+
   return (
     <div className="animate-fade-in">
       <HeroSection />
       <HowItWorks />
       <section id="catalog" className="mx-auto max-w-6xl px-6 py-16">
         <h2 className="mb-8 font-display text-3xl font-bold text-gray-900">{t('catalog.title')}</h2>
-        <CatalogGrid items={items} loading={loading} onSelectPrototype={() => {}} />
+        <CatalogGrid
+          items={items}
+          loading={loading}
+          onSelectPrototype={(id) => navigate(`/catalog/${id}`)}
+        />
       </section>
     </div>
+  );
+}
+
+function PrototypeDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [prototype, setPrototype] = useState<PrototypeDto | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    fetchPrototypeById(id)
+      .then(setPrototype)
+      .catch(() => setError('Prototype not found'));
+  }, [id]);
+
+  if (error) {
+    return (
+      <div className="px-6 py-20 text-center">
+        <p className="text-red-600">{error}</p>
+        <button onClick={() => navigate('/')} className="btn-primary mt-4">
+          Back to catalog
+        </button>
+      </div>
+    );
+  }
+
+  if (!prototype) {
+    return (
+      <div className="px-6 py-20 text-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-t-transparent mx-auto" />
+      </div>
+    );
+  }
+
+  return (
+    <PrototypeDetail
+      prototype={prototype}
+      onBuy={(protoId) => navigate(`/catalog/${protoId}/checkout`)}
+      onBack={() => navigate('/#catalog')}
+    />
+  );
+}
+
+function CheckoutPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [prototype, setPrototype] = useState<PrototypeDto | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    fetchPrototypeById(id)
+      .then(setPrototype)
+      .catch(() => setError('Prototype not found'));
+  }, [id]);
+
+  if (error) {
+    return (
+      <div className="px-6 py-20 text-center">
+        <p className="text-red-600">{error}</p>
+        <button onClick={() => navigate('/')} className="btn-primary mt-4">
+          Back to catalog
+        </button>
+      </div>
+    );
+  }
+
+  if (!prototype) {
+    return (
+      <div className="px-6 py-20 text-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-t-transparent mx-auto" />
+      </div>
+    );
+  }
+
+  return (
+    <CheckoutForm
+      prototype={prototype}
+      onSuccess={(_orderId, paymentLink) => {
+        window.location.href = paymentLink;
+      }}
+      onCancel={() => navigate(`/catalog/${id}`)}
+    />
+  );
+}
+
+function PaymentResultPage() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const status = searchParams.get('status');
+  const orderId = searchParams.get('orderId') ?? '';
+  const email = searchParams.get('email') ?? '';
+
+  if (status === 'success') {
+    return (
+      <PaymentSuccessScreen
+        orderId={orderId}
+        customerEmail={email}
+        onBackToCatalog={() => navigate('/')}
+      />
+    );
+  }
+
+  return (
+    <PaymentCancelledScreen
+      onRetry={() => window.history.back()}
+      onBackToCatalog={() => navigate('/')}
+    />
   );
 }
 
@@ -284,6 +411,9 @@ export default function App() {
         <main className="flex-1">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/catalog/:id" element={<PrototypeDetailPage />} />
+            <Route path="/catalog/:id/checkout" element={<CheckoutPage />} />
+            <Route path="/payment-result" element={<PaymentResultPage />} />
             <Route path="/quote" element={<QuoteRequestPage />} />
             <Route path="/complaints" element={<ComplaintPage />} />
             <Route path="/quotes/:id/accept" element={<QuoteActionPage />} />
