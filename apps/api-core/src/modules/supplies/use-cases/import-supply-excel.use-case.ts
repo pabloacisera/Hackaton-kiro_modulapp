@@ -84,7 +84,7 @@ export class ImportSupplyExcelUseCase {
     const redisKey = `supply:import-preview:${previewId}`;
     const raw = await this.redis.get(redisKey);
     if (!raw) return null;
-    return JSON.parse(raw) as ExcelRow[];
+    return (typeof raw === 'string' ? JSON.parse(raw) : raw) as ExcelRow[];
   }
 
   /** Remove preview after use */

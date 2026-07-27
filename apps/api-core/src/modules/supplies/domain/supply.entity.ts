@@ -66,9 +66,12 @@ export class Supply {
 
   /** Update supply fields — returns new Supply instance */
   update(patch: Partial<Omit<SupplyProps, 'id' | 'createdAt'>>): Supply {
+    const cleanPatch = Object.fromEntries(
+      Object.entries(patch).filter(([_, v]) => v !== undefined),
+    );
     return new Supply({
       ...this.toProps(),
-      ...patch,
+      ...(cleanPatch as Partial<Omit<SupplyProps, 'id' | 'createdAt'>>),
       updatedAt: new Date(),
     });
   }

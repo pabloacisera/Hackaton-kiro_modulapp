@@ -38,7 +38,7 @@ export class QuotePaymentWebhookUseCase {
       await this.notifications.notifyAdmins(
         'payment_confirmed',
         `Payment FAILED for quote ${quote.id} (${quote.customerEmail})`,
-        `/admin/quotes/${quote.id}`,
+        `/admin/quotes?q=${quote.id}`,
       );
 
       this.logger.warn(`Payment failed for quote ${quote.id}`);
@@ -60,7 +60,7 @@ export class QuotePaymentWebhookUseCase {
     await this.notifications.notifyAdmins(
       'payment_confirmed',
       `Payment confirmed for quote ${paid.id} from ${paid.customerEmail} — USD ${paid.quotedPriceUsd}`,
-      `/admin/quotes/${paid.id}`,
+      `/admin/quotes?q=${paid.id}`,
     );
 
     this.logger.log(`Quote ${paid.id} payment confirmed`);

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { TableSearch } from './components/TableSearch';
 import { Pagination } from './components/Pagination';
 import { useNotifications } from '../controllers/useNotifications';
@@ -95,12 +96,12 @@ export function NotificationsPage() {
                   </div>
                   <p className="text-sm text-gray-800">{n.message}</p>
                   {n.referenceUrl && (
-                    <a
-                      href={n.referenceUrl}
+                    <Link
+                      to={n.referenceUrl.replace(/^\/admin/, '')}
                       className="mt-1 inline-block text-xs text-blue-600 hover:underline"
                     >
                       Ver detalle →
-                    </a>
+                    </Link>
                   )}
                 </div>
                 {!n.read && (

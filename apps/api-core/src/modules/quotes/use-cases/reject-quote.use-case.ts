@@ -68,7 +68,7 @@ export class RejectQuoteUseCase {
     await this.notifications.notifyAdmins(
       'quote_response',
       `Quote ${quoteId} was rejected by ${quote.customerEmail}`,
-      `/admin/quotes/${quoteId}`,
+      `/admin/quotes?q=${quoteId}`,
     );
 
     this.logger.log(`Quote ${quoteId} rejected by customer`);

@@ -34,7 +34,7 @@ export class QuoteExpirationJob {
         await this.notifications.notifyAdmins(
           'quote_response',
           `Quote ${quote.id} expired (48h, no response from ${quote.customerEmail})`,
-          `/admin/quotes/${quote.id}`,
+          `/admin/quotes?q=${quote.id}`,
         );
 
         count++;
@@ -65,7 +65,7 @@ export class QuoteExpirationJob {
         await this.notifications.notifyAdmins(
           'payment_confirmed',
           `Payment expired for quote ${quote.id} (24h, no payment from ${quote.customerEmail})`,
-          `/admin/quotes/${quote.id}`,
+          `/admin/quotes?q=${quote.id}`,
         );
 
         count++;

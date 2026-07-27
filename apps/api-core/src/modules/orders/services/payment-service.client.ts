@@ -35,16 +35,16 @@ export class PaymentServiceClient {
         this.http.post<{ payment_link: string; payment_service_ref: string }>(
           `${this.baseUrl}/payments/orders`,
           {
-            reference_id:    payload.referenceId,
-            origin:          payload.origin,
-            amount_usd:      payload.amountUsd,
-            customer_email:  payload.customerEmail,
-            idempotency_key: payload.idempotencyKey,
+            referenceId: payload.referenceId,
+            origin: payload.origin,
+            amountUsd: payload.amountUsd,
+            customerEmail: payload.customerEmail,
+            idempotencyKey: payload.idempotencyKey,
           },
         ),
       );
       return {
-        paymentLink:       res.data.payment_link,
+        paymentLink: res.data.payment_link,
         paymentServiceRef: res.data.payment_service_ref,
       };
     } catch (err) {
@@ -67,8 +67,8 @@ export class PaymentServiceClient {
         this.http.post<{ refund_id: string; status: string }>(
           `${this.baseUrl}/payments/orders/${payload.referenceId}/refund`,
           {
-            reason:            payload.reason,
-            refund_request_id: payload.refundRequestId,
+            reason: payload.reason,
+            refundRequestId: payload.refundRequestId,
           },
         ),
       );

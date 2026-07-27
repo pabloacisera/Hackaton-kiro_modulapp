@@ -53,7 +53,7 @@ export class CreateQuoteUseCase {
       await this.notifications.notifyAdmins(
         'new_quote_request',
         `Quote request discarded: ${reason}. Partial data: email=${customerEmail ?? '(none)'}`,
-        `/admin/quotes/${discarded.id}`,
+        `/admin/quotes?q=${discarded.id}`,
       );
 
       this.logger.warn(`Quote discarded: ${reason}`);
@@ -74,7 +74,7 @@ export class CreateQuoteUseCase {
     await this.notifications.notifyAdmins(
       'new_quote_request',
       `New quote request from ${quote.customerName} (${quote.customerEmail})`,
-      `/admin/quotes/${quote.id}`,
+      `/admin/quotes?q=${quote.id}`,
     );
 
     // Send confirmation email to customer

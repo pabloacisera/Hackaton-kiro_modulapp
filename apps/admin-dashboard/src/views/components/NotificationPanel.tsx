@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { AdminNotification } from '../../controllers/useNotifications';
 
 interface Props {
@@ -54,12 +55,16 @@ export function NotificationPanel({
                 }`}
               >
                 <div className="flex-1 min-w-0">
-                  <a
-                    href={n.referenceUrl}
+                  <Link
+                    to={n.referenceUrl.replace(/^\/admin/, '')}
                     className="block text-sm font-medium text-gray-900 hover:underline truncate"
+                    onClick={() => {
+                      if (!n.read) onMarkRead(n.id);
+                      onClose();
+                    }}
                   >
                     {n.message}
-                  </a>
+                  </Link>
                   <time className="text-xs text-gray-400">
                     {new Date(n.createdAt).toLocaleString()}
                   </time>

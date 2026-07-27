@@ -11,6 +11,12 @@ Once `.env` is created and populated with real keys, it **cannot** be modified, 
 3. Manually apply the change to `.env` on each developer machine.
 4. Never commit `.env` to version control.
 
+## Public URLs
+
+| Variable         | Description                                                                                                                                                                                                    |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `APP_PUBLIC_URL` | Public URL of the landing frontend (used in email links for accept/reject quotes). Default: `http://localhost:3000`. In production set to the domain served by Nginx/Cloudflare (e.g. `https://modulapp.app`). |
+
 ## Database and cache
 
 | Variable               | Description                                           |

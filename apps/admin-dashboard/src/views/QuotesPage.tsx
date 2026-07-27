@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuotes } from '../controllers/useQuotes';
 import { TableSearch } from './components/TableSearch';
 import { Pagination } from './components/Pagination';
@@ -20,6 +21,7 @@ const STATUS_OPTIONS: { value: QuoteStatus | ''; label: string }[] = [
  * TASK-quoteB-19: Admin UI — quotes management page with quoting form.
  */
 export function QuotesPage() {
+  const [searchParams] = useSearchParams();
   const {
     quotes,
     total,
@@ -43,6 +45,12 @@ export function QuotesPage() {
   const [estimatedDeliveryDate, setEstimatedDeliveryDate] = useState('');
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Initialize search from URL query param (e.g. /admin/quotes?q=<quoteId>)
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q) setSearch(q);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handlePresent = async () => {
     if (!presentModal) return;

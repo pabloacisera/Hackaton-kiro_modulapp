@@ -85,10 +85,11 @@ export class PresentQuoteUseCase {
       await this.saveQuotePdfUrl(quoteId, quotePdfUrl);
     }
 
-    // Build accept/reject URLs
-    const baseUrl = process.env.API_BASE_URL || 'http://localhost:8080';
-    const acceptUrl = `${baseUrl}/api/quotes/${quoteId}/accept?token=${token}`;
-    const rejectUrl = `${baseUrl}/api/quotes/${quoteId}/reject?token=${token}`;
+    // Build accept/reject URLs — these point to the LANDING frontend, not the API.
+    // The QuoteActionPage component in the landing app handles the UI and calls the API.
+    const appPublicUrl = process.env.APP_PUBLIC_URL || 'http://localhost:3000';
+    const acceptUrl = `${appPublicUrl}/quotes/${quoteId}/accept?token=${token}`;
+    const rejectUrl = `${appPublicUrl}/quotes/${quoteId}/reject?token=${token}`;
 
     // Send email with PDF link and accept/reject buttons
     await this.emailService.sendQuotePresented(
