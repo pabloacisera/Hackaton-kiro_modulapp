@@ -18,7 +18,7 @@ export interface CreateComplaintResponse {
 export async function createComplaint(
   payload: CreateComplaintRequest,
 ): Promise<CreateComplaintResponse> {
-  const res = await fetch(`${API_BASE}/api/complaints`, {
+  const res = await fetch(`${API_BASE}/complaints`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

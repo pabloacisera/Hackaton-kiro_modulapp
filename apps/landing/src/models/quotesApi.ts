@@ -27,7 +27,7 @@ export interface QuoteActionResponse {
 export async function createQuoteRequest(
   payload: CreateQuoteRequest,
 ): Promise<CreateQuoteResponse> {
-  const res = await fetch(`${API_BASE}/api/quotes`, {
+  const res = await fetch(`${API_BASE}/quotes`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
@@ -49,7 +49,7 @@ export async function fetchQuoteAction(
   token: string,
 ): Promise<QuoteActionResponse> {
   const res = await fetch(
-    `${API_BASE}/api/quotes/${quoteId}/${action}?token=${encodeURIComponent(token)}`,
+    `${API_BASE}/quotes/${quoteId}/${action}?token=${encodeURIComponent(token)}`,
   );
 
   if (!res.ok) {
