@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  Res,
-  MessageEvent,
-} from '@nestjs/common';
+import { Controller, Get, Param, Query, Res, MessageEvent } from '@nestjs/common';
 import { Response } from 'express';
 import { Observable, map } from 'rxjs';
 import { ListPrototypesUseCase } from '../use-cases/list-prototypes';
@@ -63,6 +56,7 @@ export class CatalogController {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders();
 
     const sub = this.events.events$.subscribe((event) => {
