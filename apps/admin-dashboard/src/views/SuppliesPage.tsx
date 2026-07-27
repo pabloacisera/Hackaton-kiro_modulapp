@@ -262,7 +262,7 @@ export function SuppliesPage() {
                   <td className="px-3 py-2 flex gap-2">
                     <button
                       onClick={() => startEdit(s)}
-                      className="text-blue-600 hover:underline text-xs"
+                      className="rounded px-3 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700"
                     >
                       Editar
                     </button>
@@ -276,7 +276,7 @@ export function SuppliesPage() {
                         }
                       }}
                       disabled={actionLoading}
-                      className="text-red-600 hover:underline text-xs disabled:opacity-50"
+                      className="rounded px-3 py-1 text-xs font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
                     >
                       {actionLoading ? '...' : 'Eliminar'}
                     </button>

@@ -320,7 +320,7 @@ function OrderRow({
                   e.stopPropagation();
                   onAccept();
                 }}
-                className="rounded bg-green-600 px-3 py-1 text-xs font-semibold text-white hover:bg-green-700"
+                className="rounded px-3 py-1 text-xs font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
                 aria-label={`Accept order ${order.id}`}
               >
                 Aceptar
@@ -330,7 +330,7 @@ function OrderRow({
                   e.stopPropagation();
                   onReject();
                 }}
-                className="rounded bg-red-600 px-3 py-1 text-xs font-semibold text-white hover:bg-red-700"
+                className="rounded px-3 py-1 text-xs font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
                 aria-label={`Reject order ${order.id}`}
               >
                 Rechazar

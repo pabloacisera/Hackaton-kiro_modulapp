@@ -139,7 +139,7 @@ export function DeliveriesPage() {
                             }
                           }}
                           disabled={actionLoading}
-                          className="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700 disabled:opacity-50"
+                          className="rounded px-3 py-1 text-xs font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
                         >
                           {actionLoading ? '...' : 'Marcar entregado'}
                         </button>
@@ -155,7 +155,7 @@ export function DeliveriesPage() {
                             }
                           }}
                           disabled={actionLoading}
-                          className="rounded border border-gray-300 px-2 py-1 text-xs hover:bg-gray-100 disabled:opacity-50"
+                          className="rounded border border-gray-300 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50"
                         >
                           {actionLoading ? '...' : 'Posponer'}
                         </button>

@@ -299,7 +299,7 @@ export function CatalogPage() {
                   <td className="flex gap-2 px-3 py-2">
                     <button
                       onClick={() => startEdit(p)}
-                      className="text-xs text-blue-600 hover:underline"
+                      className="rounded px-3 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700"
                     >
                       Editar
                     </button>
@@ -314,7 +314,7 @@ export function CatalogPage() {
                           }
                         }}
                         disabled={actionLoading}
-                        className="text-xs text-red-600 hover:underline disabled:opacity-50"
+                        className="rounded px-3 py-1 text-xs font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
                       >
                         {actionLoading ? '...' : 'Desactivar'}
                       </button>
@@ -329,7 +329,7 @@ export function CatalogPage() {
                           }
                         }}
                         disabled={actionLoading}
-                        className="text-xs text-green-600 hover:underline disabled:opacity-50"
+                        className="rounded px-3 py-1 text-xs font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
                       >
                         {actionLoading ? '...' : 'Reactivar'}
                       </button>

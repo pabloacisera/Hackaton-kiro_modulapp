@@ -132,7 +132,7 @@ export function ComplaintsPage() {
                             }
                           }}
                           disabled={actionLoading}
-                          className="rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700 disabled:opacity-50"
+                          className="rounded px-3 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
                         >
                           {actionLoading ? '...' : 'Revisar'}
                         </button>
@@ -148,7 +148,7 @@ export function ComplaintsPage() {
                             }
                           }}
                           disabled={actionLoading}
-                          className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700 disabled:opacity-50"
+                          className="rounded px-3 py-1 text-xs font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
                         >
                           {actionLoading ? '...' : 'Aprobar reembolso'}
                         </button>
@@ -168,7 +168,7 @@ export function ComplaintsPage() {
                             }
                           }}
                           disabled={actionLoading}
-                          className="rounded bg-green-600 px-2 py-1 text-xs text-white hover:bg-green-700 disabled:opacity-50"
+                          className="rounded px-3 py-1 text-xs font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
                         >
                           {actionLoading ? '...' : 'Resolver'}
                         </button>
