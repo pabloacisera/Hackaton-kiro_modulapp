@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# dev-local.sh — Start the full local stack WITHOUT Docker.
-# Services: PostgreSQL, Redis, api-core, landing, admin-dashboard, payment-service
-# Requires: Node 20+, pnpm 9+, PostgreSQL, Redis, Java 17+ & Maven (for payment-service)
+# dev-local.sh — Start all app services in dev mode (no Docker needed).
+# Uses remote databases/redis configured in .env
+# Requires: Node 20+, pnpm 9+, Java 17+ & Maven (optional, for payment-service)
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -32,69 +32,15 @@ command -v node >/dev/null 2>&1 || { fail "node not found."; exit 1; }
 
 HAS_JAVA=false
 HAS_MAVEN=false
-if command -v java >/dev/null 2>&1; then
-  HAS_JAVA=true
-fi
-if command -v mvn >/dev/null 2>&1; then
-  HAS_MAVEN=true
-fi
+command -v java >/dev/null 2>&1 && HAS_JAVA=true
+command -v mvn >/dev/null 2>&1 && HAS_MAVEN=true
 
-# ── Infrastructure checks ────────────────────────────────────────────────────
+# ── Banner ────────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}═══════════════════════════════════════════════════════════${NC}"
 echo -e "${BOLD}  ModulaApp — Local Development Stack${NC}"
 echo -e "${BOLD}═══════════════════════════════════════════════════════════${NC}"
 echo ""
-
-# --- PostgreSQL ---
-info "Checking PostgreSQL..."
-PG_IS_UP=false
-if command -v pg_isready >/dev/null 2>&1; then
-  if pg_isready -q 2>/dev/null; then
-    PG_IS_UP=true
-    ok "PostgreSQL is running"
-  fi
-fi
-
-if [ "$PG_IS_UP" = false ]; then
-  warn "PostgreSQL is NOT running."
-  echo "  Start it manually or with: sudo systemctl start postgresql"
-  echo "  Or if using Docker just for Postgres:  docker run -d --name modula-pg -p 5432:5432 -e POSTGRES_PASSWORD=postgres postgres:16-alpine"
-  echo ""
-  read -rp "  Continue without PostgreSQL? (y/N) " PG_CONTINUE
-  if [[ ! "$PG_CONTINUE" =~ ^[Yy]$ ]]; then
-    exit 1
-  fi
-fi
-
-# --- Redis ---
-info "Checking Redis..."
-REDIS_IS_UP=false
-if command -v redis-cli >/dev/null 2>&1; then
-  if redis-cli ping >/dev/null 2>&1; then
-    REDIS_IS_UP=true
-    ok "Redis is running"
-  fi
-fi
-
-if [ "$REDIS_IS_UP" = false ]; then
-  warn "Redis is NOT running."
-  echo "  Start it manually or with: sudo systemctl start redis"
-  echo "  Or if using Docker just for Redis:  docker run -d --name modula-redis -p 6379:6379 redis:7-alpine"
-  echo ""
-  read -rp "  Continue without Redis? (y/N) " REDIS_CONTINUE
-  if [[ ! "$REDIS_CONTINUE" =~ ^[Yy]$ ]]; then
-    exit 1
-  fi
-fi
-
-# --- Java/Maven ---
-if [ "$HAS_JAVA" = false ] || [ "$HAS_MAVEN" = false ]; then
-  warn "Java/Maven not found — payment-service will be skipped."
-  echo "  Install Java 17+:  sudo apt install openjdk-17-jdk"
-  echo "  Install Maven:     sudo apt install maven"
-  echo ""
-fi
 
 # ── Install dependencies ─────────────────────────────────────────────────────
 info "Installing JS/TS dependencies..."
@@ -105,13 +51,9 @@ else
   pnpm install --frozen-lockfile 2>/dev/null || pnpm install
 fi
 
-# ── Prisma generate + migrate ────────────────────────────────────────────────
-if [ "$PG_IS_UP" = true ]; then
-  info "Generating Prisma client..."
-  (cd apps/api-core && npx prisma generate 2>&1 | tail -1) || warn "Prisma generate failed"
-  info "Running Prisma migrations..."
-  (cd apps/api-core && npx prisma migrate dev --name init 2>&1 | tail -3) || warn "Prisma migrate failed (DB may not be ready)"
-fi
+# ── Prisma generate ──────────────────────────────────────────────────────────
+info "Generating Prisma client..."
+(cd apps/api-core && npx prisma generate 2>&1 | tail -1) || warn "Prisma generate failed"
 
 # ── Track child PIDs for cleanup ─────────────────────────────────────────────
 PIDS=()
@@ -153,6 +95,8 @@ if [ "$HAS_JAVA" = true ] && [ "$HAS_MAVEN" = true ]; then
   PIDS+=($!)
 else
   warn "Skipping payment-service (Java/Maven not available)"
+  echo "  Install Java 17+:  sudo apt install openjdk-17-jdk"
+  echo "  Install Maven:     sudo apt install maven"
 fi
 
 # ── Summary ──────────────────────────────────────────────────────────────────
@@ -168,6 +112,7 @@ if [ "$HAS_JAVA" = true ] && [ "$HAS_MAVEN" = true ]; then
   echo -e "  ${GREEN}Payment Service${NC}  → http://localhost:8081"
 fi
 echo ""
+echo -e "  ${YELLOW}DB/Redis:${NC} Using remote services from .env"
 echo -e "  ${YELLOW}Press Ctrl+C to stop all services${NC}"
 echo ""
 
