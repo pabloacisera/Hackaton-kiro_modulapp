@@ -17,11 +17,6 @@ BLUE='\033[0;34m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-PREFIX_API="${CYAN}[api-core]${NC}"
-PREFIX_LANDING="${GREEN}[landing]${NC}"
-PREFIX_ADMIN="${MAGENTA}[admin]${NC}"
-PREFIX_PAYMENT="${BLUE}[payment]${NC}"
-
 info()  { echo -e "${CYAN}►${NC} $*"; }
 ok()    { echo -e "${GREEN}✓${NC} $*"; }
 warn()  { echo -e "${YELLOW}⚠${NC} $*"; }
@@ -38,27 +33,29 @@ command -v pnpm >/dev/null 2>&1 || { fail "pnpm not found. Install: npm install 
 command -v node >/dev/null 2>&1 || { fail "node not found."; exit 1; }
 
 # ── Load .env into environment ───────────────────────────────────────────────
+# Write a clean env file that bash can source safely
+ENV_TMP=$(mktemp)
 while IFS= read -r line || [ -n "$line" ]; do
-  # Skip comments and empty lines
   [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
-  # Only export lines that look like KEY=VALUE
   if [[ "$line" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then
     key="${line%%=*}"
     value="${line#*=}"
-    # Strip surrounding quotes (single or double)
+    # Strip surrounding quotes
     value="${value#\"}"
     value="${value%\"}"
     value="${value#\'}"
     value="${value%\'}"
-    export "$key=$value"
+    # Write as properly quoted export
+    printf 'export %s=%q\n' "$key" "$value" >> "$ENV_TMP"
   fi
 done < .env
+source "$ENV_TMP"
+rm -f "$ENV_TMP"
 ok "Loaded .env variables"
 
 # ── Java setup ───────────────────────────────────────────────────────────────
 HAS_JAVA=false
 HAS_MAVEN=false
-JAVA17_HOME=""
 
 if command -v java >/dev/null 2>&1; then
   HAS_JAVA=true
@@ -68,6 +65,7 @@ if command -v mvn >/dev/null 2>&1; then
 fi
 
 # Prefer Java 17 for payment-service compatibility
+JAVA17_HOME=""
 if [ -d "/usr/lib/jvm/java-17-openjdk-amd64" ]; then
   JAVA17_HOME="/usr/lib/jvm/java-17-openjdk-amd64"
 elif [ -d "/usr/lib/jvm/java-17-openjdk" ]; then
@@ -94,6 +92,9 @@ ok "Dependencies ready"
 info "Generating Prisma client..."
 (cd apps/api-core && npx prisma generate 2>&1 | tail -1) || warn "Prisma generate failed"
 
+# ── Create log directory ─────────────────────────────────────────────────────
+LOG_DIR=$(mktemp -d)
+
 # ── Track child PIDs for cleanup ─────────────────────────────────────────────
 PIDS=()
 cleanup() {
@@ -104,59 +105,46 @@ cleanup() {
       kill -TERM "$pid" 2>/dev/null || true
     fi
   done
-  # Kill any remaining children
   jobs -p | xargs -r kill 2>/dev/null || true
   wait 2>/dev/null
+  rm -rf "$LOG_DIR"
   ok "All services stopped."
 }
 trap cleanup EXIT INT TERM
 
 # ── Start API Core (NestJS --watch) ──────────────────────────────────────────
 echo ""
-echo -e "${PREFIX_API} Starting on port 8080 (hot reload: nest --watch)..."
-(cd apps/api-core && pnpm dev 2>&1 | while IFS= read -r line; do
-  echo -e "${PREFIX_API} $line"
-done) &
+echo -e "${CYAN}[api-core]${NC} Starting on port 8080 (hot reload: nest --watch)..."
+(cd apps/api-core && exec pnpm dev) > >(sed "s/^/$(printf '\033[0;36m')[api-core]$(printf '\033[0m') /") 2>&1 &
 PIDS+=($!)
 sleep 2
 
 # ── Start Landing (Vite HMR) ────────────────────────────────────────────────
-echo -e "${PREFIX_LANDING} Starting on port 3000 (hot reload: Vite HMR)..."
-(pnpm --filter @modula/landing dev 2>&1 | while IFS= read -r line; do
-  echo -e "${PREFIX_LANDING} $line"
-done) &
+echo -e "${GREEN}[landing]${NC} Starting on port 3000 (hot reload: Vite HMR)..."
+(exec pnpm --filter @modula/landing dev) > >(sed "s/^/$(printf '\033[0;32m')[landing]$(printf '\033[0m') /") 2>&1 &
 PIDS+=($!)
 sleep 1
 
 # ── Start Admin Dashboard (Vite HMR) ────────────────────────────────────────
-echo -e "${PREFIX_ADMIN} Starting on port 3001 (hot reload: Vite HMR)..."
-(pnpm --filter @modula/admin-dashboard dev 2>&1 | while IFS= read -r line; do
-  echo -e "${PREFIX_ADMIN} $line"
-done) &
+echo -e "${MAGENTA}[admin]${NC} Starting on port 3001 (hot reload: Vite HMR)..."
+(exec pnpm --filter @modula/admin-dashboard dev) > >(sed "s/^/$(printf '\033[0;35m')[admin]$(printf '\033[0m') /") 2>&1 &
 PIDS+=($!)
 sleep 1
 
 # ── Start Payment Service (Spring Boot DevTools) ─────────────────────────────
 if [ "$HAS_JAVA" = true ] && [ "$HAS_MAVEN" = true ]; then
-  echo -e "${PREFIX_PAYMENT} Starting on port 8081 (hot reload: spring-boot-devtools)..."
+  echo -e "${BLUE}[payment]${NC} Starting on port 8081 (hot reload: spring-boot-devtools)..."
 
-  PAYMENT_ENV=""
+  JAVA_HOME_EXPORT=""
   if [ -n "$JAVA17_HOME" ]; then
-    PAYMENT_ENV="JAVA_HOME=$JAVA17_HOME"
-    echo -e "${PREFIX_PAYMENT} Using Java 17: $JAVA17_HOME"
+    JAVA_HOME_EXPORT="JAVA_HOME=$JAVA17_HOME"
+    echo -e "${BLUE}[payment]${NC} Using Java 17: $JAVA17_HOME"
   fi
 
-  (cd apps/payment-service && env $PAYMENT_ENV mvn spring-boot:run \
+  (cd apps/payment-service && exec env $JAVA_HOME_EXPORT mvn spring-boot:run \
     -Dspring-boot.run.fork=true \
-    -Dspring-boot.run.jvmArguments="-Dspring.devtools.restart.enabled=true" \
-    2>&1 | while IFS= read -r line; do
-    # Highlight restart events
-    if echo "$line" | grep -q "Restarting\|restart\|Started.*in"; then
-      echo -e "${PREFIX_PAYMENT} ${YELLOW}${line}${NC}"
-    else
-      echo -e "${PREFIX_PAYMENT} $line"
-    fi
-  done) &
+    -Dspring-boot.run.jvmArguments="-Dspring.devtools.restart.enabled=true") \
+    > >(sed "s/^/$(printf '\033[0;34m')[payment]$(printf '\033[0m') /") 2>&1 &
   PIDS+=($!)
 else
   warn "Skipping payment-service (Java/Maven not available)"
