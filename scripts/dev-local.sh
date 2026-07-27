@@ -38,9 +38,14 @@ command -v pnpm >/dev/null 2>&1 || { fail "pnpm not found. Install: npm install 
 command -v node >/dev/null 2>&1 || { fail "node not found."; exit 1; }
 
 # ── Load .env into environment ───────────────────────────────────────────────
-set -a
-source .env
-set +a
+while IFS= read -r line || [ -n "$line" ]; do
+  # Skip comments and empty lines
+  [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+  # Only export lines that look like KEY=VALUE
+  if [[ "$line" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then
+    export "$line"
+  fi
+done < .env
 ok "Loaded .env variables"
 
 # ── Java setup ───────────────────────────────────────────────────────────────
