@@ -19,6 +19,7 @@ const baseHook = {
   setStatusFilter: vi.fn(),
   setPage: vi.fn(),
   present: vi.fn(),
+  adminReject: vi.fn(),
   archive: vi.fn(),
   reload: vi.fn(),
   search: '',

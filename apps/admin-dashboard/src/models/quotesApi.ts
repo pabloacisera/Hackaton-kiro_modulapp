@@ -60,3 +60,7 @@ export async function presentQuote(
 export async function archiveQuote(quoteId: string): Promise<void> {
   await httpClient.patch(`/quotes/${quoteId}/archive`);
 }
+
+export async function adminRejectQuote(quoteId: string, reason: string): Promise<void> {
+  await httpClient.patch(`/quotes/${quoteId}/admin-reject`, { reason });
+}

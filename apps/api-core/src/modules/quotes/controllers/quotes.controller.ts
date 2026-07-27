@@ -28,6 +28,7 @@ import { CreateQuoteUseCase } from '../use-cases/create-quote.use-case';
 import { PresentQuoteUseCase } from '../use-cases/present-quote.use-case';
 import { AcceptQuoteUseCase } from '../use-cases/accept-quote.use-case';
 import { RejectQuoteUseCase } from '../use-cases/reject-quote.use-case';
+import { AdminRejectQuoteUseCase } from '../use-cases/admin-reject-quote.use-case';
 import { ListQuotesUseCase } from '../use-cases/list-quotes.use-case';
 import { ArchiveQuoteUseCase } from '../use-cases/archive-quote.use-case';
 import { QuotePaymentWebhookUseCase } from '../use-cases/quote-payment-webhook.use-case';
@@ -91,6 +92,7 @@ export class QuotesController {
     private readonly presentQuote: PresentQuoteUseCase,
     private readonly acceptQuote: AcceptQuoteUseCase,
     private readonly rejectQuote: RejectQuoteUseCase,
+    private readonly adminRejectQuote: AdminRejectQuoteUseCase,
     private readonly listQuotes: ListQuotesUseCase,
     private readonly archiveQuote: ArchiveQuoteUseCase,
     private readonly paymentWebhook: QuotePaymentWebhookUseCase,
@@ -246,6 +248,17 @@ export class QuotesController {
       page: page ? parseInt(page, 10) : 1,
       pageSize: pageSize ? parseInt(pageSize, 10) : 20,
     });
+  }
+
+  // PATCH /api/quotes/:id/admin-reject (admin, JWT) — reject a pending request
+  @Patch(':id/admin-reject')
+  @UseGuards(JwtAuthGuard)
+  async adminReject(@Param('id') id: string, @Body() body: { reason: string }) {
+    if (!body.reason || !body.reason.trim()) {
+      throw new BadRequestException('Reason is required');
+    }
+    const rejected = await this.adminRejectQuote.execute(id, body.reason);
+    return { id: rejected.id, status: rejected.status };
   }
 
   // TASK-quoteB-15: PATCH /api/quotes/:id/archive (admin, JWT)

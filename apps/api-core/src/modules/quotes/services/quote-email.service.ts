@@ -66,6 +66,27 @@ export class QuoteEmailService {
   }
 
   /**
+   * Admin rejected the quote request — notify customer.
+   */
+  async sendRequestRejected(
+    customerEmail: string,
+    customerName: string,
+    quoteId: string,
+    reason: string,
+  ): Promise<void> {
+    const subject = 'ModulApp — Your quote request was not approved';
+    const html = `
+      <p>Hi ${customerName},</p>
+      <p>Unfortunately, we are unable to fulfill your quote request at this time.</p>
+      <p><strong>Reference:</strong> ${quoteId}</p>
+      <p><strong>Reason:</strong> ${reason}</p>
+      <p>If you have questions, feel free to reach out through our complaints form.</p>
+      <p>— The ModulApp Team</p>
+    `;
+    await this.send(customerEmail, subject, html);
+  }
+
+  /**
    * FR9: Payment confirmation email to customer.
    */
   async sendPaymentConfirmation(

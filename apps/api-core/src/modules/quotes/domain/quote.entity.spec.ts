@@ -171,9 +171,18 @@ describe('Quote Entity — State Machine', () => {
       expect(() => quote.accept()).toThrow('Invalid transition');
     });
 
-    it('pending → rejected throws', () => {
+    it('pending → rejected via adminReject works', () => {
       const quote = createPendingQuote();
-      expect(() => quote.reject()).toThrow('Invalid transition');
+      const rejected = quote.adminReject('Not feasible');
+      expect(rejected.status).toBe('rejected');
+      expect(rejected.rejectionReason).toBe('Not feasible');
+    });
+
+    it('pending → rejected via customer reject() still works (transition allowed)', () => {
+      const quote = createPendingQuote();
+      // reject() checks actionTokenUsed; pending quotes have it as false, so transition is valid
+      const rejected = quote.reject();
+      expect(rejected.status).toBe('rejected');
     });
 
     it('quoted → paid throws (must go through accepted + payment_initiated)', () => {

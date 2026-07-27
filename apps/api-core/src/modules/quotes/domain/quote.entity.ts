@@ -65,7 +65,7 @@ const PAYMENT_WINDOW_MS = 24 * 60 * 60 * 1000;
 // Valid transitions map
 const ALLOWED_TRANSITIONS: Record<QuoteStatus, QuoteStatus[]> = {
   discarded_incomplete_data: [],
-  pending: ['quoted'],
+  pending: ['quoted', 'rejected'],
   quoted: ['accepted', 'rejected', 'expired'],
   accepted: ['payment_initiated'],
   rejected: ['archived'],
@@ -175,6 +175,17 @@ export class Quote {
     return this.transition('rejected', {
       rejectedAt: new Date(),
       actionTokenUsed: true,
+    });
+  }
+
+  /**
+   * Admin rejects a pending quote request (before quoting).
+   * No token involved — the admin simply declines the request.
+   */
+  adminReject(reason: string): Quote {
+    return this.transition('rejected', {
+      rejectedAt: new Date(),
+      rejectionReason: reason,
     });
   }
 

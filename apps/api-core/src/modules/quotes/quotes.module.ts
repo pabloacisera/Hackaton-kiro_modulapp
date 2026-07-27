@@ -10,6 +10,7 @@ import { CreateQuoteUseCase } from './use-cases/create-quote.use-case';
 import { PresentQuoteUseCase } from './use-cases/present-quote.use-case';
 import { AcceptQuoteUseCase } from './use-cases/accept-quote.use-case';
 import { RejectQuoteUseCase } from './use-cases/reject-quote.use-case';
+import { AdminRejectQuoteUseCase } from './use-cases/admin-reject-quote.use-case';
 import { ListQuotesUseCase } from './use-cases/list-quotes.use-case';
 import { ArchiveQuoteUseCase } from './use-cases/archive-quote.use-case';
 import { QuotePaymentWebhookUseCase } from './use-cases/quote-payment-webhook.use-case';
@@ -37,6 +38,7 @@ const quoteRepoProvider = {
     PresentQuoteUseCase,
     AcceptQuoteUseCase,
     RejectQuoteUseCase,
+    AdminRejectQuoteUseCase,
     ListQuotesUseCase,
     ArchiveQuoteUseCase,
     QuotePaymentWebhookUseCase,

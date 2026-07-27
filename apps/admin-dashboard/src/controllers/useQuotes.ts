@@ -3,6 +3,7 @@ import {
   fetchQuotes,
   presentQuote,
   archiveQuote,
+  adminRejectQuote,
   QuoteDto,
   QuoteStatus,
   PaginatedQuotes,
@@ -25,6 +26,7 @@ export interface UseQuotesResult {
     leadTimeDays: number,
     estimatedDeliveryDate: string,
   ) => Promise<void>;
+  adminReject: (quoteId: string, reason: string) => Promise<void>;
   archive: (quoteId: string) => Promise<void>;
   reload: () => void;
 }
@@ -82,6 +84,14 @@ export function useQuotes(): UseQuotesResult {
     [reload],
   );
 
+  const adminReject = useCallback(
+    async (quoteId: string, reason: string) => {
+      await adminRejectQuote(quoteId, reason);
+      reload();
+    },
+    [reload],
+  );
+
   const archive = useCallback(
     async (quoteId: string) => {
       await archiveQuote(quoteId);
@@ -102,6 +112,7 @@ export function useQuotes(): UseQuotesResult {
     setStatusFilter,
     setPage,
     present,
+    adminReject,
     archive,
     reload,
   };

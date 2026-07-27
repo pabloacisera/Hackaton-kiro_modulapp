@@ -32,6 +32,7 @@ export function QuotesPage() {
     setStatusFilter,
     setPage,
     present,
+    adminReject,
     archive,
     reload,
   } = useQuotes();
@@ -72,6 +73,19 @@ export function QuotesPage() {
       await archive(quoteId);
     } catch (err: unknown) {
       setActionError(err instanceof Error ? err.message : 'Error al archivar');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleAdminReject = async (quoteId: string) => {
+    const reason = prompt('Motivo del rechazo:');
+    if (!reason || !reason.trim()) return;
+    setActionLoading(true);
+    try {
+      await adminReject(quoteId, reason);
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : 'Error al rechazar');
     } finally {
       setActionLoading(false);
     }
@@ -188,6 +202,18 @@ export function QuotesPage() {
                           className="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
                         >
                           Cotizar
+                        </button>
+                      )}
+                      {canPresent(q) && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAdminReject(q.id);
+                          }}
+                          disabled={actionLoading}
+                          className="rounded bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                        >
+                          {actionLoading ? '...' : 'Rechazar'}
                         </button>
                       )}
                       {canArchive(q) && (
