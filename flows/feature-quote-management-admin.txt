@@ -12,21 +12,27 @@ ACTORES INVOLUCRADOS
 - Mailjet (email de postergacion al cliente)
 
 PASO A PASO
-1. Admin accede a la seccion de cotizaciones en el dashboard.
-2. GET /api/admin/quotes con filtros: status, busqueda, rango de fechas, rango de monto, paginacion.
-3. Frontend renderiza QuotesTable con tabs por estado o filtro de status + busqueda + paginacion.
-4. Admin hace clic en una cotizacion -> vista de detalle con TimelineStatus (componente visual que muestra la secuencia de estados con timestamps calculados: quote_sent_at, accepted_at, rejected_at, etc.).
-5. Admin puede postergar: PATCH /api/admin/quotes/:id/postpone { new_delivery_date, reason }.
-6. Se envia email al cliente notificando la postergacion.
-7. La funcionalidad de quejas/reembolsos sigue disponible sobre la cotizacion postergada.
+1. Admin accede a la seccion de cotizaciones en el dashboard (/quotes).
+2. GET /api/quotes con filtros: status, busqueda (q), paginacion.
+3. Frontend renderiza QuotesTable con filtro de status + busqueda debounced + paginacion (20 por pagina).
+4. El listado por defecto ("Todas") excluye cotizaciones archivadas y descartadas. Para ver archivadas: /quotes/archived.
+5. Admin hace clic en una cotizacion -> vista de detalle con TimelineStatus (componente visual que muestra la secuencia de estados con timestamps calculados: quote_sent_at, accepted_at, rejected_at, etc.).
+6. Admin puede cotizar: boton "Cotizar" abre modal con precio, dias de entrega, fecha estimada.
+7. Admin puede archivar: cotizaciones rechazadas, expiradas o con pago expirado se archivan para mantener limpia la tabla principal.
+8. Cotizaciones archivadas se acceden desde /quotes/archived con su propia busqueda y paginacion.
 
 ESTADOS
 No tiene estados propios. Opera sobre los estados del Quote definido en feature-custom-quote.
 
 ENDPOINTS INVOLUCRADOS
-GET /api/admin/quotes                    -> listado con filtros avanzados
-GET /api/admin/quotes/:id                -> detalle con timeline calculado
-PATCH /api/admin/quotes/:id/postpone     -> posterga fecha, notifica al cliente
+GET /api/quotes                          -> listado con filtros (status, q, page). Default excluye archived y discarded.
+GET /api/quotes?status=archived          -> solo archivadas (usado por /quotes/archived)
+PATCH /api/quotes/:id/present            -> admin presenta cotizacion con precio
+PATCH /api/quotes/:id/archive            -> archiva cotizacion (admin, JWT)
+
+RUTAS FRONTEND (Admin Dashboard)
+/quotes                                  -> tabla principal (sin archivadas)
+/quotes/archived                         -> tabla de cotizaciones archivadas
 
 DEPENDENCIAS CON OTROS FLUJOS
 - feature-custom-quote: depende totalmente del dominio Quote (misma entidad, mismos estados).

@@ -18,13 +18,14 @@ PASO A PASO
 2. api-core retorna listado paginado. Resultados cacheados en Redis (TTL corto).
 3. Frontend renderiza CatalogGrid con tarjetas de prototipos (imagen, nombre, precio, stock o "bajo pedido").
 4. Cliente puede buscar por nombre/descripcion, filtrar por categoria (modular_furniture/arches) y rango de precio.
-5. Cliente hace clic en un prototipo -> vista de detalle con galeria, especificaciones y tiempo estimado de entrega.
+5. Cliente hace clic en un prototipo -> navega a /catalog/:id con vista de detalle: galeria, especificaciones y tiempo estimado de entrega.
 6. Mientras el cliente tiene el catalogo abierto, una conexion SSE activa (/api/catalog/stream) recibe eventos:
    - prototype.updated: actualiza precio, stock o estado activo en el UI sin recarga.
    - prototype.deactivated: muestra aviso "ya no esta disponible", bloquea boton de compra.
 7. Si la conexion SSE se cae, reconexion automatica con backoff exponencial. Se muestra "actualizando..." brevemente.
-8. Boton "Comprar" en el detalle lleva al Flujo A (feature-direct-purchase).
+8. Boton "Comprar" en el detalle navega a /catalog/:id/checkout donde se pide email y se inicia el pago (Flujo A).
 9. Links a "Solicitar cotizacion" (Flujo B) y "Quejas y reembolsos" siempre visibles en la navegacion.
+10. Despues del pago, PayPal redirige a /payment-result con el resultado.
 
 ESTADOS
 No hay maquina de estados. El catalogo es una vista de solo lectura con
@@ -34,6 +35,14 @@ ENDPOINTS INVOLUCRADOS
 GET /api/catalog/prototypes          -> listado paginado con filtros
 GET /api/catalog/prototypes/:id      -> detalle de un prototipo
 GET /api/catalog/stream              -> SSE: eventos de actualizacion en vivo
+
+RUTAS FRONTEND (Landing SPA)
+/                                    -> home con catalogo inline
+/catalog/:id                         -> detalle del prototipo
+/catalog/:id/checkout                -> formulario de compra (email + pago PayPal)
+/payment-result                      -> resultado post-pago (exito o cancelacion)
+/quote                               -> formulario de cotizacion (Flujo B)
+/complaints                          -> formulario de reclamos
 
 DEPENDENCIAS CON OTROS FLUJOS
 - feature-direct-purchase: el boton "Comprar" lleva al checkout del Flujo A.

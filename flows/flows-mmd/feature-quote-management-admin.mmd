@@ -1,10 +1,14 @@
+```mermaid
 flowchart TD
-    A[Admin opens Quotes section] --> B[GET /api/admin/quotes with filters]
-    B --> C[QuotesTable - tabs by status + search + pagination]
+    A[Admin opens Quotes section /quotes] --> B[GET /api/quotes with filters]
+    B --> B1[Default: excludes archived + discarded]
+    B1 --> C[QuotesTable - status filter + debounced search + pagination]
     C --> D{Admin action?}
     D -->|Click quote| E[QuoteDetail with TimelineStatus]
     D -->|Filter by status| F[Update filters, re-fetch]
+    D -->|Search| F2[Debounced search, reset to page 1]
     F --> B
+    F2 --> B
 
     E --> G[Show calculated timeline from timestamps]
     G --> G1[quote_sent_at]
@@ -12,18 +16,28 @@ flowchart TD
     G --> G3[rejected_at]
     G --> G4[paid_at]
 
-    D -->|Postpone delivery| H[PostponeQuoteModal]
-    H --> I[PATCH /api/quotes/:id/postpone {new_delivery_date, reason}]
-    I --> J[Send email notification to customer]
-    I --> K[Quote remains in current state - complaint/refund still available]
+    D -->|Cotizar| H[PresentQuoteModal - price, lead time, delivery date]
+    H --> I[PATCH /api/quotes/:id/present]
+    I --> I1[Generate PDF via pdfkit]
+    I1 --> I2[Upload to Supabase Storage]
+    I2 --> I3[Send email with PDF + accept/reject magic links]
 
-    subgraph Timeline["TimelineStatus Component"]
-        T1[pending] --> T2[quoted - with timestamp]
-        T2 --> T3[accepted - with timestamp]
-        T2 --> T4[rejected - with timestamp]
-        T2 --> T5[expired - calculated by job]
-        T3 --> T6[paid - with timestamp]
-        T3 --> T7[payment_expired - calculated by job]
+    D -->|Archivar| J[PATCH /api/quotes/:id/archive]
+    J --> J1[Quote moves to archived - disappears from main table]
+
+    subgraph Archived["/quotes/archived"]
+        AR1[Admin navigates to Archived section]
+        AR1 --> AR2[GET /api/quotes?status=archived with q + page]
+        AR2 --> AR3[ArchivedQuotesTable - search + pagination]
     end
 
-    style Timeline fill:#e8eaf6,stroke:#283593
+    subgraph Pagination["Search & Pagination (all tables)"]
+        P1[Debounced search input - 300ms]
+        P2[Prev/Next buttons - disabled at boundaries]
+        P3[20 records per page]
+        P4[Buttons disabled when total <= pageSize]
+    end
+
+    style Archived fill:#f3e5f5,stroke:#7b1fa2
+    style Pagination fill:#e8f5e9,stroke:#2e7d32
+```

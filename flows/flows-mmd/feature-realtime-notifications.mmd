@@ -1,7 +1,11 @@
+```mermaid
 flowchart TD
-    subgraph Admin["Admin Dashboard (WebSocket)"]
-        A1[Admin opens dashboard] --> A2[Establish WebSocket with JWT handshake]
-        A2 --> A3[Connected - listening for events]
+    subgraph Admin["Admin Dashboard (WebSocket via Socket.IO)"]
+        A1[Admin opens dashboard] --> A2[Establish Socket.IO connection]
+        A2 --> A2a[Namespace: /admin]
+        A2a --> A2b[Path: /api/socket.io via Nginx proxy]
+        A2b --> A2c[JWT auth in handshake]
+        A2c --> A3[Connected - listening for events]
         A3 --> A4{Event received?}
         A4 -->|new purchase| A5[Update NotificationBell badge]
         A4 -->|new quote request| A5
@@ -9,20 +13,26 @@ flowchart TD
         A4 -->|new complaint| A5
         A4 -->|low stock alarm| A5
         A4 -->|payment confirmed| A5
-        A5 --> A6[Play sound with debounce]
-        A6 --> A7[NotificationPanel dropdown - recent history]
-        A7 --> A8{Admin action?}
-        A8 -->|Mark as read| A9[Propagate read state via WebSocket]
-        A8 -->|Click notification| A10[Navigate to resource - order/quote/complaint/supply]
+        A5 --> A6[Play sound with 2s debounce]
+        A6 --> A7{Where to view?}
+        A7 -->|Quick view| A8[NotificationPanel dropdown - recent list]
+        A7 -->|Full history| A9[/notifications page - search + pagination]
+        A8 --> A10{Admin action?}
+        A9 --> A10
+        A10 -->|Mark as read| A11[Emit notification.mark_read via WebSocket]
+        A10 -->|Click notification| A12[Navigate to resource - order/quote/complaint/supply]
+        A10 -->|Search| A13[Client-side filtering of loaded notifications]
     end
 
     subgraph Landing["Landing (SSE)"]
         L1[Landing loads] --> L2[Establish SSE connection /api/catalog/stream]
-        L2 --> L3[Connected - listening for catalog events]
+        L2 --> L2a[Header: X-Accel-Buffering: no - bypasses Nginx buffering]
+        L2a --> L3[Connected - listening for catalog events]
         L3 --> L4{SSE event?}
         L4 -->|prototype.updated| L5[Merge into local catalog state by id]
-        L4 -->|prototype.deactivated| L6[Show unavailable notice]
+        L4 -->|prototype.deactivated| L6[Remove from catalog / show unavailable]
         L5 --> L7[UI updates without page reload]
+        L6 --> L7
         L7 --> L8{Connection lost?}
         L8 -->|yes| L9[Reconnect with exponential backoff]
         L9 --> L10[Show brief updating indicator]
@@ -30,7 +40,7 @@ flowchart TD
     end
 
     subgraph Backend["api-core Event Sources"]
-        B1[Direct purchase: new order] --> B2[notifyAdmins - WebSocket]
+        B1[Direct purchase: new order] --> B2[notifyAdmins via WebSocket]
         B3[Custom quote: new/presented] --> B2
         B5[Complaint: new] --> B2
         B6[Supply: hourly low-stock check] --> B2
@@ -44,3 +54,4 @@ flowchart TD
     style Admin fill:#e8f5e9,stroke:#2e7d32
     style Landing fill:#e3f2fd,stroke:#1565c0
     style Backend fill:#fff3e0,stroke:#e65100
+```

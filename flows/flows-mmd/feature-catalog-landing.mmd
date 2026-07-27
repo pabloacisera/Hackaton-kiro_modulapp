@@ -1,5 +1,6 @@
+```mermaid
 flowchart TD
-    A[Client visits Landing] --> B[Frontend requests GET /api/catalog/prototypes]
+    A[Client visits Landing /] --> B[Frontend requests GET /api/catalog/prototypes]
     B --> C{Filters?}
     C -->|category, price, search| D[api-core queries PostgreSQL with filters]
     C -->|no filters| D
@@ -9,10 +10,17 @@ flowchart TD
     G --> H{Action?}
     H -->|Search/Filter| I[Update filters, re-fetch with combined params]
     I --> D
-    H -->|Click prototype| J[View PrototypeDetail - gallery, specs, delivery estimate]
-    H -->|Buy button| K[Redirect to Direct Purchase - Flow A]
-    H -->|Request custom quote| L[Redirect to Custom Quote - Flow B]
-    H -->|Complaints| M[Redirect to Complaints form]
+    H -->|Click prototype| J[Navigate to /catalog/:id - PrototypeDetail]
+    J --> J1[Gallery, specs, delivery estimate, Buy button]
+    H -->|Request custom quote| L[Navigate to /quote - Flow B form]
+    H -->|Complaints| M[Navigate to /complaints form]
+
+    J1 --> J2{Buy clicked?}
+    J2 -->|Yes| K[Navigate to /catalog/:id/checkout]
+    K --> K1[CheckoutForm - collect email]
+    K1 --> K2[POST /api/orders - initiate payment]
+    K2 --> K3[Redirect to PayPal]
+    K3 --> K4[PayPal return to /payment-result]
 
     subgraph SSE[Real-time Sync via SSE]
         N[Admin updates prototype] --> O[PostgreSQL updated]
@@ -29,3 +37,5 @@ flowchart TD
     S --> U
 
     style SSE fill:#e1f5fe,stroke:#0288d1
+    style K fill:#e8f5e9,stroke:#2e7d32
+```

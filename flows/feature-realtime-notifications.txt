@@ -15,13 +15,13 @@ ACTORES INVOLUCRADOS
 - BullMQ jobs (emiten eventos de stock bajo)
 
 PASO A PASO (ADMIN - WebSocket)
-1. Admin abre el dashboard. Frontend establece conexion WebSocket con autenticacion JWT en el handshake.
+1. Admin abre el dashboard. Frontend establece conexion WebSocket (Socket.IO, namespace /admin) con autenticacion JWT en el handshake. Path: /api/socket.io (via Nginx proxy).
 2. Cuando ocurre un evento relevante (nueva compra, cotizacion, reclamo, stock bajo), api-core llama notifyAdmins().
-3. notifyAdmins() emite evento WebSocket a todos los admins conectados.
+3. notifyAdmins() persiste la notificacion en DB + emite evento WebSocket a todos los admins conectados.
 4. Frontend recibe el evento: muestra badge en NotificationBell, reproduce sonido (con debounce para eventos simultaneos).
-5. Admin puede abrir NotificationPanel (dropdown) para ver historial reciente.
+5. Admin puede abrir NotificationPanel (dropdown) para ver historial reciente, o ir a /notifications para ver el historial completo con busqueda y paginacion.
 6. Marcar como leido: propaga el estado via WebSocket para que otros tabs/dispositivos se actualicen.
-7. Si se cae la conexion, reconexion automatica con backoff.
+7. Si se cae la conexion, reconexion automatica con backoff exponencial.
 
 PASO A PASO (LANDING - SSE)
 1. Landing establece conexion SSE con /api/catalog/stream.
@@ -34,10 +34,12 @@ No hay maquina de estados formal. Cada notificacion tiene:
   unread -> read (marcado por el admin)
 
 ENDPOINTS INVOLUCRADOS
-(get/WebSocket, no REST clásico)
-WebSocket /notifications        -> eventos en tiempo real al admin
+WebSocket /admin (Socket.IO)    -> eventos en tiempo real (namespace /admin, path /api/socket.io)
 GET /api/admin/notifications    -> historial con filtros (read/unread, paginacion)
 GET /api/catalog/stream         -> SSE de eventos del catalogo para el landing
+
+RUTAS FRONTEND (Admin Dashboard)
+/notifications                  -> pagina completa de historial con busqueda y paginacion
 
 DEPENDENCIAS CON OTROS FLUJOS
 - feature-admin-auth-core: WebSocket requiere JWT valido en handshake.
