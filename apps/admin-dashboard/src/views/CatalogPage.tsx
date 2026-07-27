@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useCatalog } from '../controllers/useCatalog';
 import { Pagination } from './components/Pagination';
 import {
@@ -152,12 +153,30 @@ export function CatalogPage() {
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Catálogo</h1>
         <div className="flex gap-2">
-          <a
-            href="/catalog/import"
+          <button
+            onClick={() => {
+              const headers =
+                'name,description,category,price_usd,stock_qty,build_on_demand,estimated_delivery_days,active';
+              const example =
+                'Nombre producto,Descripcion minimo 10 chars,modular_furniture,99.99,5,false,7,true';
+              const blob = new Blob([`${headers}\n${example}`], { type: 'text/csv' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'plantilla-catalogo.csv';
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            📄 Descargar plantilla
+          </button>
+          <Link
+            to="/catalog/import"
             className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
           >
             📥 Importar Excel
-          </a>
+          </Link>
           <button
             onClick={() => {
               resetForm();

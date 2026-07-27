@@ -1,6 +1,7 @@
 import { useCatalogExcelImport } from '../controllers/useCatalogExcelImport';
 import { exportCatalogPrototypes } from '../models/catalogApi';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 /**
  * CatalogImportWizard — upload → preview with colored diffs → confirm.
@@ -91,9 +92,9 @@ export function CatalogImportWizard() {
     <div className="mx-auto max-w-2xl px-4 py-6">
       <div className="mb-6 flex items-center justify-between">
         <h2 className="text-xl font-bold text-gray-900">Importar Catálogo desde Excel/CSV</h2>
-        <a href="/catalog" className="text-sm text-blue-600 hover:underline">
+        <Link to="/catalog" className="text-sm text-blue-600 hover:underline">
           ← Volver al catálogo
-        </a>
+        </Link>
       </div>
 
       {/* Step 1: Upload */}
@@ -310,12 +311,12 @@ export function CatalogImportWizard() {
             >
               Importar otro archivo
             </button>
-            <a
-              href="/catalog"
+            <Link
+              to="/catalog"
               className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-semibold text-white hover:bg-blue-700"
             >
               Ver catálogo
-            </a>
+            </Link>
           </div>
         </div>
       )}

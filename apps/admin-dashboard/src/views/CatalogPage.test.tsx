@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { CatalogPage } from './CatalogPage';
 
 vi.mock('../controllers/useCatalog', () => ({
@@ -65,7 +66,11 @@ describe('CatalogPage', () => {
   });
 
   it('renders prototype table with all rows', () => {
-    render(<CatalogPage />);
+    render(
+      <MemoryRouter>
+        <CatalogPage />
+      </MemoryRouter>,
+    );
 
     expect(screen.getByText('Bookshelf')).toBeInTheDocument();
     expect(screen.getByText('Wedding Arch')).toBeInTheDocument();
@@ -74,21 +79,33 @@ describe('CatalogPage', () => {
   });
 
   it('shows active/inactive badges', () => {
-    render(<CatalogPage />);
+    render(
+      <MemoryRouter>
+        <CatalogPage />
+      </MemoryRouter>,
+    );
 
     expect(screen.getByText('Activo')).toBeInTheDocument();
     expect(screen.getByText('Inactivo')).toBeInTheDocument();
   });
 
   it('shows Deactivate button for active and Reactivate for inactive', () => {
-    render(<CatalogPage />);
+    render(
+      <MemoryRouter>
+        <CatalogPage />
+      </MemoryRouter>,
+    );
 
     expect(screen.getByText('Desactivar')).toBeInTheDocument();
     expect(screen.getByText('Reactivar')).toBeInTheDocument();
   });
 
   it('opens create form when Add Prototype is clicked', () => {
-    render(<CatalogPage />);
+    render(
+      <MemoryRouter>
+        <CatalogPage />
+      </MemoryRouter>,
+    );
 
     fireEvent.click(screen.getByText('+ Agregar prototipo'));
 
@@ -97,7 +114,11 @@ describe('CatalogPage', () => {
   });
 
   it('opens edit form when Edit is clicked', () => {
-    render(<CatalogPage />);
+    render(
+      <MemoryRouter>
+        <CatalogPage />
+      </MemoryRouter>,
+    );
 
     const editButtons = screen.getAllByText('Editar');
     fireEvent.click(editButtons[0]);
@@ -107,7 +128,11 @@ describe('CatalogPage', () => {
   });
 
   it('calls deactivate when Deactivate button is clicked', () => {
-    render(<CatalogPage />);
+    render(
+      <MemoryRouter>
+        <CatalogPage />
+      </MemoryRouter>,
+    );
 
     fireEvent.click(screen.getByText('Desactivar'));
 
@@ -115,7 +140,11 @@ describe('CatalogPage', () => {
   });
 
   it('calls reactivate when Reactivate button is clicked', () => {
-    render(<CatalogPage />);
+    render(
+      <MemoryRouter>
+        <CatalogPage />
+      </MemoryRouter>,
+    );
 
     fireEvent.click(screen.getByText('Reactivar'));
 
@@ -125,7 +154,11 @@ describe('CatalogPage', () => {
   it('shows loading state', () => {
     mockUseCatalog.mockReturnValue({ ...baseHook, prototypes: [], loading: true });
 
-    render(<CatalogPage />);
+    render(
+      <MemoryRouter>
+        <CatalogPage />
+      </MemoryRouter>,
+    );
 
     expect(screen.getByText('Cargando...')).toBeInTheDocument();
   });
@@ -137,7 +170,11 @@ describe('CatalogPage', () => {
       error: 'Something went wrong',
     });
 
-    render(<CatalogPage />);
+    render(
+      <MemoryRouter>
+        <CatalogPage />
+      </MemoryRouter>,
+    );
 
     expect(screen.getByRole('alert')).toHaveTextContent('Something went wrong');
   });
@@ -145,20 +182,32 @@ describe('CatalogPage', () => {
   it('shows empty state when no prototypes', () => {
     mockUseCatalog.mockReturnValue({ ...baseHook, prototypes: [], total: 0 });
 
-    render(<CatalogPage />);
+    render(
+      <MemoryRouter>
+        <CatalogPage />
+      </MemoryRouter>,
+    );
 
     expect(screen.getByText('No hay prototipos en el catálogo aún.')).toBeInTheDocument();
   });
 
   it('shows image count', () => {
-    render(<CatalogPage />);
+    render(
+      <MemoryRouter>
+        <CatalogPage />
+      </MemoryRouter>,
+    );
 
     expect(screen.getByText('1 img')).toBeInTheDocument();
     expect(screen.getByText('0 img')).toBeInTheDocument();
   });
 
   it('shows on-demand indicator', () => {
-    render(<CatalogPage />);
+    render(
+      <MemoryRouter>
+        <CatalogPage />
+      </MemoryRouter>,
+    );
 
     expect(screen.getByText('(bajo pedido)')).toBeInTheDocument();
   });
