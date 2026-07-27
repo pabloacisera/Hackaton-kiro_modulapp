@@ -14,6 +14,8 @@ export interface UseOrdersResult {
   page: number;
   loading: boolean;
   error: string | null;
+  search: string;
+  setSearch: (s: string) => void;
   statusFilter: OrderStatus | undefined;
   setStatusFilter: (s: OrderStatus | undefined) => void;
   setPage: (p: number) => void;
@@ -26,6 +28,7 @@ export function useOrders(): UseOrdersResult {
   const [orders, setOrders] = useState<OrderDto[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<OrderStatus | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +41,7 @@ export function useOrders(): UseOrdersResult {
     setLoading(true);
     setError(null);
 
-    fetchOrders({ status: statusFilter, page })
+    fetchOrders({ status: statusFilter, q: search || undefined, page })
       .then((data: PaginatedOrders) => {
         if (cancelled) return;
         setOrders(data.items);
@@ -55,7 +58,7 @@ export function useOrders(): UseOrdersResult {
     return () => {
       cancelled = true;
     };
-  }, [page, statusFilter, reloadToken]);
+  }, [page, statusFilter, search, reloadToken]);
 
   const accept = useCallback(
     async (orderId: string, eta: string) => {
@@ -79,6 +82,8 @@ export function useOrders(): UseOrdersResult {
     page,
     loading,
     error,
+    search,
+    setSearch,
     statusFilter,
     setStatusFilter,
     setPage,

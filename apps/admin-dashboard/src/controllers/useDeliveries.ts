@@ -11,10 +11,14 @@ import {
 export interface UseDeliveriesResult {
   deliveries: DeliveryDto[];
   total: number;
+  page: number;
   loading: boolean;
   error: string | null;
+  search: string;
+  setSearch: (s: string) => void;
   statusFilter: DeliveryStatus | undefined;
   setStatusFilter: (s: DeliveryStatus | undefined) => void;
+  setPage: (p: number) => void;
   deliver: (origin: 'order' | 'quote', id: string) => Promise<void>;
   postpone: (origin: 'order' | 'quote', id: string, newDate: string) => Promise<void>;
   reload: () => void;
@@ -23,6 +27,8 @@ export interface UseDeliveriesResult {
 export function useDeliveries(): UseDeliveriesResult {
   const [deliveries, setDeliveries] = useState<DeliveryDto[]>([]);
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<DeliveryStatus | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +41,7 @@ export function useDeliveries(): UseDeliveriesResult {
     setLoading(true);
     setError(null);
 
-    fetchDeliveries({ status: statusFilter })
+    fetchDeliveries({ status: statusFilter, q: search || undefined, page })
       .then((data: PaginatedDeliveries) => {
         if (cancelled) return;
         setDeliveries(data.items);
@@ -52,7 +58,7 @@ export function useDeliveries(): UseDeliveriesResult {
     return () => {
       cancelled = true;
     };
-  }, [statusFilter, reloadToken]);
+  }, [statusFilter, search, page, reloadToken]);
 
   const deliver = useCallback(
     async (origin: 'order' | 'quote', id: string) => {
@@ -73,10 +79,14 @@ export function useDeliveries(): UseDeliveriesResult {
   return {
     deliveries,
     total,
+    page,
     loading,
     error,
+    search,
+    setSearch,
     statusFilter,
     setStatusFilter,
+    setPage,
     deliver,
     postpone,
     reload,

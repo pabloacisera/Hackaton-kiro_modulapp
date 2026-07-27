@@ -14,6 +14,8 @@ export interface UseQuotesResult {
   page: number;
   loading: boolean;
   error: string | null;
+  search: string;
+  setSearch: (s: string) => void;
   statusFilter: QuoteStatus | undefined;
   setStatusFilter: (s: QuoteStatus | undefined) => void;
   setPage: (p: number) => void;
@@ -35,6 +37,7 @@ export function useQuotes(): UseQuotesResult {
   const [quotes, setQuotes] = useState<QuoteDto[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<QuoteStatus | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,7 +50,7 @@ export function useQuotes(): UseQuotesResult {
     setLoading(true);
     setError(null);
 
-    fetchQuotes({ status: statusFilter, page })
+    fetchQuotes({ status: statusFilter, q: search || undefined, page })
       .then((data: PaginatedQuotes) => {
         if (cancelled) return;
         setQuotes(data.items);
@@ -64,7 +67,7 @@ export function useQuotes(): UseQuotesResult {
     return () => {
       cancelled = true;
     };
-  }, [page, statusFilter, reloadToken]);
+  }, [page, statusFilter, search, reloadToken]);
 
   const present = useCallback(
     async (
@@ -93,6 +96,8 @@ export function useQuotes(): UseQuotesResult {
     page,
     loading,
     error,
+    search,
+    setSearch,
     statusFilter,
     setStatusFilter,
     setPage,

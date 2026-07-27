@@ -12,10 +12,14 @@ import {
 export interface UseComplaintsResult {
   complaints: ComplaintDto[];
   total: number;
+  page: number;
   loading: boolean;
   error: string | null;
+  search: string;
+  setSearch: (s: string) => void;
   statusFilter: ComplaintStatus | undefined;
   setStatusFilter: (s: ComplaintStatus | undefined) => void;
+  setPage: (p: number) => void;
   review: (id: string) => Promise<void>;
   refund: (id: string) => Promise<void>;
   resolve: (id: string, notes: string, status: 'resolved_other_way' | 'rejected') => Promise<void>;
@@ -25,6 +29,8 @@ export interface UseComplaintsResult {
 export function useComplaints(): UseComplaintsResult {
   const [complaints, setComplaints] = useState<ComplaintDto[]>([]);
   const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<ComplaintStatus | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,7 +43,7 @@ export function useComplaints(): UseComplaintsResult {
     setLoading(true);
     setError(null);
 
-    fetchComplaints({ status: statusFilter })
+    fetchComplaints({ status: statusFilter, q: search || undefined, page })
       .then((data: PaginatedComplaints) => {
         if (cancelled) return;
         setComplaints(data.items);
@@ -54,7 +60,7 @@ export function useComplaints(): UseComplaintsResult {
     return () => {
       cancelled = true;
     };
-  }, [statusFilter, reloadToken]);
+  }, [statusFilter, search, page, reloadToken]);
 
   const review = useCallback(
     async (id: string) => {
@@ -81,10 +87,14 @@ export function useComplaints(): UseComplaintsResult {
   return {
     complaints,
     total,
+    page,
     loading,
     error,
+    search,
+    setSearch,
     statusFilter,
     setStatusFilter,
+    setPage,
     review,
     refund,
     resolve,
