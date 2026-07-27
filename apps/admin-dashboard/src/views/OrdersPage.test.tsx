@@ -45,19 +45,19 @@ describe('OrdersPage', () => {
     expect(screen.getByText('buyer@test.com')).toBeInTheDocument();
     expect(screen.getByText(/199\.99/)).toBeInTheDocument();
     // Status badge in the table — may also appear in select, so use getAllByText
-    expect(screen.getAllByText(/pending acceptance/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Pendiente de aceptación/i).length).toBeGreaterThan(0);
   });
 
-  it('shows Accept and Reject buttons for pending_acceptance orders', () => {
+  it('shows Aceptar and Rechazar buttons for pending_acceptance orders', () => {
     render(<OrdersPage />);
     expect(screen.getByRole('button', { name: /accept order/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /reject order/i })).toBeInTheDocument();
   });
 
-  it('opens accept modal on Accept click', () => {
+  it('opens accept modal on Aceptar click', () => {
     render(<OrdersPage />);
     fireEvent.click(screen.getByRole('button', { name: /accept order/i }));
-    expect(screen.getByRole('dialog', { name: /accept order/i })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: /aceptar orden/i })).toBeInTheDocument();
   });
 
   it('calls accept with orderId and eta', async () => {
@@ -65,20 +65,20 @@ describe('OrdersPage', () => {
     render(<OrdersPage />);
     fireEvent.click(screen.getByRole('button', { name: /accept order/i }));
 
-    const dialog = screen.getByRole('dialog', { name: /accept order/i });
+    const dialog = screen.getByRole('dialog', { name: /aceptar orden/i });
     expect(dialog).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText(/estimated delivery date/i), {
+    fireEvent.change(screen.getByLabelText(/fecha estimada de entrega/i), {
       target: { value: '2026-09-01' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /confirm acceptance/i }));
+    fireEvent.click(screen.getByRole('button', { name: /confirmar aceptación/i }));
 
     await waitFor(() => expect(mockAccept).toHaveBeenCalledWith('ord-111-222', '2026-09-01'));
   });
 
-  it('opens reject modal on Reject click', () => {
+  it('opens reject modal on Rechazar click', () => {
     render(<OrdersPage />);
     fireEvent.click(screen.getByRole('button', { name: /reject order/i }));
-    expect(screen.getByRole('dialog', { name: /reject order/i })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: /rechazar orden/i })).toBeInTheDocument();
   });
 
   it('calls reject with orderId and reason', async () => {
@@ -86,10 +86,10 @@ describe('OrdersPage', () => {
     render(<OrdersPage />);
     fireEvent.click(screen.getByRole('button', { name: /reject order/i }));
 
-    fireEvent.change(screen.getByLabelText(/reason for rejection/i), {
+    fireEvent.change(screen.getByLabelText(/motivo del rechazo/i), {
       target: { value: 'Out of materials' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /reject & refund/i }));
+    fireEvent.click(screen.getByRole('button', { name: /rechazar y reembolsar/i }));
 
     await waitFor(() => expect(mockReject).toHaveBeenCalledWith('ord-111-222', 'Out of materials'));
   });

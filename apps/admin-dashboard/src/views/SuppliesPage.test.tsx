@@ -53,13 +53,13 @@ describe('SuppliesPage', () => {
   it('shows empty state when no supplies', () => {
     mockUseSupplies.mockReturnValue(baseHook);
     render(<SuppliesPage />);
-    expect(screen.getByText(/no supplies found/i)).toBeInTheDocument();
+    expect(screen.getByText('No se encontraron suministros.')).toBeInTheDocument();
   });
 
   it('shows Add Supply button that opens form', () => {
     mockUseSupplies.mockReturnValue(baseHook);
     render(<SuppliesPage />);
-    fireEvent.click(screen.getByRole('button', { name: /add supply/i }));
+    fireEvent.click(screen.getByRole('button', { name: /agregar suministro/i }));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByLabelText(/sku/i)).toBeInTheDocument();
   });
@@ -67,9 +67,9 @@ describe('SuppliesPage', () => {
   it('shows Edit button that opens form with data', () => {
     mockUseSupplies.mockReturnValue({ ...baseHook, supplies: [sampleSupply], total: 1 });
     render(<SuppliesPage />);
-    fireEvent.click(screen.getByText('Edit'));
+    fireEvent.click(screen.getByText('Editar'));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByLabelText(/name/i)).toHaveValue('MDF Board 18mm');
+    expect(screen.getByLabelText(/nombre/i)).toHaveValue('MDF Board 18mm');
   });
 
   it('calls remove on Delete click', () => {
@@ -81,7 +81,7 @@ describe('SuppliesPage', () => {
       remove: mockRemove,
     });
     render(<SuppliesPage />);
-    fireEvent.click(screen.getByText('Delete'));
+    fireEvent.click(screen.getByText('Eliminar'));
     expect(mockRemove).toHaveBeenCalledWith('s-1');
   });
 

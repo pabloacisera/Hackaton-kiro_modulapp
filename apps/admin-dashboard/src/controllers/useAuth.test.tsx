@@ -6,8 +6,13 @@ import { ReactNode } from 'react';
 
 vi.mock('../models/auth', () => ({
   loginApi: vi.fn(),
-  refreshApi: vi.fn(),
-  logoutApi: vi.fn(),
+  refreshApi: vi.fn().mockRejectedValue(new Error('No session')),
+  logoutApi: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('../models/http-client', () => ({
+  setAccessToken: vi.fn(),
+  setSessionExpiredHandler: vi.fn(),
 }));
 
 import { loginApi, refreshApi, logoutApi } from '../models/auth';
@@ -21,7 +26,11 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 describe('useAuth controller', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockRefreshApi.mockRejectedValue(new Error('No session'));
+    mockLogoutApi.mockResolvedValue(undefined);
+  });
 
   it('starts with no token and no error', () => {
     const { result } = renderHook(() => useAuth(), { wrapper });

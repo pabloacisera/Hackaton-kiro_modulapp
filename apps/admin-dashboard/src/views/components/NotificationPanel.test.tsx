@@ -26,7 +26,7 @@ describe('NotificationPanel', () => {
     expect(screen.getByText('New order received')).toBeInTheDocument();
   });
 
-  it('shows "No notifications" when list is empty', () => {
+  it('shows "Sin notificaciones" when list is empty', () => {
     render(
       <NotificationPanel
         notifications={[]}
@@ -36,7 +36,7 @@ describe('NotificationPanel', () => {
         onClose={vi.fn()}
       />,
     );
-    expect(screen.getByText(/no notifications/i)).toBeInTheDocument();
+    expect(screen.getByText(/sin notificaciones/i)).toBeInTheDocument();
   });
 
   it('calls onMarkRead when mark read button is clicked', () => {
@@ -50,7 +50,7 @@ describe('NotificationPanel', () => {
         onClose={vi.fn()}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: /mark.*read/i }));
+    fireEvent.click(screen.getByRole('button', { name: /marcar.*leída/i }));
     expect(onMarkRead).toHaveBeenCalledWith('n-1');
   });
 
@@ -65,7 +65,7 @@ describe('NotificationPanel', () => {
         onClose={vi.fn()}
       />,
     );
-    fireEvent.click(screen.getByRole('button', { name: /sound/i }));
+    fireEvent.click(screen.getByRole('button', { name: /desactivar sonido/i }));
     expect(onToggleSound).toHaveBeenCalled();
   });
 
@@ -79,6 +79,6 @@ describe('NotificationPanel', () => {
         onClose={vi.fn()}
       />,
     );
-    expect(screen.queryByRole('button', { name: /mark.*read/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /marcar.*leída/i })).not.toBeInTheDocument();
   });
 });

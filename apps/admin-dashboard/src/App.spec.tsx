@@ -17,12 +17,12 @@ vi.mock('./controllers/useAuth', () => ({
 describe('App (admin-dashboard)', () => {
   it('renders login page when not authenticated', () => {
     render(<App />);
-    expect(screen.getByText(/sign in/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Iniciar sesión/i })).toBeInTheDocument();
   });
 
   it('renders email and password fields', () => {
     render(<App />);
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Correo electrónico/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Contraseña/i)).toBeInTheDocument();
   });
 });

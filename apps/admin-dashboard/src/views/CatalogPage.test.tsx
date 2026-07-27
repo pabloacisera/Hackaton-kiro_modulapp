@@ -76,40 +76,40 @@ describe('CatalogPage', () => {
   it('shows active/inactive badges', () => {
     render(<CatalogPage />);
 
-    expect(screen.getByText('Active')).toBeInTheDocument();
-    expect(screen.getByText('Inactive')).toBeInTheDocument();
+    expect(screen.getByText('Activo')).toBeInTheDocument();
+    expect(screen.getByText('Inactivo')).toBeInTheDocument();
   });
 
   it('shows Deactivate button for active and Reactivate for inactive', () => {
     render(<CatalogPage />);
 
-    expect(screen.getByText('Deactivate')).toBeInTheDocument();
-    expect(screen.getByText('Reactivate')).toBeInTheDocument();
+    expect(screen.getByText('Desactivar')).toBeInTheDocument();
+    expect(screen.getByText('Reactivar')).toBeInTheDocument();
   });
 
   it('opens create form when Add Prototype is clicked', () => {
     render(<CatalogPage />);
 
-    fireEvent.click(screen.getByText('Add Prototype'));
+    fireEvent.click(screen.getByText('+ Agregar prototipo'));
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('New Prototype')).toBeInTheDocument();
+    expect(screen.getByText('Nuevo Prototipo')).toBeInTheDocument();
   });
 
   it('opens edit form when Edit is clicked', () => {
     render(<CatalogPage />);
 
-    const editButtons = screen.getAllByText('Edit');
+    const editButtons = screen.getAllByText('Editar');
     fireEvent.click(editButtons[0]);
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('Edit Prototype')).toBeInTheDocument();
+    expect(screen.getByText('Editar Prototipo')).toBeInTheDocument();
   });
 
   it('calls deactivate when Deactivate button is clicked', () => {
     render(<CatalogPage />);
 
-    fireEvent.click(screen.getByText('Deactivate'));
+    fireEvent.click(screen.getByText('Desactivar'));
 
     expect(baseHook.deactivate).toHaveBeenCalledWith('p-1');
   });
@@ -117,7 +117,7 @@ describe('CatalogPage', () => {
   it('calls reactivate when Reactivate button is clicked', () => {
     render(<CatalogPage />);
 
-    fireEvent.click(screen.getByText('Reactivate'));
+    fireEvent.click(screen.getByText('Reactivar'));
 
     expect(baseHook.reactivate).toHaveBeenCalledWith('p-2');
   });
@@ -127,7 +127,7 @@ describe('CatalogPage', () => {
 
     render(<CatalogPage />);
 
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText('Cargando...')).toBeInTheDocument();
   });
 
   it('shows error alert', () => {
@@ -147,7 +147,7 @@ describe('CatalogPage', () => {
 
     render(<CatalogPage />);
 
-    expect(screen.getByText('No prototypes found.')).toBeInTheDocument();
+    expect(screen.getByText('No hay prototipos en el catálogo aún.')).toBeInTheDocument();
   });
 
   it('shows image count', () => {
@@ -160,6 +160,6 @@ describe('CatalogPage', () => {
   it('shows on-demand indicator', () => {
     render(<CatalogPage />);
 
-    expect(screen.getByText('(on-demand)')).toBeInTheDocument();
+    expect(screen.getByText('(bajo pedido)')).toBeInTheDocument();
   });
 });

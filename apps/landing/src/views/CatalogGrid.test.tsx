@@ -4,12 +4,30 @@ import { CatalogGrid } from './CatalogGrid';
 import type { PrototypeDto } from '../models/catalogApi';
 
 const items: PrototypeDto[] = [
-  { id: 'p-1', name: 'Arch One', category: 'arches', priceUsd: 199.99,
-    active: true, stockQty: 3, buildOnDemand: false,
-    description: 'Nice arch', estimatedDeliveryDays: 10, images: [] },
-  { id: 'p-2', name: 'Bookshelf B', category: 'modular_furniture', priceUsd: 299.00,
-    active: true, stockQty: 0, buildOnDemand: true,
-    description: 'Modular shelf', estimatedDeliveryDays: null, images: [] },
+  {
+    id: 'p-1',
+    name: 'Arch One',
+    category: 'arches',
+    priceUsd: 199.99,
+    active: true,
+    stockQty: 3,
+    buildOnDemand: false,
+    description: 'Nice arch',
+    estimatedDeliveryDays: 10,
+    images: [],
+  },
+  {
+    id: 'p-2',
+    name: 'Bookshelf B',
+    category: 'modular_furniture',
+    priceUsd: 299.0,
+    active: true,
+    stockQty: 0,
+    buildOnDemand: true,
+    description: 'Modular shelf',
+    estimatedDeliveryDays: null,
+    images: [],
+  },
 ];
 
 describe('CatalogGrid', () => {
@@ -28,11 +46,13 @@ describe('CatalogGrid', () => {
 
   it('shows empty state when no items', () => {
     render(<CatalogGrid items={[]} loading={false} onSelectPrototype={vi.fn()} />);
-    expect(screen.getByRole('status')).toHaveTextContent(/no prototypes found/i);
+    expect(screen.getByRole('status')).toHaveTextContent(/no products available/i);
   });
 
   it('renders with accessible catalog label', () => {
-    const { container } = render(<CatalogGrid items={items} loading={false} onSelectPrototype={vi.fn()} />);
-    expect(container.querySelector('[aria-label="Prototype catalog"]')).toBeTruthy();
+    const { container } = render(
+      <CatalogGrid items={items} loading={false} onSelectPrototype={vi.fn()} />,
+    );
+    expect(container.querySelector('[aria-label="Catalog"]')).toBeTruthy();
   });
 });

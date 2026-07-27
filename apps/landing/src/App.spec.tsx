@@ -3,9 +3,9 @@ import { describe, it, expect } from 'vitest';
 import App from './App';
 
 describe('App (landing)', () => {
-  it('renders the navigation with ModulApp brand', () => {
+  it('renders the navigation with Modula brand', () => {
     render(<App />);
-    expect(screen.getAllByText('ModulApp').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Modula').length).toBeGreaterThan(0);
   });
 
   it('renders catalog link', () => {

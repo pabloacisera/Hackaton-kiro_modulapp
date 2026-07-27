@@ -24,25 +24,25 @@ function renderLayout() {
 describe('DashboardLayout', () => {
   it('renders all 7 nav section links', () => {
     renderLayout();
-    expect(screen.getByRole('link', { name: /catalog/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /orders/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /quotes/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /supplies/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /complaints/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /deliveries/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /notifications/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /catálogo/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /órdenes/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /cotizaciones/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /suministros/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /reclamos/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /entregas/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /notificaciones/i })).toBeInTheDocument();
   });
 
   it('renders mobile menu button on small screens', () => {
     renderLayout();
-    expect(screen.getByRole('button', { name: /open navigation/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /abrir menú de navegación/i })).toBeInTheDocument();
   });
 
   it('opens side nav when menu button is clicked', () => {
     renderLayout();
     const nav = screen.getByRole('navigation', { name: /main navigation/i });
     expect(nav.className).toMatch(/-translate-x-full/);
-    fireEvent.click(screen.getByRole('button', { name: /open navigation/i }));
+    fireEvent.click(screen.getByRole('button', { name: /abrir menú de navegación/i }));
     expect(nav.className).toMatch(/translate-x-0/);
   });
 
@@ -53,6 +53,6 @@ describe('DashboardLayout', () => {
 
   it('renders help button', () => {
     renderLayout();
-    expect(screen.getByRole('button', { name: /open help/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /abrir panel de ayuda/i })).toBeInTheDocument();
   });
 });

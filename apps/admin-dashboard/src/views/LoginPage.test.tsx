@@ -32,8 +32,8 @@ describe('LoginPage', () => {
         <LoginPage />
       </MemoryRouter>,
     );
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Correo electrónico/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Contraseña/i)).toBeInTheDocument();
   });
 
   it('renders sign in button', () => {
@@ -42,7 +42,7 @@ describe('LoginPage', () => {
         <LoginPage />
       </MemoryRouter>,
     );
-    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Iniciar sesión/i })).toBeInTheDocument();
   });
 
   it('calls login with email and password on submit', async () => {
@@ -53,13 +53,13 @@ describe('LoginPage', () => {
       </MemoryRouter>,
     );
 
-    fireEvent.change(screen.getByLabelText(/email/i), {
+    fireEvent.change(screen.getByLabelText(/Correo electrónico/i), {
       target: { value: 'admin@modulapp.com' },
     });
-    fireEvent.change(screen.getByLabelText(/password/i), {
+    fireEvent.change(screen.getByLabelText(/Contraseña/i), {
       target: { value: 'password123' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Iniciar sesión/i }));
 
     await waitFor(() => {
       expect(mockLogin).toHaveBeenCalledWith('admin@modulapp.com', 'password123');
@@ -74,9 +74,11 @@ describe('LoginPage', () => {
       </MemoryRouter>,
     );
 
-    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'a@b.com' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'pass1234' } });
-    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    fireEvent.change(screen.getByLabelText(/Correo electrónico/i), {
+      target: { value: 'a@b.com' },
+    });
+    fireEvent.change(screen.getByLabelText(/Contraseña/i), { target: { value: 'pass1234' } });
+    fireEvent.click(screen.getByRole('button', { name: /Iniciar sesión/i }));
 
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/'));
   });

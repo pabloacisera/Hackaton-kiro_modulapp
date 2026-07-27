@@ -62,25 +62,25 @@ describe('QuotesPage', () => {
     expect(screen.getByText(/custom arch for wedding/i)).toBeInTheDocument();
   });
 
-  it('shows "Present Quote" button for pending quotes', () => {
+  it('shows "Cotizar" button for pending quotes', () => {
     mockUseQuotes.mockReturnValue({ ...baseHook, quotes: [pendingQuote], total: 1 });
     render(<QuotesPage />);
-    expect(screen.getByRole('button', { name: /present quote/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /cotizar/i })).toBeInTheDocument();
   });
 
-  it('shows "Archive" button for rejected quotes', () => {
+  it('shows "Archivar" button for rejected quotes', () => {
     mockUseQuotes.mockReturnValue({ ...baseHook, quotes: [rejectedQuote], total: 1 });
     render(<QuotesPage />);
-    expect(screen.getByRole('button', { name: /archive/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /archivar/i })).toBeInTheDocument();
   });
 
   it('opens present modal on button click', () => {
     mockUseQuotes.mockReturnValue({ ...baseHook, quotes: [pendingQuote], total: 1 });
     render(<QuotesPage />);
-    fireEvent.click(screen.getByRole('button', { name: /present quote/i }));
+    fireEvent.click(screen.getByRole('button', { name: /cotizar/i }));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByLabelText(/price/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/lead time/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/precio/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/tiempo de producción/i)).toBeInTheDocument();
   });
 
   it('calls present with correct values from modal', async () => {
@@ -93,13 +93,13 @@ describe('QuotesPage', () => {
     });
     render(<QuotesPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: /present quote/i }));
-    fireEvent.change(screen.getByLabelText(/price/i), { target: { value: '250' } });
-    fireEvent.change(screen.getByLabelText(/lead time/i), { target: { value: '14' } });
-    fireEvent.change(screen.getByLabelText(/estimated delivery date/i), {
+    fireEvent.click(screen.getByRole('button', { name: /cotizar/i }));
+    fireEvent.change(screen.getByLabelText(/precio/i), { target: { value: '250' } });
+    fireEvent.change(screen.getByLabelText(/tiempo de producción/i), { target: { value: '14' } });
+    fireEvent.change(screen.getByLabelText(/fecha estimada de entrega/i), {
       target: { value: '2026-10-01' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /send quote/i }));
+    fireEvent.click(screen.getByRole('button', { name: /enviar cotización/i }));
 
     await waitFor(() => expect(mockPresent).toHaveBeenCalledWith('q-1', 250, 14, '2026-10-01'));
   });
@@ -107,13 +107,13 @@ describe('QuotesPage', () => {
   it('shows empty state when no quotes', () => {
     mockUseQuotes.mockReturnValue(baseHook);
     render(<QuotesPage />);
-    expect(screen.getByText(/no quotes found/i)).toBeInTheDocument();
+    expect(screen.getByText(/no se encontraron cotizaciones/i)).toBeInTheDocument();
   });
 
   it('shows loading state', () => {
     mockUseQuotes.mockReturnValue({ ...baseHook, loading: true });
     render(<QuotesPage />);
-    expect(screen.getByText(/loading quotes/i)).toBeInTheDocument();
+    expect(screen.getByText(/cargando cotizaciones/i)).toBeInTheDocument();
   });
 
   it('shows error state', () => {

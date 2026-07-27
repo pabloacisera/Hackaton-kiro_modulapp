@@ -16,13 +16,13 @@ describe('SideNav', () => {
         <SideNav open={true} onClose={vi.fn()} />
       </MemoryRouter>,
     );
-    expect(screen.getByRole('link', { name: /catalog/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /orders/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /quotes/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /supplies/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /complaints/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /deliveries/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /notifications/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Catálogo/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Órdenes/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Cotizaciones/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Suministros/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Reclamos/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Entregas/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Notificaciones/i })).toBeInTheDocument();
   });
 
   it('calls onClose when overlay is clicked on mobile', () => {

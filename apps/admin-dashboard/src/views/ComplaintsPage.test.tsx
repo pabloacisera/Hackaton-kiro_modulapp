@@ -45,18 +45,18 @@ describe('ComplaintsPage', () => {
     expect(screen.getByText(/product arrived damaged/i)).toBeInTheDocument();
   });
 
-  it('shows Review button for received complaints', () => {
+  it('shows Revisar button for received complaints', () => {
     mockUseComplaints.mockReturnValue({ ...baseHook, complaints: [receivedComplaint], total: 1 });
     render(<ComplaintsPage />);
-    expect(screen.getByRole('button', { name: /review/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /revisar/i })).toBeInTheDocument();
   });
 
-  it('shows Approve Refund and Resolve buttons for under_review', () => {
+  it('shows Aprobar reembolso and Resolver buttons for under_review', () => {
     const underReview = { ...receivedComplaint, status: 'under_review' as const };
     mockUseComplaints.mockReturnValue({ ...baseHook, complaints: [underReview], total: 1 });
     render(<ComplaintsPage />);
-    expect(screen.getByRole('button', { name: /approve refund/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /resolve/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /aprobar reembolso/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /resolver/i })).toBeInTheDocument();
   });
 
   it('calls review on button click', () => {
@@ -68,14 +68,14 @@ describe('ComplaintsPage', () => {
       review: mockReview,
     });
     render(<ComplaintsPage />);
-    fireEvent.click(screen.getByRole('button', { name: /review/i }));
+    fireEvent.click(screen.getByRole('button', { name: /revisar/i }));
     expect(mockReview).toHaveBeenCalledWith('c-1');
   });
 
   it('shows empty state', () => {
     mockUseComplaints.mockReturnValue(baseHook);
     render(<ComplaintsPage />);
-    expect(screen.getByText(/no complaints found/i)).toBeInTheDocument();
+    expect(screen.getByText(/no se encontraron reclamos/i)).toBeInTheDocument();
   });
 
   it('shows error state', () => {

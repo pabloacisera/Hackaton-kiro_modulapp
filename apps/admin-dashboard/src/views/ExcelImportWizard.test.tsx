@@ -26,8 +26,8 @@ describe('ExcelImportWizard', () => {
   it('renders upload step with file input', () => {
     mockUseExcelImport.mockReturnValue(baseHook);
     render(<ExcelImportWizard />);
-    expect(screen.getByText(/import supplies from excel/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/upload supply file/i)).toBeInTheDocument();
+    expect(screen.getByText(/importar suministros desde excel/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/subir archivo de suministros/i)).toBeInTheDocument();
   });
 
   it('renders preview step with creates and updates', () => {
@@ -42,11 +42,11 @@ describe('ExcelImportWizard', () => {
       },
     });
     render(<ExcelImportWizard />);
-    expect(screen.getByText(/to create/i)).toBeInTheDocument();
+    expect(screen.getByText(/se crearán/i)).toBeInTheDocument();
     expect(screen.getByText('NEW-1')).toBeInTheDocument();
-    expect(screen.getByText(/to update/i)).toBeInTheDocument();
+    expect(screen.getByText(/se actualizarán/i)).toBeInTheDocument();
     expect(screen.getByText('UPD-1')).toBeInTheDocument();
-    expect(screen.getByText(/errors/i)).toBeInTheDocument();
+    expect(screen.getByText(/errores/i)).toBeInTheDocument();
     expect(screen.getByText(/duplicate/i)).toBeInTheDocument();
   });
 
@@ -64,7 +64,7 @@ describe('ExcelImportWizard', () => {
       confirm: mockConfirm,
     });
     render(<ExcelImportWizard />);
-    fireEvent.click(screen.getByRole('button', { name: /confirm import/i }));
+    fireEvent.click(screen.getByRole('button', { name: /confirmar importación/i }));
     expect(mockConfirm).toHaveBeenCalled();
   });
 
@@ -75,8 +75,8 @@ describe('ExcelImportWizard', () => {
       confirmResult: { applied: 5, errors: [] },
     });
     render(<ExcelImportWizard />);
-    expect(screen.getByText(/import complete/i)).toBeInTheDocument();
-    expect(screen.getByText(/5 supplies applied/i)).toBeInTheDocument();
+    expect(screen.getByText(/importación completada/i)).toBeInTheDocument();
+    expect(screen.getByText(/5 suministros procesados exitosamente/i)).toBeInTheDocument();
   });
 
   it('shows error state', () => {
