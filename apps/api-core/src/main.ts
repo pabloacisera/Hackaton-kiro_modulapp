@@ -19,6 +19,9 @@ async function bootstrap() {
   // Enable graceful shutdown — drains BullMQ queues on SIGTERM/SIGINT
   app.enableShutdownHooks();
 
+  // Global prefix — frontends use /api/* since VITE_API_URL=/api
+  app.setGlobalPrefix('api', { exclude: ['health'] });
+
   // Global validation pipe — rejects malformed DTOs with 400 Bad Request
   app.useGlobalPipes(
     new ValidationPipe({

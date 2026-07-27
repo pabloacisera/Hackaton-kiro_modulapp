@@ -110,7 +110,7 @@ export class ImportCatalogExcelUseCase {
     const redisKey = `catalog:import-preview:${previewId}`;
     const raw = await this.redis.get(redisKey);
     if (!raw) return null;
-    return JSON.parse(raw) as CatalogExcelRow[];
+    return raw as unknown as CatalogExcelRow[];
   }
 
   async clearPreview(previewId: string): Promise<void> {
