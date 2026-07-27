@@ -4,6 +4,7 @@ import {
   CreatePrototypePayload,
   uploadPrototypeImage,
   deletePrototypeImage,
+  createPrototype as createPrototypeApi,
 } from '../models/catalogApi';
 
 /**
@@ -20,12 +21,17 @@ export function CatalogPage() {
     setSearch,
     category,
     setCategory,
-    create,
     update,
     deactivate,
     reactivate,
     reload,
   } = useCatalog();
+
+  const createAndReturn = async (data: CreatePrototypePayload) => {
+    const created = await createPrototypeApi(data);
+    reload();
+    return created;
+  };
 
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -76,8 +82,11 @@ export function CatalogPage() {
       return;
     }
     try {
-      await create(formData);
-      resetForm();
+      const created = await createAndReturn(formData);
+      // Switch to edit mode so the user can upload images immediately
+      setEditId(created.id);
+      setEditImages([]);
+      setFormError(null);
     } catch (err: unknown) {
       setFormError(err instanceof Error ? err.message : 'Error al crear prototipo');
     }
@@ -301,6 +310,11 @@ export function CatalogPage() {
             <h2 className="mb-4 text-lg font-bold">
               {editId ? 'Editar Prototipo' : 'Nuevo Prototipo'}
             </h2>
+            {editId && !editImages.length && (
+              <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-2 text-sm text-blue-700">
+                ✅ Prototipo guardado. Ahora podés agregar imágenes.
+              </div>
+            )}
             <div className="flex flex-col gap-3">
               <input
                 placeholder="Nombre (mín. 2 caracteres)"
@@ -423,13 +437,13 @@ export function CatalogPage() {
               )}
               <div className="flex gap-3 pt-2">
                 <button onClick={resetForm} className="flex-1 rounded-lg border px-4 py-2 text-sm">
-                  Cancelar
+                  {editId ? 'Cerrar' : 'Cancelar'}
                 </button>
                 <button
                   onClick={editId ? handleUpdate : handleCreate}
                   className="flex-1 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                 >
-                  {editId ? 'Actualizar' : 'Crear'}
+                  {editId ? 'Guardar cambios' : 'Crear'}
                 </button>
               </div>
             </div>
