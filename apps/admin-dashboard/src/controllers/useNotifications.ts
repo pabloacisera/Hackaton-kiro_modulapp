@@ -67,11 +67,12 @@ export function useNotifications(accessToken: string | null): UseNotificationsRe
     if (!accessToken) return;
 
     function connect() {
-      // When behind Nginx reverse proxy, connect to /api path
-      // Socket.IO namespace '/admin' is sent as part of the protocol
-      const url = API_BASE === '/api' ? '/api/admin' : API_BASE + '/admin';
-      const socket = io(url, {
-        path: '/socket.io',
+      // Socket.IO connects through the /api/ Nginx location which strips the prefix.
+      // The namespace on the server is '/admin', so we connect to namespace '/admin'
+      // but route through /api/socket.io path so Nginx proxies it to api-core.
+      const socketPath = API_BASE === '/api' ? '/api/socket.io' : '/socket.io';
+      const socket = io('/admin', {
+        path: socketPath,
         auth: { token: accessToken },
         reconnection: false,
         transports: ['websocket', 'polling'],
