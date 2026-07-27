@@ -43,7 +43,14 @@ while IFS= read -r line || [ -n "$line" ]; do
   [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
   # Only export lines that look like KEY=VALUE
   if [[ "$line" =~ ^[A-Za-z_][A-Za-z0-9_]*= ]]; then
-    export "$line"
+    key="${line%%=*}"
+    value="${line#*=}"
+    # Strip surrounding quotes (single or double)
+    value="${value#\"}"
+    value="${value%\"}"
+    value="${value#\'}"
+    value="${value%\'}"
+    export "$key=$value"
   fi
 done < .env
 ok "Loaded .env variables"
