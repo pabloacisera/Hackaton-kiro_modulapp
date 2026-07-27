@@ -67,11 +67,12 @@ export function useNotifications(accessToken: string | null): UseNotificationsRe
     if (!accessToken) return;
 
     function connect() {
-      // Socket.IO connects through the /api/ Nginx location which strips the prefix.
-      // The namespace on the server is '/admin', so we connect to namespace '/admin'
-      // but route through /api/socket.io path so Nginx proxies it to api-core.
+      // Socket.IO connects to the current origin with namespace '/admin'.
+      // The custom path '/api/socket.io' routes through Nginx's /api/ location
+      // which strips the prefix and proxies to api-core's /socket.io endpoint.
       const socketPath = API_BASE === '/api' ? '/api/socket.io' : '/socket.io';
-      const socket = io('/admin', {
+      const socketUrl = window.location.origin + '/admin';
+      const socket = io(socketUrl, {
         path: socketPath,
         auth: { token: accessToken },
         reconnection: false,
