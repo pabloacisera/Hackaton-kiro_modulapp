@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SuppliesPage } from './SuppliesPage';
 
@@ -44,7 +45,11 @@ describe('SuppliesPage', () => {
 
   it('renders supplies table with data', () => {
     mockUseSupplies.mockReturnValue({ ...baseHook, supplies: [sampleSupply], total: 1 });
-    render(<SuppliesPage />);
+    render(
+      <MemoryRouter>
+        <SuppliesPage />
+      </MemoryRouter>,
+    );
     expect(screen.getByText('MDF-001')).toBeInTheDocument();
     expect(screen.getByText('MDF Board 18mm')).toBeInTheDocument();
     expect(screen.getByText('AcmeLumber')).toBeInTheDocument();
@@ -52,13 +57,21 @@ describe('SuppliesPage', () => {
 
   it('shows empty state when no supplies', () => {
     mockUseSupplies.mockReturnValue(baseHook);
-    render(<SuppliesPage />);
+    render(
+      <MemoryRouter>
+        <SuppliesPage />
+      </MemoryRouter>,
+    );
     expect(screen.getByText('No se encontraron suministros.')).toBeInTheDocument();
   });
 
   it('shows Add Supply button that opens form', () => {
     mockUseSupplies.mockReturnValue(baseHook);
-    render(<SuppliesPage />);
+    render(
+      <MemoryRouter>
+        <SuppliesPage />
+      </MemoryRouter>,
+    );
     fireEvent.click(screen.getByRole('button', { name: /agregar suministro/i }));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByLabelText(/sku/i)).toBeInTheDocument();
@@ -66,7 +79,11 @@ describe('SuppliesPage', () => {
 
   it('shows Edit button that opens form with data', () => {
     mockUseSupplies.mockReturnValue({ ...baseHook, supplies: [sampleSupply], total: 1 });
-    render(<SuppliesPage />);
+    render(
+      <MemoryRouter>
+        <SuppliesPage />
+      </MemoryRouter>,
+    );
     fireEvent.click(screen.getByText('Editar'));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByLabelText(/nombre/i)).toHaveValue('MDF Board 18mm');
@@ -80,7 +97,11 @@ describe('SuppliesPage', () => {
       total: 1,
       remove: mockRemove,
     });
-    render(<SuppliesPage />);
+    render(
+      <MemoryRouter>
+        <SuppliesPage />
+      </MemoryRouter>,
+    );
     fireEvent.click(screen.getByText('Eliminar'));
     expect(mockRemove).toHaveBeenCalledWith('s-1');
   });
@@ -88,7 +109,11 @@ describe('SuppliesPage', () => {
   it('highlights below-minimum rows', () => {
     const belowMin = { ...sampleSupply, currentQty: 3 }; // 3 < 10
     mockUseSupplies.mockReturnValue({ ...baseHook, supplies: [belowMin], total: 1 });
-    render(<SuppliesPage />);
+    render(
+      <MemoryRouter>
+        <SuppliesPage />
+      </MemoryRouter>,
+    );
     // The row should have bg-red-50 class
     const row = screen.getByText('MDF-001').closest('tr');
     expect(row?.className).toContain('bg-red-50');
@@ -96,7 +121,11 @@ describe('SuppliesPage', () => {
 
   it('shows error state', () => {
     mockUseSupplies.mockReturnValue({ ...baseHook, error: 'Network error' });
-    render(<SuppliesPage />);
+    render(
+      <MemoryRouter>
+        <SuppliesPage />
+      </MemoryRouter>,
+    );
     expect(screen.getByRole('alert')).toHaveTextContent('Network error');
   });
 });

@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useSupplies } from '../controllers/useSupplies';
+import { exportSupplies } from '../models/suppliesApi';
 import { Pagination } from './components/Pagination';
 
 /**
@@ -36,6 +38,51 @@ export function SuppliesPage() {
     supplier: '',
   });
   const [formError, setFormError] = useState<string | null>(null);
+  const [exportLoading, setExportLoading] = useState(false);
+
+  const handleDownloadTemplate = () => {
+    const headers = 'sku,name,unit,current_qty,min_stock,unit_cost_usd,supplier';
+    const example1 = 'MDF-18MM,Plancha MDF 18mm,sheet,25,10,12.50,Maderas del Sur';
+    const example2 = 'TORN-4X30,Tornillo 4x30mm,box,100,20,3.20,Ferreteria Central';
+    const csv = `${headers}\n${example1}\n${example2}`;
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'plantilla-suministros.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExport = async () => {
+    setExportLoading(true);
+    try {
+      const data = await exportSupplies();
+      const csv = [
+        data.headers.join(','),
+        ...data.rows.map((row) =>
+          data.headers
+            .map((h) => {
+              const val = row[h];
+              if (typeof val === 'string' && val.includes(',')) return `"${val}"`;
+              return val ?? '';
+            })
+            .join(','),
+        ),
+      ].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'suministros-export.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      /* silently fail */
+    } finally {
+      setExportLoading(false);
+    }
+  };
 
   const resetForm = () => {
     setFormData({
@@ -102,17 +149,38 @@ export function SuppliesPage() {
 
   return (
     <div className="px-6 py-4">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-gray-900">Suministros</h1>
-        <button
-          onClick={() => {
-            resetForm();
-            setShowForm(true);
-          }}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
-        >
-          Agregar suministro
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={handleDownloadTemplate}
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            📄 Descargar plantilla
+          </button>
+          <button
+            onClick={handleExport}
+            disabled={exportLoading}
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            {exportLoading ? 'Exportando...' : '📤 Exportar inventario'}
+          </button>
+          <Link
+            to="/supplies/import"
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+          >
+            📥 Importar Excel
+          </Link>
+          <button
+            onClick={() => {
+              resetForm();
+              setShowForm(true);
+            }}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+          >
+            + Agregar suministro
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
