@@ -6,6 +6,7 @@ import { QuoteRequestForm } from './views/QuoteRequestForm';
 import { ComplaintForm } from './views/ComplaintForm';
 import { QuoteActionResult } from './views/QuoteActionResult';
 import { LanguageSelector } from './components/LanguageSelector';
+import { useCatalog } from './controllers/useCatalog';
 
 function HeroSection() {
   const { t } = useTranslation();
@@ -96,13 +97,14 @@ function HowItWorks() {
 
 function HomePage() {
   const { t } = useTranslation();
+  const { items, loading } = useCatalog();
   return (
     <div className="animate-fade-in">
       <HeroSection />
       <HowItWorks />
       <section id="catalog" className="mx-auto max-w-6xl px-6 py-16">
         <h2 className="mb-8 font-display text-3xl font-bold text-gray-900">{t('catalog.title')}</h2>
-        <CatalogGrid items={[]} loading={false} onSelectPrototype={() => {}} />
+        <CatalogGrid items={items} loading={loading} onSelectPrototype={() => {}} />
       </section>
     </div>
   );

@@ -48,19 +48,19 @@ export async function fetchAdminPrototypes(params?: {
   page?: number;
   pageSize?: number;
 }): Promise<PaginatedAdminPrototypes> {
-  const res = await httpClient.get<PaginatedAdminPrototypes>('/api/admin/catalog/prototypes', {
+  const res = await httpClient.get<PaginatedAdminPrototypes>('/admin/catalog/prototypes', {
     params,
   });
   return res.data;
 }
 
 export async function fetchAdminPrototypeById(id: string): Promise<AdminPrototypeDto> {
-  const res = await httpClient.get<AdminPrototypeDto>(`/api/admin/catalog/prototypes/${id}`);
+  const res = await httpClient.get<AdminPrototypeDto>(`/admin/catalog/prototypes/${id}`);
   return res.data;
 }
 
 export async function createPrototype(data: CreatePrototypePayload): Promise<AdminPrototypeDto> {
-  const res = await httpClient.post<AdminPrototypeDto>('/api/admin/catalog/prototypes', data);
+  const res = await httpClient.post<AdminPrototypeDto>('/admin/catalog/prototypes', data);
   return res.data;
 }
 
@@ -68,23 +68,20 @@ export async function updatePrototype(
   id: string,
   data: UpdatePrototypePayload,
 ): Promise<AdminPrototypeDto> {
-  const res = await httpClient.patch<AdminPrototypeDto>(
-    `/api/admin/catalog/prototypes/${id}`,
-    data,
-  );
+  const res = await httpClient.patch<AdminPrototypeDto>(`/admin/catalog/prototypes/${id}`, data);
   return res.data;
 }
 
 export async function deactivatePrototype(id: string): Promise<{ id: string; active: false }> {
   const res = await httpClient.patch<{ id: string; active: false }>(
-    `/api/admin/catalog/prototypes/${id}/deactivate`,
+    `/admin/catalog/prototypes/${id}/deactivate`,
   );
   return res.data;
 }
 
 export async function reactivatePrototype(id: string): Promise<AdminPrototypeDto> {
   const res = await httpClient.patch<AdminPrototypeDto>(
-    `/api/admin/catalog/prototypes/${id}/reactivate`,
+    `/admin/catalog/prototypes/${id}/reactivate`,
   );
   return res.data;
 }
@@ -96,7 +93,7 @@ export async function uploadPrototypeImage(
   const formData = new FormData();
   formData.append('file', file);
   const res = await httpClient.post<{ id: string; url: string; order: number }>(
-    `/api/admin/catalog/prototypes/${prototypeId}/images`,
+    `/admin/catalog/prototypes/${prototypeId}/images`,
     formData,
     { headers: { 'Content-Type': 'multipart/form-data' } },
   );
@@ -108,7 +105,7 @@ export async function deletePrototypeImage(
   imageId: string,
 ): Promise<{ deleted: boolean }> {
   const res = await httpClient.delete<{ deleted: boolean }>(
-    `/api/admin/catalog/prototypes/${prototypeId}/images/${imageId}`,
+    `/admin/catalog/prototypes/${prototypeId}/images/${imageId}`,
   );
   return res.data;
 }
@@ -132,7 +129,7 @@ export async function importCatalogExcelPreview(
   rows: Record<string, unknown>[],
 ): Promise<CatalogImportPreviewResponse> {
   const res = await httpClient.post<CatalogImportPreviewResponse>(
-    '/api/admin/catalog/prototypes/import-excel',
+    '/admin/catalog/prototypes/import-excel',
     { rows },
   );
   return res.data;
@@ -142,7 +139,7 @@ export async function importCatalogExcelConfirm(
   previewId: string,
 ): Promise<CatalogConfirmImportResponse> {
   const res = await httpClient.post<CatalogConfirmImportResponse>(
-    '/api/admin/catalog/prototypes/import-excel/confirm',
+    '/admin/catalog/prototypes/import-excel/confirm',
     { previewId },
   );
   return res.data;
@@ -152,6 +149,6 @@ export async function exportCatalogPrototypes(): Promise<{
   headers: string[];
   rows: Record<string, unknown>[];
 }> {
-  const res = await httpClient.get('/api/admin/catalog/prototypes/export-excel');
+  const res = await httpClient.get('/admin/catalog/prototypes/export-excel');
   return res.data;
 }
