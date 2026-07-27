@@ -30,7 +30,8 @@ export class RegistrationController {
     @Req() req: Request,
   ): Promise<{ message: string }> {
     // Build base URL for the admin dashboard (where the verify page lives)
-    const adminBaseUrl = process.env.ADMIN_DASHBOARD_URL ?? 'http://localhost:3001';
+    // The admin dashboard is served under /admin/ prefix (Vite base config)
+    const adminBaseUrl = process.env.ADMIN_DASHBOARD_URL ?? 'http://localhost:3001/admin';
     await this.initiateRegistration.execute(dto.email, adminBaseUrl);
     return { message: 'Registration email sent. Check your inbox.' };
   }

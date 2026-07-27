@@ -17,7 +17,34 @@ Once `.env` is created and populated with real keys, it **cannot** be modified, 
 | ---------------------- | ----------------------------------------------------- |
 | `DATABASE_URL`         | Supabase Postgres connection string (api-core domain) |
 | `PAYMENT_DATABASE_URL` | Connection string for payment-service own schema      |
-| `UPSTASH_REDIS_URL`    | Redis for catalog cache, BullMQ, and rate limiting    |
+
+## Redis
+
+Two separate Redis concerns with different requirements:
+
+### Upstash REST — Cache & Rate Limiting (HTTP, serverless-friendly)
+
+| Variable                   | Description                                           |
+| -------------------------- | ----------------------------------------------------- |
+| `UPSTASH_REDIS_REST_URL`   | Upstash REST endpoint (e.g. `https://xxx.upstash.io`) |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash REST auth token                               |
+
+Used by `RedisModule` for cache reads/writes and rate limiting. Works over HTTP — no persistent connection needed.
+
+### Local Redis — BullMQ Queues (TCP, persistent connection required)
+
+| Variable         | Description                                                                       |
+| ---------------- | --------------------------------------------------------------------------------- |
+| `BULL_REDIS_URL` | Optional explicit URL (e.g. `redis://localhost:6379`). Overrides REDIS_HOST/PORT. |
+| `REDIS_HOST`     | Redis hostname for BullMQ. Default: `localhost`. Docker Compose: `modulapp-redis` |
+| `REDIS_PORT`     | Redis port for BullMQ. Default: `6379`                                            |
+
+**Why local Redis?** BullMQ needs persistent TCP connections with subscriber channels. Upstash closes idle TCP connections (serverless model) which crashes Bull. Use a local Redis for queues:
+
+```bash
+# Start local Redis for BullMQ (one-time)
+docker run -d --name redis-local -p 6379:6379 redis:7-alpine
+```
 
 ## Auth
 

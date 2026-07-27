@@ -92,6 +92,26 @@ ok "Dependencies ready"
 info "Generating Prisma client..."
 (cd apps/api-core && npx prisma generate 2>&1 | tail -1) || warn "Prisma generate failed"
 
+# ── Ensure local Redis for BullMQ ────────────────────────────────────────────
+if command -v docker >/dev/null 2>&1; then
+  if ! docker ps --format '{{.Names}}' | grep -q '^redis-local$'; then
+    if docker ps -a --format '{{.Names}}' | grep -q '^redis-local$'; then
+      info "Starting existing redis-local container..."
+      docker start redis-local >/dev/null 2>&1
+    else
+      info "Creating redis-local container for BullMQ..."
+      docker run -d --name redis-local -p 6379:6379 redis:7-alpine >/dev/null 2>&1
+    fi
+    ok "Redis local running on :6379"
+  else
+    ok "Redis local already running"
+  fi
+  # Override REDIS_HOST for local dev (not Docker Compose network)
+  export REDIS_HOST=localhost
+else
+  warn "Docker not found — BullMQ queues need Redis on localhost:6379"
+fi
+
 # ── Create log directory ─────────────────────────────────────────────────────
 LOG_DIR=$(mktemp -d)
 
