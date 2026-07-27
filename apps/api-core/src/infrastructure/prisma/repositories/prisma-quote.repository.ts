@@ -53,6 +53,9 @@ export class PrismaQuoteRepository implements IQuoteRepository {
 
     if (filter.status) {
       where.status = filter.status;
+    } else {
+      // Default: exclude archived and discarded from listing
+      where.status = { notIn: ['archived', 'discarded_incomplete_data'] };
     }
     if (filter.q) {
       where.OR = [
