@@ -11,6 +11,8 @@ import { ExcelImportWizard } from './views/ExcelImportWizard';
 import { CatalogImportWizard } from './views/CatalogImportWizard';
 import { DeliveriesPage } from './views/DeliveriesPage';
 import { CatalogPage } from './views/CatalogPage';
+import { NotificationsPage } from './views/NotificationsPage';
+import { ArchivedQuotesPage } from './views/ArchivedQuotesPage';
 import { SettingsPage } from './views/SettingsPage';
 import { useAuth } from './controllers/useAuth';
 
@@ -42,10 +44,12 @@ export default function App() {
           <Route path="/catalog/import" element={<CatalogImportWizard />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/quotes" element={<QuotesPage />} />
+          <Route path="/quotes/archived" element={<ArchivedQuotesPage />} />
           <Route path="/supplies" element={<SuppliesPage />} />
           <Route path="/supplies/import" element={<ExcelImportWizard />} />
           <Route path="/complaints" element={<ComplaintsPage />} />
           <Route path="/deliveries" element={<DeliveriesPage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>

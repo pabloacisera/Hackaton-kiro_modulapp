@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { to: '/catalog', label: 'Catálogo', icon: '📦' },
   { to: '/orders', label: 'Órdenes', icon: '🛒' },
   { to: '/quotes', label: 'Cotizaciones', icon: '📋' },
+  { to: '/quotes/archived', label: 'Archivadas', icon: '📂' },
   { to: '/supplies', label: 'Suministros', icon: '🏗️' },
   { to: '/complaints', label: 'Reclamos', icon: '📨' },
   { to: '/deliveries', label: 'Entregas', icon: '🚚' },
