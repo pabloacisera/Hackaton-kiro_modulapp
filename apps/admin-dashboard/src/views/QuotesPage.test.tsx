@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { QuotesPage } from './QuotesPage';
 
 vi.mock('../controllers/useQuotes', () => ({
@@ -59,7 +60,11 @@ describe('QuotesPage', () => {
 
   it('renders quotes table with data', () => {
     mockUseQuotes.mockReturnValue({ ...baseHook, quotes: [pendingQuote], total: 1 });
-    render(<QuotesPage />);
+    render(
+      <MemoryRouter>
+        <QuotesPage />
+      </MemoryRouter>,
+    );
     expect(screen.getByText('Carlos López')).toBeInTheDocument();
     expect(screen.getByText('carlos@test.com')).toBeInTheDocument();
     expect(screen.getByText(/custom arch for wedding/i)).toBeInTheDocument();
@@ -67,19 +72,31 @@ describe('QuotesPage', () => {
 
   it('shows "Cotizar" button for pending quotes', () => {
     mockUseQuotes.mockReturnValue({ ...baseHook, quotes: [pendingQuote], total: 1 });
-    render(<QuotesPage />);
+    render(
+      <MemoryRouter>
+        <QuotesPage />
+      </MemoryRouter>,
+    );
     expect(screen.getByRole('button', { name: /cotizar/i })).toBeInTheDocument();
   });
 
   it('shows "Archivar" button for rejected quotes', () => {
     mockUseQuotes.mockReturnValue({ ...baseHook, quotes: [rejectedQuote], total: 1 });
-    render(<QuotesPage />);
+    render(
+      <MemoryRouter>
+        <QuotesPage />
+      </MemoryRouter>,
+    );
     expect(screen.getByRole('button', { name: /archivar/i })).toBeInTheDocument();
   });
 
   it('opens present modal on button click', () => {
     mockUseQuotes.mockReturnValue({ ...baseHook, quotes: [pendingQuote], total: 1 });
-    render(<QuotesPage />);
+    render(
+      <MemoryRouter>
+        <QuotesPage />
+      </MemoryRouter>,
+    );
     fireEvent.click(screen.getByRole('button', { name: /cotizar/i }));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByLabelText(/precio/i)).toBeInTheDocument();
@@ -94,7 +111,11 @@ describe('QuotesPage', () => {
       total: 1,
       present: mockPresent,
     });
-    render(<QuotesPage />);
+    render(
+      <MemoryRouter>
+        <QuotesPage />
+      </MemoryRouter>,
+    );
 
     fireEvent.click(screen.getByRole('button', { name: /cotizar/i }));
     fireEvent.change(screen.getByLabelText(/precio/i), { target: { value: '250' } });
@@ -109,19 +130,31 @@ describe('QuotesPage', () => {
 
   it('shows empty state when no quotes', () => {
     mockUseQuotes.mockReturnValue(baseHook);
-    render(<QuotesPage />);
+    render(
+      <MemoryRouter>
+        <QuotesPage />
+      </MemoryRouter>,
+    );
     expect(screen.getByText(/no se encontraron cotizaciones/i)).toBeInTheDocument();
   });
 
   it('shows loading state', () => {
     mockUseQuotes.mockReturnValue({ ...baseHook, loading: true });
-    render(<QuotesPage />);
+    render(
+      <MemoryRouter>
+        <QuotesPage />
+      </MemoryRouter>,
+    );
     expect(screen.getByText(/cargando cotizaciones/i)).toBeInTheDocument();
   });
 
   it('shows error state', () => {
     mockUseQuotes.mockReturnValue({ ...baseHook, error: 'Server error' });
-    render(<QuotesPage />);
+    render(
+      <MemoryRouter>
+        <QuotesPage />
+      </MemoryRouter>,
+    );
     expect(screen.getByRole('alert')).toHaveTextContent('Server error');
   });
 });

@@ -301,6 +301,83 @@ function QuoteActionPage() {
   return <QuoteActionResult quoteId={quoteId} action={action} token={token} />;
 }
 
+function CheckoutSuccessPage() {
+  const navigate = useNavigate();
+  const [countdown, setCountdown] = useState(8);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((c) => {
+        if (c <= 1) {
+          clearInterval(timer);
+          navigate('/');
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [navigate]);
+
+  return (
+    <div className="mx-auto max-w-md px-4 py-16 text-center" role="main">
+      <div className="mb-6 flex justify-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 text-3xl">
+          ✓
+        </div>
+      </div>
+      <h1 className="mb-3 text-2xl font-bold text-gray-900">¡Compra exitosa!</h1>
+      <p className="mb-2 text-gray-600">
+        Tu pago fue procesado correctamente. Recibirás un correo electrónico con la confirmación y
+        los detalles de tu pedido.
+      </p>
+      <p className="mb-8 text-sm text-gray-500">
+        Nuestro equipo comenzará a trabajar en tu pedido y te mantendremos informado sobre el
+        avance.
+      </p>
+      <button
+        onClick={() => navigate('/')}
+        className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+      >
+        Volver al inicio
+      </button>
+      <p className="mt-4 text-xs text-gray-400">
+        Redirigiendo al inicio en {countdown} segundos...
+      </p>
+    </div>
+  );
+}
+
+function CheckoutCancelPage() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="mx-auto max-w-md px-4 py-16 text-center" role="main">
+      <div className="mb-6 flex justify-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100 text-yellow-600 text-3xl">
+          ✕
+        </div>
+      </div>
+      <h1 className="mb-3 text-2xl font-bold text-gray-900">Pago cancelado</h1>
+      <p className="mb-8 text-gray-600">Tu pago fue cancelado. No se realizó ningún cargo.</p>
+      <div className="flex justify-center gap-3">
+        <button
+          onClick={() => navigate('/')}
+          className="rounded-lg border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+        >
+          Volver al inicio
+        </button>
+        <button
+          onClick={() => window.history.back()}
+          className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+        >
+          Reintentar
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function Navigation() {
   const { t } = useTranslation();
   return (
@@ -417,6 +494,8 @@ export default function App() {
             <Route path="/catalog/:id" element={<PrototypeDetailPage />} />
             <Route path="/catalog/:id/checkout" element={<CheckoutPage />} />
             <Route path="/payment-result" element={<PaymentResultPage />} />
+            <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
+            <Route path="/checkout/cancel" element={<CheckoutCancelPage />} />
             <Route path="/quote" element={<QuoteRequestPage />} />
             <Route path="/complaints" element={<ComplaintPage />} />
             <Route path="/quotes/:id/accept" element={<QuoteActionPage />} />

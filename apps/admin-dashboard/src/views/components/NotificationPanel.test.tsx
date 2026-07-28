@@ -1,5 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { NotificationPanel } from './NotificationPanel';
 import type { AdminNotification } from '../../controllers/useNotifications';
 
@@ -12,73 +13,48 @@ const notif: AdminNotification = {
   createdAt: new Date().toISOString(),
 };
 
-describe('NotificationPanel', () => {
-  it('renders notification messages', () => {
-    render(
+function renderPanel(props: Partial<React.ComponentProps<typeof NotificationPanel>> = {}) {
+  return render(
+    <MemoryRouter>
       <NotificationPanel
         notifications={[notif]}
         soundEnabled={true}
         onToggleSound={vi.fn()}
         onMarkRead={vi.fn()}
         onClose={vi.fn()}
-      />,
-    );
+        {...props}
+      />
+    </MemoryRouter>,
+  );
+}
+
+describe('NotificationPanel', () => {
+  it('renders notification messages', () => {
+    renderPanel();
     expect(screen.getByText('New order received')).toBeInTheDocument();
   });
 
   it('shows "Sin notificaciones" when list is empty', () => {
-    render(
-      <NotificationPanel
-        notifications={[]}
-        soundEnabled={true}
-        onToggleSound={vi.fn()}
-        onMarkRead={vi.fn()}
-        onClose={vi.fn()}
-      />,
-    );
+    renderPanel({ notifications: [] });
     expect(screen.getByText(/sin notificaciones/i)).toBeInTheDocument();
   });
 
   it('calls onMarkRead when mark read button is clicked', () => {
     const onMarkRead = vi.fn();
-    render(
-      <NotificationPanel
-        notifications={[notif]}
-        soundEnabled={true}
-        onToggleSound={vi.fn()}
-        onMarkRead={onMarkRead}
-        onClose={vi.fn()}
-      />,
-    );
+    renderPanel({ onMarkRead });
     fireEvent.click(screen.getByRole('button', { name: /marcar.*leída/i }));
     expect(onMarkRead).toHaveBeenCalledWith('n-1');
   });
 
   it('calls onToggleSound when sound button is clicked', () => {
     const onToggleSound = vi.fn();
-    render(
-      <NotificationPanel
-        notifications={[]}
-        soundEnabled={true}
-        onToggleSound={onToggleSound}
-        onMarkRead={vi.fn()}
-        onClose={vi.fn()}
-      />,
-    );
+    renderPanel({ notifications: [], onToggleSound });
     fireEvent.click(screen.getByRole('button', { name: /desactivar sonido/i }));
     expect(onToggleSound).toHaveBeenCalled();
   });
 
   it('does not show mark read button for already-read notifications', () => {
-    render(
-      <NotificationPanel
-        notifications={[{ ...notif, read: true }]}
-        soundEnabled={true}
-        onToggleSound={vi.fn()}
-        onMarkRead={vi.fn()}
-        onClose={vi.fn()}
-      />,
-    );
+    renderPanel({ notifications: [{ ...notif, read: true }] });
     expect(screen.queryByRole('button', { name: /marcar.*leída/i })).not.toBeInTheDocument();
   });
 });
