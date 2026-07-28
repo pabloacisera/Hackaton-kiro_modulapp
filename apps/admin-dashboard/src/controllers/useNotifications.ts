@@ -113,6 +113,7 @@ export function useNotifications(accessToken: string | null): UseNotificationsRe
         setNotifications((prev) => [n, ...prev.filter((x) => x.id !== n.id)]);
         playSound();
         backoffRef.current = 1000;
+        window.dispatchEvent(new CustomEvent('notification.new', { detail: n }));
       });
 
       socket.on('notification.marked_read', ({ id }: { id: string }) => {

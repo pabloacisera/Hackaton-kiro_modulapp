@@ -8,6 +8,9 @@ import {
   ComplaintStatus,
   PaginatedComplaints,
 } from '../models/complaintsApi';
+import type { AdminNotification } from './useNotifications';
+
+const COMPLAINT_NOTIF_TYPES = ['new_complaint'];
 
 export interface UseComplaintsResult {
   complaints: ComplaintDto[];
@@ -45,6 +48,14 @@ export function useComplaints(): UseComplaintsResult {
   const [resolveModalComplaint, setResolveModalComplaint] = useState<ComplaintDto | null>(null);
 
   const reload = useCallback(() => setReloadToken((t) => t + 1), []);
+
+  useEffect(() => {
+    const handler = (e: CustomEvent<AdminNotification>) => {
+      if (COMPLAINT_NOTIF_TYPES.includes(e.detail.type)) reload();
+    };
+    window.addEventListener('notification.new', handler as EventListener);
+    return () => window.removeEventListener('notification.new', handler as EventListener);
+  }, [reload]);
 
   useEffect(() => {
     let cancelled = false;
