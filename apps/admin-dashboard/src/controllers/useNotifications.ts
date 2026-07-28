@@ -120,6 +120,18 @@ export function useNotifications(accessToken: string | null): UseNotificationsRe
         setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
       });
 
+      socket.on('connect', () => {
+        backoffRef.current = 1000;
+      });
+
+      socket.on('connect_error', () => {
+        setTimeout(() => {
+          socket.close();
+          backoffRef.current = Math.min(backoffRef.current * 2, 30_000);
+          connect();
+        }, backoffRef.current);
+      });
+
       socket.on('disconnect', () => {
         setTimeout(() => {
           if (socketRef.current?.connected === false) {
