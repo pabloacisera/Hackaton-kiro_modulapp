@@ -40,7 +40,7 @@ import * as crypto from 'crypto';
 // ── DTOs ─────────────────────────────────────────────────────────────────────
 
 class CreateOrderDto {
-  @IsUUID()
+  @IsString()
   @IsNotEmpty()
   prototypeId!: string;
 
