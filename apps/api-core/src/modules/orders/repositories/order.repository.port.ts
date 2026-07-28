@@ -18,6 +18,7 @@ export interface IOrderRepository {
   findById(id: string): Promise<Order | null>;
   findByIdempotencyKey(key: string): Promise<Order | null>;
   findByPaymentServiceRef(ref: string): Promise<Order | null>;
+  findByQuoteId(quoteId: string): Promise<Order | null>;
   findHungPayments(olderThanMinutes: number): Promise<Order[]>;
   findAll(filter: ListOrdersFilter): Promise<PaginatedOrders>;
   save(order: Order): Promise<Order>;

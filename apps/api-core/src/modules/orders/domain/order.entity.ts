@@ -1,17 +1,3 @@
-/**
- * TASK-directpurchase-2: Order domain entity with strict state machine.
- *
- * State machine:
- *   created
- *     → payment_initiated
- *         → paid_pending_acceptance  (webhook OK)
- *             → accepted             (admin accepts; stock deducted)
- *             → rejected             (admin rejects; refund triggered)
- *         → payment_failed           (webhook failed)
- *
- * All transitions are enforced here — invalid ones throw.
- */
-
 export type OrderStatus =
   | 'created'
   | 'payment_initiated'
@@ -20,9 +6,13 @@ export type OrderStatus =
   | 'rejected'
   | 'payment_failed';
 
+export type OrderOrigin = 'order' | 'quote';
+
 export interface OrderProps {
   id: string;
-  prototypeId: string;
+  origin: OrderOrigin;
+  prototypeId: string | null;
+  quoteId: string | null;
   priceUsdSnapshot: number;
   customerEmail: string;
   customerName: string | null;
@@ -35,19 +25,20 @@ export interface OrderProps {
   updatedAt: Date;
 }
 
-// Valid transitions map
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  created:                  ['payment_initiated'],
-  payment_initiated:        ['paid_pending_acceptance', 'payment_failed'],
-  paid_pending_acceptance:  ['accepted', 'rejected'],
-  accepted:                 [],
-  rejected:                 [],
-  payment_failed:           [],
+  created: ['payment_initiated'],
+  payment_initiated: ['paid_pending_acceptance', 'payment_failed'],
+  paid_pending_acceptance: ['accepted', 'rejected'],
+  accepted: [],
+  rejected: [],
+  payment_failed: [],
 };
 
 export class Order {
   readonly id: string;
-  readonly prototypeId: string;
+  readonly origin: OrderOrigin;
+  readonly prototypeId: string | null;
+  readonly quoteId: string | null;
   readonly priceUsdSnapshot: number;
   readonly customerEmail: string;
   readonly customerName: string | null;
@@ -68,8 +59,6 @@ export class Order {
     }
     Object.assign(this, props);
   }
-
-  // ── State machine transitions ──────────────────────────────────────────────
 
   private transition(next: OrderStatus, patch: Partial<OrderProps> = {}): Order {
     const allowed = ALLOWED_TRANSITIONS[this.status];
@@ -112,8 +101,6 @@ export class Order {
     return this.transition('rejected', { rejectionReason: reason });
   }
 
-  // ── Factory ───────────────────────────────────────────────────────────────
-
   static create(
     prototypeId: string,
     priceUsdSnapshot: number,
@@ -123,7 +110,9 @@ export class Order {
   ): Order {
     return new Order({
       id: crypto.randomUUID(),
+      origin: 'order',
       prototypeId,
+      quoteId: null,
       priceUsdSnapshot,
       customerEmail,
       customerName,
@@ -137,10 +126,38 @@ export class Order {
     });
   }
 
+  static createFromQuote(
+    quoteId: string,
+    priceUsdSnapshot: number,
+    customerEmail: string,
+    customerName: string,
+    estimatedDeliveryDate: Date,
+    paymentServiceRef: string,
+  ): Order {
+    return new Order({
+      id: crypto.randomUUID(),
+      origin: 'quote',
+      prototypeId: null,
+      quoteId,
+      priceUsdSnapshot,
+      customerEmail,
+      customerName,
+      status: 'accepted',
+      rejectionReason: null,
+      estimatedDeliveryDate,
+      paymentServiceRef,
+      idempotencyKey: `quote-order-${quoteId}`,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
   toProps(): OrderProps {
     return {
       id: this.id,
+      origin: this.origin,
       prototypeId: this.prototypeId,
+      quoteId: this.quoteId,
       priceUsdSnapshot: this.priceUsdSnapshot,
       customerEmail: this.customerEmail,
       customerName: this.customerName,

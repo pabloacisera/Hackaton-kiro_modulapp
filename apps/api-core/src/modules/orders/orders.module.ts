@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { BullModule } from '@nestjs/bull';
 import { Reflector } from '@nestjs/core';
@@ -21,11 +21,13 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { JwtService } from '../../infrastructure/auth/jwt/jwt.service';
 import { JwtAuthGuard } from '../../interface/auth/guards/jwt-auth.guard';
 import { QUEUE_PAYMENT_WEBHOOK } from '../../infrastructure/queue/queue.constants';
+import { DeliveriesModule } from '../deliveries/deliveries.module';
 
 @Module({
   imports: [
     HttpModule.register({ timeout: 15_000 }),
     NotificationsModule,
+    forwardRef(() => DeliveriesModule),
     BullModule.registerQueue({ name: QUEUE_PAYMENT_WEBHOOK }),
   ],
   controllers: [OrdersController],

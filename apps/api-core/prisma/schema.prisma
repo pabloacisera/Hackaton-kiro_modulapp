@@ -71,7 +71,7 @@ model ProtoImage {
   @@map("proto_images")
 }
 
-// ── Orders (Flow A — Direct Purchase) ────────────────────────────────────────
+// ── Orders (Flow A — Direct Purchase + Flow B — Quote Orders) ────────────────
 
 enum OrderStatus {
   created
@@ -82,9 +82,16 @@ enum OrderStatus {
   payment_failed
 }
 
+enum OrderOrigin {
+  order
+  quote
+}
+
 model Order {
   id                    String      @id @default(uuid())
-  prototypeId           String      @map("prototype_id")
+  origin                OrderOrigin @default(order)
+  prototypeId           String?     @map("prototype_id")
+  quoteId               String?     @map("quote_id")
   priceUsdSnapshot      Decimal     @map("price_usd_snapshot") @db.Decimal(10, 2)
   customerEmail         String      @map("customer_email")
   customerName          String?     @map("customer_name")
@@ -97,7 +104,30 @@ model Order {
   createdAt             DateTime    @default(now()) @map("created_at")
   updatedAt             DateTime    @updatedAt @map("updated_at")
 
+  deliveryTracking DeliveryTracking?
+
   @@map("orders")
+}
+
+// ── Delivery Tracking ────────────────────────────────────────────────────────
+
+enum DeliveryStatus {
+  pending
+  delivered
+}
+
+model DeliveryTracking {
+  id                    String        @id @default(uuid())
+  orderId               String        @unique @map("order_id")
+  estimatedDeliveryDate DateTime      @map("estimated_delivery_date")
+  status                DeliveryStatus @default(pending)
+  deliveredAt           DateTime?     @map("delivered_at")
+  createdAt             DateTime      @default(now()) @map("created_at")
+  updatedAt             DateTime      @updatedAt @map("updated_at")
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@map("delivery_tracking")
 }
 
 // ── Quotes (Flow B — Custom Quote) ────────────────────────────────────────────

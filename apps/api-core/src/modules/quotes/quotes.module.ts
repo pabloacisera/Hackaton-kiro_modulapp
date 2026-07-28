@@ -2,6 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { OrdersModule } from '../orders/orders.module';
+import { DeliveriesModule } from '../deliveries/deliveries.module';
 import { AuthModule } from '../auth/auth.module';
 import { QUOTE_REPOSITORY } from './repositories/quote.repository.port';
 import { PrismaQuoteRepository } from '../../infrastructure/prisma/repositories/prisma-quote.repository';
@@ -29,6 +30,7 @@ const quoteRepoProvider = {
     HttpModule.register({ timeout: 10_000 }),
     NotificationsModule,
     forwardRef(() => OrdersModule),
+    forwardRef(() => DeliveriesModule),
     AuthModule,
   ],
   controllers: [QuotesController],
