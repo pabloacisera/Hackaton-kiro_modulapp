@@ -1,10 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Order, OrderStatus } from '../domain/order.entity';
-import {
-  IOrderRepository,
-  ListOrdersFilter,
-  PaginatedOrders,
-} from './order.repository.port';
+import { IOrderRepository, ListOrdersFilter, PaginatedOrders } from './order.repository.port';
 
 @Injectable()
 export class InMemoryOrderRepository implements IOrderRepository {
@@ -24,6 +20,13 @@ export class InMemoryOrderRepository implements IOrderRepository {
   async findByPaymentServiceRef(ref: string): Promise<Order | null> {
     for (const o of this.orders.values()) {
       if (o.paymentServiceRef === ref) return o;
+    }
+    return null;
+  }
+
+  async findByQuoteId(quoteId: string): Promise<Order | null> {
+    for (const o of this.orders.values()) {
+      if (o.quoteId === quoteId) return o;
     }
     return null;
   }
