@@ -22,12 +22,18 @@ export function CatalogImportWizard() {
       const rows = JSON.parse(text) as Record<string, unknown>[];
       await uploadData(rows);
     } catch {
-      // Try CSV parsing fallback
+      // Try CSV/TSV parsing fallback
       const lines = text.split('\n').filter((l) => l.trim());
       if (lines.length < 2) return;
-      const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
+      const delim = lines[0].includes('\t') ? '\t' : ',';
+      const headers = lines[0].split(delim).map((h) =>
+        h
+          .trim()
+          .toLowerCase()
+          .replace(/^\uFEFF/, ''),
+      );
       const rows = lines.slice(1).map((line) => {
-        const values = line.split(',').map((v) => v.trim());
+        const values = line.split(delim).map((v) => v.trim());
         const row: Record<string, unknown> = {};
         headers.forEach((h, i) => {
           row[h] = values[i] ?? '';
