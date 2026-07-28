@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useComplaints } from '../controllers/useComplaints';
 import { TableSearch } from './components/TableSearch';
 import { Pagination } from './components/Pagination';
+import { ReviewModal } from './components/ReviewModal';
+import { ResolveModal } from './components/ResolveModal';
 import type { ComplaintStatus } from '../models/complaintsApi';
 
 const STATUS_OPTIONS: { value: ComplaintStatus | ''; label: string }[] = [
@@ -31,6 +33,12 @@ export function ComplaintsPage() {
     review,
     refund,
     resolve,
+    reviewModalComplaint,
+    openReviewModal,
+    closeReviewModal,
+    resolveModalComplaint,
+    openResolveModal,
+    closeResolveModal,
     reload,
   } = useComplaints();
 
@@ -123,18 +131,10 @@ export function ComplaintsPage() {
                     <div className="flex gap-2">
                       {canReview(c.status) && (
                         <button
-                          onClick={async () => {
-                            setActionLoading(true);
-                            try {
-                              await review(c.id);
-                            } finally {
-                              setActionLoading(false);
-                            }
-                          }}
-                          disabled={actionLoading}
-                          className="rounded px-3 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                          onClick={() => openReviewModal(c)}
+                          className="rounded px-3 py-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700"
                         >
-                          {actionLoading ? '...' : 'Revisar'}
+                          Revisar
                         </button>
                       )}
                       {canRefund(c.status) && (
@@ -155,22 +155,10 @@ export function ComplaintsPage() {
                       )}
                       {canResolve(c.status) && (
                         <button
-                          onClick={async () => {
-                            setActionLoading(true);
-                            try {
-                              await resolve(
-                                c.id,
-                                'Resolved via admin action',
-                                'resolved_other_way',
-                              );
-                            } finally {
-                              setActionLoading(false);
-                            }
-                          }}
-                          disabled={actionLoading}
-                          className="rounded px-3 py-1 text-xs font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
+                          onClick={() => openResolveModal(c)}
+                          className="rounded px-3 py-1 text-xs font-medium text-white bg-green-600 hover:bg-green-700"
                         >
-                          {actionLoading ? '...' : 'Resolver'}
+                          Resolver
                         </button>
                       )}
                     </div>
@@ -185,6 +173,31 @@ export function ComplaintsPage() {
       {/* Pagination */}
       {!loading && complaints.length > 0 && (
         <Pagination page={page} pageSize={20} total={total} onPageChange={setPage} />
+      )}
+
+      {reviewModalComplaint && (
+        <ReviewModal
+          complaint={reviewModalComplaint}
+          open={true}
+          onClose={closeReviewModal}
+          onReview={review}
+          onRefund={refund}
+          onOpenResolve={(c) => {
+            closeReviewModal();
+            openResolveModal(c);
+          }}
+        />
+      )}
+
+      {resolveModalComplaint && (
+        <ResolveModal
+          complaint={resolveModalComplaint}
+          open={true}
+          onClose={closeResolveModal}
+          onResolve={async (id, message) => {
+            await resolve(id, message, 'resolved_other_way');
+          }}
+        />
       )}
     </div>
   );

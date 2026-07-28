@@ -17,6 +17,12 @@ const baseHook = {
   review: vi.fn(),
   refund: vi.fn(),
   resolve: vi.fn(),
+  reviewModalComplaint: null,
+  openReviewModal: vi.fn(),
+  closeReviewModal: vi.fn(),
+  resolveModalComplaint: null,
+  openResolveModal: vi.fn(),
+  closeResolveModal: vi.fn(),
   reload: vi.fn(),
   page: 1,
   search: '',
@@ -63,17 +69,17 @@ describe('ComplaintsPage', () => {
     expect(screen.getByRole('button', { name: /resolver/i })).toBeInTheDocument();
   });
 
-  it('calls review on button click', () => {
-    const mockReview = vi.fn();
+  it('opens review modal on Revisar button click', () => {
+    const mockOpenReview = vi.fn();
     mockUseComplaints.mockReturnValue({
       ...baseHook,
       complaints: [receivedComplaint],
       total: 1,
-      review: mockReview,
+      openReviewModal: mockOpenReview,
     });
     render(<ComplaintsPage />);
     fireEvent.click(screen.getByRole('button', { name: /revisar/i }));
-    expect(mockReview).toHaveBeenCalledWith('c-1');
+    expect(mockOpenReview).toHaveBeenCalledWith(receivedComplaint);
   });
 
   it('shows empty state', () => {

@@ -23,6 +23,12 @@ export interface UseComplaintsResult {
   review: (id: string) => Promise<void>;
   refund: (id: string) => Promise<void>;
   resolve: (id: string, notes: string, status: 'resolved_other_way' | 'rejected') => Promise<void>;
+  reviewModalComplaint: ComplaintDto | null;
+  openReviewModal: (c: ComplaintDto) => void;
+  closeReviewModal: () => void;
+  resolveModalComplaint: ComplaintDto | null;
+  openResolveModal: (c: ComplaintDto) => void;
+  closeResolveModal: () => void;
   reload: () => void;
 }
 
@@ -35,6 +41,8 @@ export function useComplaints(): UseComplaintsResult {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
+  const [reviewModalComplaint, setReviewModalComplaint] = useState<ComplaintDto | null>(null);
+  const [resolveModalComplaint, setResolveModalComplaint] = useState<ComplaintDto | null>(null);
 
   const reload = useCallback(() => setReloadToken((t) => t + 1), []);
 
@@ -84,6 +92,22 @@ export function useComplaints(): UseComplaintsResult {
     [reload],
   );
 
+  const openReviewModal = useCallback((c: ComplaintDto) => {
+    setReviewModalComplaint(c);
+  }, []);
+
+  const closeReviewModal = useCallback(() => {
+    setReviewModalComplaint(null);
+  }, []);
+
+  const openResolveModal = useCallback((c: ComplaintDto) => {
+    setResolveModalComplaint(c);
+  }, []);
+
+  const closeResolveModal = useCallback(() => {
+    setResolveModalComplaint(null);
+  }, []);
+
   return {
     complaints,
     total,
@@ -98,6 +122,12 @@ export function useComplaints(): UseComplaintsResult {
     review,
     refund,
     resolve,
+    reviewModalComplaint,
+    openReviewModal,
+    closeReviewModal,
+    resolveModalComplaint,
+    openResolveModal,
+    closeResolveModal,
     reload,
   };
 }

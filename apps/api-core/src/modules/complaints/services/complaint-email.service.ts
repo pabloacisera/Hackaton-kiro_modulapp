@@ -12,6 +12,22 @@ export class ComplaintEmailService {
 
   constructor(private readonly http: HttpService) {}
 
+  async sendRefundNotice(
+    customerEmail: string,
+    customerName: string,
+    complaintId: string,
+  ): Promise<void> {
+    const subject = 'ModulApp — Reembolso aprobado';
+    const html = `
+      <p>Hola ${customerName},</p>
+      <p>Hemos checado su caso, lamentamos los inconvenientes.</p>
+      <p>En un lapso de 1–3 días hábiles le estará llegando su dinero.</p>
+      <p><strong>ID de reclamo:</strong> ${complaintId}</p>
+      <p>— El equipo de ModulApp</p>
+    `;
+    await this.send(customerEmail, subject, html);
+  }
+
   async sendReceipt(
     customerEmail: string,
     customerName: string,

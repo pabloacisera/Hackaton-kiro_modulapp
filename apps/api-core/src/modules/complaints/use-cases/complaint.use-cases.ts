@@ -102,6 +102,7 @@ export class ApproveRefundUseCase {
     @Inject(COMPLAINT_REPOSITORY) private readonly repo: IComplaintRepository,
     private readonly notifications: NotificationsService,
     private readonly paymentClient: PaymentServiceClient,
+    private readonly emailService: ComplaintEmailService,
   ) {}
 
   async execute(complaintId: string): Promise<Complaint> {
@@ -122,6 +123,12 @@ export class ApproveRefundUseCase {
     });
 
     await this.repo.update(approved);
+
+    await this.emailService.sendRefundNotice(
+      approved.customerEmail,
+      approved.customerName,
+      approved.id,
+    );
 
     await this.notifications.notifyAdmins(
       'payment_confirmed',

@@ -290,9 +290,12 @@ export function QuotesPage() {
             </div>
 
             {/* Descripción del pedido */}
-            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-4 max-w-full">
               <h3 className="text-sm font-semibold text-blue-800 mb-2">Descripción del pedido</h3>
-              <p className="text-sm text-gray-800 whitespace-pre-wrap">
+              <p
+                className="text-sm text-gray-800 break-words whitespace-pre-wrap max-w-full"
+                style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}
+              >
                 {detailQuote.description || 'Sin descripción proporcionada'}
               </p>
             </div>
@@ -425,7 +428,15 @@ export function QuotesPage() {
             <p className="mb-1 text-sm text-gray-600">
               Cliente: <strong>{presentModal.customerName}</strong> ({presentModal.customerEmail})
             </p>
-            <p className="mb-4 text-sm text-gray-600">Solicitud: {presentModal.description}</p>
+            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3 max-w-full">
+              <p className="text-xs font-semibold text-blue-800 mb-1">Solicitud</p>
+              <p
+                className="text-sm text-gray-800 break-words whitespace-pre-wrap max-w-full"
+                style={{ overflowWrap: 'break-word', wordBreak: 'break-word' }}
+              >
+                {presentModal.description}
+              </p>
+            </div>
 
             <div className="flex flex-col gap-3">
               <div>
