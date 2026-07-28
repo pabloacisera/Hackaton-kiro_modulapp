@@ -104,7 +104,9 @@ export class UpdatePrototypeDto {
 // ── Constants ────────────────────────────────────────────────────────────────
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_IMAGE_SIZE = 50 * 1024 * 1024; // 50 MB
+/** @deprecated Use MAX_IMAGE_SIZE instead */
+const MAX_FILE_SIZE = MAX_IMAGE_SIZE;
 
 // ── Controller ───────────────────────────────────────────────────────────────
 

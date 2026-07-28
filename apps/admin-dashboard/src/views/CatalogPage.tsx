@@ -129,10 +129,17 @@ export function CatalogPage() {
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!editId || !e.target.files?.[0]) return;
+    const file = e.target.files[0];
+    const MAX_SIZE_MB = 50;
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      setFormError(`El archivo excede el tamaño máximo permitido (${MAX_SIZE_MB} MB)`);
+      e.target.value = '';
+      return;
+    }
     setUploadingImage(true);
     setFormError(null);
     try {
-      const newImg = await uploadPrototypeImage(editId, e.target.files[0]);
+      const newImg = await uploadPrototypeImage(editId, file);
       setEditImages((prev) => [...prev, newImg]);
       reload();
     } catch (err: unknown) {
