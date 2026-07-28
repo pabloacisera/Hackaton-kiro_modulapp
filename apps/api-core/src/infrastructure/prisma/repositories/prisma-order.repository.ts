@@ -31,6 +31,13 @@ export class PrismaOrderRepository implements IOrderRepository {
     return row ? this.toDomain(row) : null;
   }
 
+  async findByQuoteId(quoteId: string): Promise<Order | null> {
+    const row = await this.prisma.order.findFirst({
+      where: { quoteId },
+    });
+    return row ? this.toDomain(row) : null;
+  }
+
   async findHungPayments(olderThanMinutes: number): Promise<Order[]> {
     const cutoff = new Date(Date.now() - olderThanMinutes * 60 * 1000);
     const rows = await this.prisma.order.findMany({
@@ -83,7 +90,9 @@ export class PrismaOrderRepository implements IOrderRepository {
     const row = await this.prisma.order.create({
       data: {
         id: props.id,
+        origin: props.origin,
         prototypeId: props.prototypeId,
+        quoteId: props.quoteId,
         priceUsdSnapshot: props.priceUsdSnapshot,
         customerEmail: props.customerEmail,
         customerName: props.customerName,
@@ -116,7 +125,9 @@ export class PrismaOrderRepository implements IOrderRepository {
 
   private toDomain(row: {
     id: string;
-    prototypeId: string;
+    origin: string;
+    prototypeId: string | null;
+    quoteId: string | null;
     priceUsdSnapshot: Prisma.Decimal;
     customerEmail: string;
     customerName: string | null;
@@ -130,7 +141,9 @@ export class PrismaOrderRepository implements IOrderRepository {
   }): Order {
     return new Order({
       id: row.id,
+      origin: row.origin as 'order' | 'quote',
       prototypeId: row.prototypeId,
+      quoteId: row.quoteId,
       priceUsdSnapshot: row.priceUsdSnapshot.toNumber(),
       customerEmail: row.customerEmail,
       customerName: row.customerName,

@@ -1,83 +1,85 @@
-/**
- * TASK-delivery-1: DeliveryItem — unified projection model.
- * Merges accepted orders (Flow A) and paid quotes (Flow B) into a single view.
- *
- * "overdue" is calculated: today > estimatedDeliveryDate AND status !== 'delivered'
- */
-
 export type DeliveryOrigin = 'order' | 'quote';
-export type DeliveryStatus = 'pending' | 'delivered' | 'overdue';
+export type DeliveryStatus = 'pending' | 'delivered';
 
-export interface DeliveryItemProps {
+export interface DeliveryTrackingProps {
   id: string;
+  orderId: string;
   origin: DeliveryOrigin;
   customerName: string;
   customerEmail: string;
+  quoteId: string | null;
   estimatedDeliveryDate: Date;
   status: DeliveryStatus;
   deliveredAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export class DeliveryItem {
+export class DeliveryTracking {
   readonly id: string;
+  readonly orderId: string;
   readonly origin: DeliveryOrigin;
   readonly customerName: string;
   readonly customerEmail: string;
+  readonly quoteId: string | null;
   readonly estimatedDeliveryDate: Date;
   readonly status: DeliveryStatus;
   readonly deliveredAt: Date | null;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
 
-  constructor(props: DeliveryItemProps) {
+  constructor(props: DeliveryTrackingProps) {
     Object.assign(this, props);
   }
 
-  /** Calculate whether this delivery is overdue */
-  static calculateStatus(
+  static isOverdue(
     estimatedDeliveryDate: Date,
     deliveredAt: Date | null,
     now: Date = new Date(),
-  ): DeliveryStatus {
-    if (deliveredAt) return 'delivered';
-    if (now.getTime() > estimatedDeliveryDate.getTime()) return 'overdue';
-    return 'pending';
+  ): boolean {
+    if (deliveredAt) return false;
+    return now.getTime() > estimatedDeliveryDate.getTime();
   }
 
-  /** Mark as delivered */
-  deliver(): DeliveryItem {
+  deliver(): DeliveryTracking {
     if (this.deliveredAt) {
       throw new Error('Already delivered');
     }
-    return new DeliveryItem({
+    return new DeliveryTracking({
       ...this.toProps(),
       status: 'delivered',
       deliveredAt: new Date(),
+      updatedAt: new Date(),
     });
   }
 
-  /** Postpone delivery date */
-  postpone(newDate: Date): DeliveryItem {
+  postpone(newDate: Date): DeliveryTracking {
     if (this.deliveredAt) {
       throw new Error('Cannot postpone: already delivered');
     }
     if (newDate.getTime() <= new Date().getTime()) {
       throw new Error('New delivery date must be in the future');
     }
-    return new DeliveryItem({
+    return new DeliveryTracking({
       ...this.toProps(),
       estimatedDeliveryDate: newDate,
-      status: DeliveryItem.calculateStatus(newDate, null),
+      updatedAt: new Date(),
     });
   }
 
-  toProps(): DeliveryItemProps {
+  toProps(): DeliveryTrackingProps {
     return {
       id: this.id,
+      orderId: this.orderId,
       origin: this.origin,
       customerName: this.customerName,
       customerEmail: this.customerEmail,
+      quoteId: this.quoteId,
       estimatedDeliveryDate: this.estimatedDeliveryDate,
       status: this.status,
       deliveredAt: this.deliveredAt,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
     };
   }
 }
