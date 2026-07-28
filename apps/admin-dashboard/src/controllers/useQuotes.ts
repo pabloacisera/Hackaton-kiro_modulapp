@@ -8,6 +8,9 @@ import {
   QuoteStatus,
   PaginatedQuotes,
 } from '../models/quotesApi';
+import type { AdminNotification } from './useNotifications';
+
+const QUOTE_NOTIF_TYPES = ['new_quote_request', 'quote_response'];
 
 export interface UseQuotesResult {
   quotes: QuoteDto[];
@@ -46,6 +49,14 @@ export function useQuotes(): UseQuotesResult {
   const [reloadToken, setReloadToken] = useState(0);
 
   const reload = useCallback(() => setReloadToken((t) => t + 1), []);
+
+  useEffect(() => {
+    const handler = (e: CustomEvent<AdminNotification>) => {
+      if (QUOTE_NOTIF_TYPES.includes(e.detail.type)) reload();
+    };
+    window.addEventListener('notification.new', handler as EventListener);
+    return () => window.removeEventListener('notification.new', handler as EventListener);
+  }, [reload]);
 
   useEffect(() => {
     let cancelled = false;

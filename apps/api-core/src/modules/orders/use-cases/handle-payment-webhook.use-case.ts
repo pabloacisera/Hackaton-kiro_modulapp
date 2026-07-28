@@ -2,7 +2,10 @@ import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { IOrderRepository, ORDER_REPOSITORY } from '../repositories/order.repository.port';
 import { NotificationsService } from '../../notifications/notifications.service';
 import { OrderEmailService } from '../services/order-email.service';
-import { IPrototypeRepository, PROTOTYPE_REPOSITORY } from '../../catalog/repositories/prototype.repository.port';
+import {
+  IPrototypeRepository,
+  PROTOTYPE_REPOSITORY,
+} from '../../catalog/repositories/prototype.repository.port';
 
 /**
  * TASK-directpurchase-5: Handle payment-result webhook from payment-service.
@@ -41,6 +44,7 @@ export class HandlePaymentWebhookUseCase {
       await this.orderRepo.update(confirmed);
 
       // FR3: Confirmation email (fire-and-forget, email failure must not block)
+      if (!order.prototypeId) throw new Error(`Order ${order.id} has no prototypeId`);
       const proto = await this.protoRepo.findById(order.prototypeId);
       this.emailService
         .sendPaymentConfirmation(
@@ -57,7 +61,6 @@ export class HandlePaymentWebhookUseCase {
         `New order from ${order.customerEmail} — $${order.priceUsdSnapshot.toFixed(2)} pending acceptance`,
         `/admin/orders/${order.id}`,
       );
-
     } else {
       const failed = order.failPayment();
       await this.orderRepo.update(failed);

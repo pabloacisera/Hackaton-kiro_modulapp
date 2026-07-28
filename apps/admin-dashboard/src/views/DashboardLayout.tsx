@@ -8,6 +8,7 @@ import { useNotifications } from '../controllers/useNotifications';
 import { useAuth } from '../controllers/useAuth';
 
 /** Notification types that map to sidebar tabs */
+const ORDER_TYPES = ['new_purchase', 'payment_confirmed'];
 const QUOTE_TYPES = ['new_quote_request', 'quote_response'];
 const COMPLAINT_TYPES = ['new_complaint'];
 
@@ -22,10 +23,12 @@ export function DashboardLayout() {
   // Compute badge counts for sidebar tabs from unread notifications
   const sidebarBadges = useMemo(() => {
     const unread = notifications.filter((n) => !n.read);
+    const ordersCount = unread.filter((n) => ORDER_TYPES.includes(n.type)).length;
     const quotesCount = unread.filter((n) => QUOTE_TYPES.includes(n.type)).length;
     const complaintsCount = unread.filter((n) => COMPLAINT_TYPES.includes(n.type)).length;
 
     const badges: Record<string, number> = {};
+    if (ordersCount > 0) badges['/orders'] = ordersCount;
     if (quotesCount > 0) badges['/quotes'] = quotesCount;
     if (complaintsCount > 0) badges['/complaints'] = complaintsCount;
     return badges;

@@ -7,6 +7,9 @@ import {
   OrderStatus,
   PaginatedOrders,
 } from '../models/ordersApi';
+import type { AdminNotification } from './useNotifications';
+
+const ORDER_NOTIF_TYPES = ['new_purchase', 'payment_confirmed'];
 
 export interface UseOrdersResult {
   orders: OrderDto[];
@@ -35,6 +38,14 @@ export function useOrders(): UseOrdersResult {
   const [reloadToken, setReloadToken] = useState(0);
 
   const reload = useCallback(() => setReloadToken((t) => t + 1), []);
+
+  useEffect(() => {
+    const handler = (e: CustomEvent<AdminNotification>) => {
+      if (ORDER_NOTIF_TYPES.includes(e.detail.type)) reload();
+    };
+    window.addEventListener('notification.new', handler as EventListener);
+    return () => window.removeEventListener('notification.new', handler as EventListener);
+  }, [reload]);
 
   useEffect(() => {
     let cancelled = false;
