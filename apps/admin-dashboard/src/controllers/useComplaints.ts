@@ -58,6 +58,14 @@ export function useComplaints(): UseComplaintsResult {
   }, [reload]);
 
   useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') reload();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [reload]);
+
+  useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
