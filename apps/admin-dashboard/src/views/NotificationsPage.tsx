@@ -6,6 +6,20 @@ import { useNotifications } from '../controllers/useNotifications';
 import { useAuth } from '../controllers/useAuth';
 
 /**
+ * Converts a notification referenceUrl into a valid React Router path.
+ * Strips the /admin prefix (handled by basename) and normalizes
+ * legacy /quotes/<id> paths into /quotes?q=<id>.
+ */
+function toRoute(referenceUrl: string): string {
+  const path = referenceUrl.replace(/^\/admin/, '');
+  const legacyMatch = path.match(/^\/(quotes|orders|complaints)\/([a-f0-9-]{36})$/);
+  if (legacyMatch) {
+    return `/${legacyMatch[1]}?q=${legacyMatch[2]}`;
+  }
+  return path;
+}
+
+/**
  * NotificationsPage — standalone page listing all admin notifications
  * with search and pagination.
  */
@@ -97,7 +111,7 @@ export function NotificationsPage() {
                   <p className="text-sm text-gray-800">{n.message}</p>
                   {n.referenceUrl && (
                     <Link
-                      to={n.referenceUrl.replace(/^\/admin/, '')}
+                      to={toRoute(n.referenceUrl)}
                       className="mt-1 inline-block text-xs text-blue-600 hover:underline"
                     >
                       Ver detalle →

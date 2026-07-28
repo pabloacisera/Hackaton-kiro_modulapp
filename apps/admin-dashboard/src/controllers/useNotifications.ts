@@ -23,7 +23,8 @@ export interface UseNotificationsResult {
 
 /**
  * TASK-notif-7: useNotifications controller.
- * - Manages WebSocket connection with JWT auth
+ * - Fetches all notifications via REST on mount
+ * - Manages WebSocket connection with JWT auth for real-time updates
  * - Sound playback queue with 2s debounce (TASK-notif-9)
  * - Reconnection with exponential backoff (TASK-notif-10)
  */
@@ -62,6 +63,20 @@ export function useNotifications(accessToken: string | null): UseNotificationsRe
     }
   }, [soundEnabled]);
 
+  // ── Fetch all notifications via REST on mount ───────────────────────────
+  useEffect(() => {
+    if (!accessToken) return;
+
+    fetch(`${API_BASE}/admin/notifications`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: AdminNotification[]) => setNotifications(data))
+      .catch(() => {
+        /* ignore fetch errors — websocket will provide data */
+      });
+  }, [accessToken]);
+
   // ── Socket connection ────────────────────────────────────────────────────
   useEffect(() => {
     if (!accessToken) return;
@@ -81,12 +96,21 @@ export function useNotifications(accessToken: string | null): UseNotificationsRe
       socketRef.current = socket;
 
       socket.on('notifications.unread', (data: AdminNotification[]) => {
-        setNotifications(data);
+        // Merge unread from WebSocket with existing notifications
+        setNotifications((prev) => {
+          const map = new Map(prev.map((n) => [n.id, n]));
+          for (const n of data) {
+            map.set(n.id, n);
+          }
+          return Array.from(map.values()).sort(
+            (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          );
+        });
         backoffRef.current = 1000;
       });
 
       socket.on('notification.new', (n: AdminNotification) => {
-        setNotifications((prev) => [n, ...prev]);
+        setNotifications((prev) => [n, ...prev.filter((x) => x.id !== n.id)]);
         playSound();
         backoffRef.current = 1000;
       });

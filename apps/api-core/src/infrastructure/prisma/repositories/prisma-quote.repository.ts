@@ -59,6 +59,7 @@ export class PrismaQuoteRepository implements IQuoteRepository {
     }
     if (filter.q) {
       where.OR = [
+        { id: { contains: filter.q, mode: 'insensitive' } },
         { customerEmail: { contains: filter.q, mode: 'insensitive' } },
         { customerName: { contains: filter.q, mode: 'insensitive' } },
         { description: { contains: filter.q, mode: 'insensitive' } },

@@ -1,6 +1,21 @@
 import { Link } from 'react-router-dom';
 import { AdminNotification } from '../../controllers/useNotifications';
 
+/**
+ * Converts a notification referenceUrl into a valid React Router path.
+ * Strips the /admin prefix (handled by basename) and normalizes
+ * legacy /quotes/<id> paths into /quotes?q=<id>.
+ */
+function toRoute(referenceUrl: string): string {
+  const path = referenceUrl.replace(/^\/admin/, '');
+  // Normalize legacy /quotes/<uuid> → /quotes?q=<uuid>
+  const legacyMatch = path.match(/^\/(quotes|orders|complaints)\/([a-f0-9-]{36})$/);
+  if (legacyMatch) {
+    return `/${legacyMatch[1]}?q=${legacyMatch[2]}`;
+  }
+  return path;
+}
+
 interface Props {
   notifications: AdminNotification[];
   soundEnabled: boolean;
@@ -56,7 +71,7 @@ export function NotificationPanel({
               >
                 <div className="flex-1 min-w-0">
                   <Link
-                    to={n.referenceUrl.replace(/^\/admin/, '')}
+                    to={toRoute(n.referenceUrl)}
                     className="block text-sm font-medium text-gray-900 hover:underline truncate"
                     onClick={() => {
                       if (!n.read) onMarkRead(n.id);
