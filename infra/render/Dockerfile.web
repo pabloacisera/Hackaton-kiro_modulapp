@@ -1,0 +1,31 @@
+# Front-door web service for Render free tier.
+# Builds landing + admin-dashboard and serves both behind a single nginx that
+# reverse-proxies /api, /socket.io, /health and /payments to the public URLs of
+# the other Render services (free web services cannot receive private traffic).
+FROM node:20-alpine AS builder
+WORKDIR /app
+RUN npm install -g pnpm@9
+
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
+COPY packages/shared-types/package.json ./packages/shared-types/package.json
+COPY apps/landing/package.json ./apps/landing/package.json
+COPY apps/admin-dashboard/package.json ./apps/admin-dashboard/package.json
+
+RUN pnpm install --frozen-lockfile
+
+COPY packages/shared-types ./packages/shared-types
+COPY apps/landing ./apps/landing
+COPY apps/admin-dashboard ./apps/admin-dashboard
+
+RUN pnpm --filter @modula/shared-types build
+
+ARG VITE_API_URL=/api
+ENV VITE_API_URL=${VITE_API_URL}
+RUN pnpm --filter @modula/landing build
+RUN pnpm --filter @modula/admin-dashboard build
+
+FROM nginx:alpine
+COPY --from=builder /app/apps/landing/dist /usr/share/nginx/html
+COPY --from=builder /app/apps/admin-dashboard/dist /usr/share/nginx/html/admin
+COPY infra/render/nginx.conf.template /etc/nginx/nginx.conf.template
+CMD ["/bin/sh","-c","envsubst '${PORT} ${API_CORE_URL} ${PAYMENT_URL}' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && exec nginx -g 'daemon off;'"]

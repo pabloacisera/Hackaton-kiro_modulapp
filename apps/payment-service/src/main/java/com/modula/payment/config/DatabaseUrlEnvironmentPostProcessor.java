@@ -24,8 +24,6 @@ public class DatabaseUrlEnvironmentPostProcessor implements EnvironmentPostProce
             return;
         }
 
-        System.out.println("[EPP] Raw PAYMENT_DATABASE_URL: " + raw);
-
         if (raw.startsWith("jdbc:")) {
             System.out.println("[EPP] Already JDBC format, skipping");
             return;

@@ -1,0 +1,12 @@
+node_modules
+**/node_modules
+**/dist
+**/target
+**/.turbo
+.git
+.gitignore
+*.log
+project.zip
+ersethanDownloadsHackaton-kiro_modulapp
+.env
+.env.*

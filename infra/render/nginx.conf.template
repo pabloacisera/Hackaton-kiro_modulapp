@@ -1,0 +1,78 @@
+worker_processes auto;
+
+events {
+  worker_connections 1024;
+}
+
+http {
+  include       /etc/nginx/mime.types;
+  default_type  application/octet-stream;
+  sendfile      on;
+  client_max_body_size 50m;
+
+  map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+  }
+
+  server {
+    listen ${PORT};
+
+    # API Core — strip /api/ prefix (api-core controllers live at root)
+    location /api/ {
+      proxy_pass ${API_CORE_URL}/;
+      proxy_ssl_server_name on;
+      proxy_set_header Host $proxy_host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection $connection_upgrade;
+      proxy_buffering off;
+      proxy_cache off;
+    }
+
+    # Socket.IO — preserve path
+    location /socket.io/ {
+      proxy_pass ${API_CORE_URL}/socket.io/;
+      proxy_ssl_server_name on;
+      proxy_set_header Host $proxy_host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection $connection_upgrade;
+    }
+
+    # api-core health
+    location /health {
+      proxy_pass ${API_CORE_URL}/health;
+      proxy_ssl_server_name on;
+      proxy_set_header Host $proxy_host;
+    }
+
+    # Payment service — preserve /payments/ prefix (controllers are under /payments/...)
+    location /payments/ {
+      proxy_pass ${PAYMENT_URL};
+      proxy_ssl_server_name on;
+      proxy_set_header Host $proxy_host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Admin dashboard (SPA served under /admin/)
+    location /admin/ {
+      root /usr/share/nginx/html;
+      try_files $uri /admin/index.html;
+    }
+
+    # Landing (SPA)
+    location / {
+      root /usr/share/nginx/html;
+      try_files $uri /index.html;
+    }
+  }
+}
