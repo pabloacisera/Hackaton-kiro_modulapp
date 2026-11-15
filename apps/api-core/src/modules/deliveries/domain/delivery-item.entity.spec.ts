@@ -1,32 +1,36 @@
-import { DeliveryItem } from './delivery-item.entity';
+import { DeliveryTracking } from './delivery-item.entity';
 
-describe('DeliveryItem', () => {
+describe('DeliveryTracking', () => {
   const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
   const pastDate = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000); // 2 days ago
 
-  function createPending(): DeliveryItem {
-    return new DeliveryItem({
+  function createPending(): DeliveryTracking {
+    return new DeliveryTracking({
       id: 'del-1',
+      orderId: 'order-1',
       origin: 'order',
       customerName: 'Ana',
       customerEmail: 'ana@test.com',
+      quoteId: null,
       estimatedDeliveryDate: futureDate,
       status: 'pending',
       deliveredAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
   }
 
-  describe('calculateStatus', () => {
-    it('returns delivered when deliveredAt is set', () => {
-      expect(DeliveryItem.calculateStatus(futureDate, new Date())).toBe('delivered');
+  describe('isOverdue', () => {
+    it('returns false when delivered', () => {
+      expect(DeliveryTracking.isOverdue(pastDate, new Date())).toBe(false);
     });
 
-    it('returns overdue when past deadline and not delivered', () => {
-      expect(DeliveryItem.calculateStatus(pastDate, null)).toBe('overdue');
+    it('returns true when past deadline and not delivered', () => {
+      expect(DeliveryTracking.isOverdue(pastDate, null)).toBe(true);
     });
 
-    it('returns pending when before deadline and not delivered', () => {
-      expect(DeliveryItem.calculateStatus(futureDate, null)).toBe('pending');
+    it('returns false when before deadline and not delivered', () => {
+      expect(DeliveryTracking.isOverdue(futureDate, null)).toBe(false);
     });
   });
 

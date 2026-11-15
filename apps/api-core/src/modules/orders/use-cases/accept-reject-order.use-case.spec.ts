@@ -29,6 +29,7 @@ function makeProto(overrides = {}) {
 describe('AcceptOrderUseCase', () => {
   let orderRepo: jest.Mocked<IOrderRepository>;
   let protoRepo: jest.Mocked<IPrototypeRepository>;
+  let deliveryRepo: any;
   let useCase: AcceptOrderUseCase;
 
   beforeEach(() => {
@@ -36,7 +37,9 @@ describe('AcceptOrderUseCase', () => {
       findAll: jest.fn(), findByIdempotencyKey: jest.fn(),
       findByPaymentServiceRef: jest.fn(), findHungPayments: jest.fn() } as any;
     protoRepo = { findById: jest.fn(), findAll: jest.fn(), save: jest.fn() } as any;
-    useCase = new AcceptOrderUseCase(orderRepo, protoRepo);
+    deliveryRepo = { save: jest.fn(), findById: jest.fn(), findAll: jest.fn(),
+      update: jest.fn(), findByOrderId: jest.fn() } as any;
+    useCase = new AcceptOrderUseCase(orderRepo, protoRepo, deliveryRepo);
   });
 
   it('integration.order.accept.deductsStockAndSetsETA', async () => {

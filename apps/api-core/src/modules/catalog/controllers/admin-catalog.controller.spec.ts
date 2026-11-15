@@ -268,7 +268,7 @@ describe('AdminCatalogController', () => {
       const file = {
         buffer: Buffer.from('data'),
         mimetype: 'image/png',
-        size: 10 * 1024 * 1024,
+        size: 60 * 1024 * 1024,
         originalname: 'huge.png',
       } as Express.Multer.File;
 
