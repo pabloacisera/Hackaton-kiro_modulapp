@@ -100,7 +100,7 @@ export class SeedService implements OnModuleInit {
         stockQty: 12,
         buildOnDemand: false,
         estimatedDeliveryDays: 7,
-        images: [{ id: 'img-1', url: '/images/bookshelf-1.jpg', order: 0 }],
+        images: [{ id: 'img-1', url: this.seedImageUrl('bookshelf'), order: 0 }],
         createdAt: new Date(),
         updatedAt: new Date(),
       }),
@@ -114,7 +114,7 @@ export class SeedService implements OnModuleInit {
         stockQty: 5,
         buildOnDemand: false,
         estimatedDeliveryDays: 10,
-        images: [{ id: 'img-2', url: '/images/tv-stand-1.jpg', order: 0 }],
+        images: [{ id: 'img-2', url: this.seedImageUrl('tv-stand'), order: 0 }],
         createdAt: new Date(),
         updatedAt: new Date(),
       }),
@@ -128,7 +128,7 @@ export class SeedService implements OnModuleInit {
         stockQty: 3,
         buildOnDemand: true,
         estimatedDeliveryDays: 14,
-        images: [{ id: 'img-3', url: '/images/wedding-arch-1.jpg', order: 0 }],
+        images: [{ id: 'img-3', url: this.seedImageUrl('wedding-arch'), order: 0 }],
         createdAt: new Date(),
         updatedAt: new Date(),
       }),
@@ -142,7 +142,7 @@ export class SeedService implements OnModuleInit {
         stockQty: 8,
         buildOnDemand: false,
         estimatedDeliveryDays: 5,
-        images: [{ id: 'img-4', url: '/images/balloon-arch-1.jpg', order: 0 }],
+        images: [{ id: 'img-4', url: this.seedImageUrl('balloon-arch'), order: 0 }],
         createdAt: new Date(),
         updatedAt: new Date(),
       }),
@@ -156,7 +156,7 @@ export class SeedService implements OnModuleInit {
         stockQty: 20,
         buildOnDemand: false,
         estimatedDeliveryDays: 3,
-        images: [{ id: 'img-5', url: '/images/floating-shelves-1.jpg', order: 0 }],
+        images: [{ id: 'img-5', url: this.seedImageUrl('floating-shelves'), order: 0 }],
         createdAt: new Date(),
         updatedAt: new Date(),
       }),
@@ -166,6 +166,20 @@ export class SeedService implements OnModuleInit {
       await this.protoRepo.save(proto);
     }
     this.logger.log(`Seeded ${prototypes.length} prototypes`);
+  }
+
+  /**
+   * Public URL of a seed product image stored in Supabase Storage
+   * (`<bucket>/products/seed-<slug>.jpg`). Falls back to a local path when
+   * Storage env vars are not configured.
+   */
+  private seedImageUrl(slug: string): string {
+    const base = (process.env.SUPABASE_URL ?? '').replace(/\/$/, '');
+    const bucket = process.env.SUPABASE_STORAGE_BUCKET ?? '';
+    if (base && bucket) {
+      return `${base}/storage/v1/object/public/${bucket}/products/seed-${slug}.jpg`;
+    }
+    return `/images/${slug}-1.jpg`;
   }
 
   // ── Supplies ────────────────────────────────────────────────────────────
