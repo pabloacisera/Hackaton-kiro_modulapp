@@ -41,3 +41,30 @@ jobs:
 
       - name: Build
         run: pnpm turbo build --cache-dir=.turbo/cache
+
+  deploy:
+    needs: lint-test-build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Render deploys
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${RENDER_API_KEY:-}" ]; then
+            echo "::error::RENDER_API_KEY secret is not set"
+            exit 1
+          fi
+          for svc in \
+            srv-dbt48nmk1f9s73aq7l6g \
+            srv-dbt4916k1f9s73aq8cvg \
+            srv-dbt491gae00c739kh51g; do
+            echo "Triggering deploy for $svc"
+            curl -fsS -X POST "https://api.render.com/v1/services/$svc/deploys" \
+              -H "Authorization: Bearer $RENDER_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d '{"clearCache":"do_not_clear"}' > /dev/null
+          done
+          echo "All Render deploys triggered."
