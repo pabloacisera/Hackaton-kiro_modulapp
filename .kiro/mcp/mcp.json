@@ -16,7 +16,7 @@
     "postgres": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-postgres", "${SUPABASE_DB_URL}"],
-      "description": "Query/validate the real database schema (Supabase Postgres) before generating migrations."
+      "description": "Query/validate the real database schema (Neon Postgres) before generating migrations."
     }
   },
   "notes": [

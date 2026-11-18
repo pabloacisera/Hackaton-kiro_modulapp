@@ -1,224 +1,177 @@
 # Deployment Guide
 
-> Complete guide for deploying ModulaApp to production on AWS.
+> Complete guide for deploying ModulaApp to production on **Render (free tier)**,
+> with **Neon** for PostgreSQL and **Upstash** for Redis.
+>
+> The previous AWS/Terraform path (EC2 + RDS + Cloudflare Tunnel) is **no longer used**
+> — the AWS account was lost. `infra/terraform/` is kept as historical reference only;
+> see [terraform-guide.md](terraform-guide.md) (marked legacy).
 
 ## Deployment Architecture
 
-ModulaApp runs as a set of Docker containers on a single EC2 instance, behind
-Cloudflare Tunnel for HTTPS termination and DDoS protection.
+ModulaApp runs as **three Render web services** (Docker builds). A single front-door
+service serves the static frontends and reverse-proxies to the other services' **public**
+URLs (Render free web services cannot receive private-network traffic).
 
 | Component                     | Where it runs                                |
 | ----------------------------- | -------------------------------------------- |
-| Landing (React)               | EC2 — Docker container (nginx serves static) |
-| Admin Dashboard (React)       | EC2 — Docker container (nginx serves static) |
-| API Core (NestJS)             | EC2 — Docker container                       |
-| Payment Service (Spring Boot) | EC2 — Docker container                       |
-| Nginx (reverse proxy)         | EC2 — Docker container                       |
-| PostgreSQL                    | AWS RDS (external, IAM auth)                 |
-| Redis                         | Upstash (external)                           |
-| HTTPS / CDN                   | Cloudflare Tunnel                            |
+| Landing (React)               | `modula-web` — nginx serves static           |
+| Admin Dashboard (React)       | `modula-web` — nginx serves static           |
+| API Core (NestJS)             | `modula-api` — Docker container              |
+| Payment Service (Spring Boot) | `modula-payment` — Docker container          |
+| Nginx (reverse proxy)         | `modula-web` — front-door                    |
+| PostgreSQL                    | **Neon** (2 databases, external)             |
+| Redis                         | **Upstash** (REST cache + TCP for BullMQ)    |
+| HTTPS / DNS                   | **Cloudflare** (DNS-only CNAME)              |
 | Email                         | Mailjet (external)                           |
 | Payments                      | PayPal API (external)                        |
+| Storage                       | Supabase Storage (external)                  |
+
+### Services
+
+| Service          | Dockerfile                        | Context              | Health    | Public URL                            |
+| ---------------- | --------------------------------- | -------------------- | --------- | ------------------------------------- |
+| `modula-api`     | `apps/api-core/Dockerfile`        | `.` (repo root)      | `/health` | `https://modula-api.onrender.com`     |
+| `modula-payment` | `apps/payment-service/Dockerfile` | `apps/payment-service` | `/health` | `https://modula-payment.onrender.com` |
+| `modula-web`     | `infra/render/Dockerfile.web`     | `.` (repo root)      | `/`       | `https://modula-web-x8xk.onrender.com` |
+
+> `modula-web` runs `envsubst` at start with `$PORT`, `$API_CORE_URL`, `$PAYMENT_URL`.
+> Render injects `$PORT`; services must bind `0.0.0.0:$PORT`.
 
 ## Prerequisites
 
 Before deploying, you need:
 
-1. **AWS account** with IAM user that has EC2/IAM/SSM permissions
-2. **Terraform** installed locally (see [terraform-guide.md](terraform-guide.md))
-3. **Cloudflare account** with a tunnel configured
-4. **All external services ready**: RDS instance, Upstash Redis, PayPal app, Mailjet account
-5. **Complete `.env` file** with all production values
+1. **Render** account + API key (Account Settings → API Keys).
+2. **Neon** project with 2 Postgres databases (api-core, payment-service).
+3. **Upstash** Redis: REST endpoint (cache/rate-limit) **and** TCP `rediss://` URL (BullMQ).
+4. **Supabase** project + public bucket (images, PDFs).
+5. **PayPal** app (sandbox/live) with a webhook.
+6. **Mailjet** account + verified sender.
+7. **Cloudflare** DNS access for the domain.
+8. **Complete env vars** (see [DEPLOY.md](../DEPLOY.md) §3 and
+   [`.kiro/steerings/09-environment-variables.md`](../.kiro/steerings/09-environment-variables.md)).
 
 ## Deployment Flow
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│ Developer Machine                                                │
-│                                                                  │
-│  1. terraform apply     →  Creates EC2, SG, IAM, EIP           │
-│  2. scp .env            →  Uploads secrets to instance          │
-│  3. ssh → systemctl start → Builds & starts all containers     │
-│                                                                  │
-│ After first deploy, updates are:                                 │
-│  ssh → git pull → docker compose up --build -d                  │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│ Developer pushes to main                                             │
+│                                                                     │
+│  GitHub Actions: lint → test → build  ──(green)──►  deploy job      │
+│                                                       │             │
+│                                                       ▼             │
+│                          POST /services/{id}/deploys (×3 Render)    │
+│                                                       │             │
+│                                                       ▼             │
+│  modula-api / modula-payment / modula-web rebuild & restart         │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Step-by-Step First Deployment
 
-### 1. Provision Infrastructure
+### 1. Create the three services on Render
+
+- Type: **Web Service**, plan **free**, region **oregon**, branch **main**.
+- Build: **Dockerfile** (paths per the table above).
+- Health check path per the table above.
+- Set **`autoDeploy: no`** (deploys are CI-gated — see step 3).
+
+### 2. Set environment variables per service
+
+See [DEPLOY.md](../DEPLOY.md) §6.1. Key production values:
+
+- `APP_PUBLIC_URL=https://modulapp.artisandevs.site`
+- `CORS_ORIGINS=https://modulapp.artisandevs.site`
+- `PAYMENT_SERVICE_URL=https://modula-payment.onrender.com` (on `modula-api`)
+- `API_CORE_WEBHOOK_URL=https://modula-api.onrender.com` (on `modula-payment`)
+- `BULL_REDIS_URL=rediss://...` (TCP, for BullMQ)
+- `NODE_ENV=production` / `SPRING_PROFILES_ACTIVE=production`
+
+### 3. Wire CI-gated deploys
+
+Add the `RENDER_API_KEY` secret to the GitHub repo. The `deploy` job in
+[`.github/workflows/ci.yml`](../.github/workflows/ci.yml) triggers the three deploys
+**only** after `lint-test-build` passes on a push to `main`.
+
+### 4. Custom domain + DNS
+
+- Add `modulapp.artisandevs.site` as a custom domain on `modula-web`.
+- Cloudflare DNS: **CNAME `modulapp` → `modula-web-x8xk.onrender.com`, DNS-only**.
+
+### 5. Migrations and seed
+
+- `modula-api` runs `prisma migrate deploy` on start; `modula-payment` runs Flyway.
+- Optional demo data: run the seed one-off container with `NODE_ENV=development`
+  (see [DEPLOY.md](../DEPLOY.md) §9).
+
+### 6. Verify
 
 ```bash
-cd infra/terraform
-cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars with your values
-
-terraform init
-terraform plan    # Review
-terraform apply   # Create resources (type "yes")
+curl -fsS https://modulapp.artisandevs.site/health         # {"status":"ok"}
+curl -s -o /dev/null -w "%{http_code}\n" https://modulapp.artisandevs.site/admin/   # 200
+curl -fsS https://modulapp.artisandevs.site/api/catalog/prototypes | head
 ```
 
-Save the outputs (IP, instance ID).
+## Updating the Application
 
-### 2. Configure Cloudflare Tunnel
-
-1. Go to **Cloudflare Dashboard → Zero Trust → Networks → Tunnels**
-2. Create a new tunnel (or use existing one)
-3. Add a public hostname rule:
-   - Domain: `your-domain.com`
-   - Service: `http://localhost:80`
-4. Copy the tunnel token
-5. Put it in `terraform.tfvars` as `cloudflare_tunnel_token`
-6. Re-run `terraform apply` (updates user-data, but for existing instances
-   you'll need to install manually — see below)
-
-**If the instance already exists:**
-
-```bash
-# SSH into the instance
-ssh -i ~/.ssh/modula-prod-key.pem ec2-user@<IP>
-
-# Install cloudflared manually
-sudo curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 \
-  -o /usr/local/bin/cloudflared
-sudo chmod +x /usr/local/bin/cloudflared
-sudo cloudflared service install <YOUR_TUNNEL_TOKEN>
-sudo systemctl enable cloudflared
-sudo systemctl start cloudflared
-```
-
-### 3. Upload .env File
-
-```bash
-# From your local machine (project root):
-scp -i ~/.ssh/modula-prod-key.pem .env ec2-user@<IP>:/opt/modula/.env
-```
-
-**Critical**: Ensure these production values are set:
-
-- `DATABASE_URL` / `PAYMENT_DATABASE_URL` → RDS endpoint
-- `UPSTASH_REDIS_URL` → production Redis
-- `PAYPAL_MODE=live` (or keep `sandbox` for testing)
-- `APP_PUBLIC_URL=https://your-domain.com`
-- `CORS_ORIGINS=https://your-domain.com`
-- `VITE_API_URL=https://your-domain.com/api`
-
-### 4. Start the Application
-
-```bash
-ssh -i ~/.ssh/modula-prod-key.pem ec2-user@<IP>
-
-# Start all services
-sudo systemctl start modula-app
-
-# Or manually:
-cd /opt/modula
-sudo docker compose -f infra/docker/docker-compose.prod.yml up --build -d
-```
-
-First build takes 5-10 minutes (downloading base images + building).
-
-### 5. Verify
-
-```bash
-# From the instance:
-curl http://localhost/health
-
-# From your machine (via Cloudflare):
-curl https://your-domain.com/health
-curl https://your-domain.com/payments/health
-```
-
-## Updating the Application (Subsequent Deploys)
-
-```bash
-ssh -i ~/.ssh/modula-prod-key.pem ec2-user@$(cd infra/terraform && terraform output -raw public_ip)
-
-cd /opt/modula
-git pull origin main
-sudo docker compose -f infra/docker/docker-compose.prod.yml up --build -d
-```
-
-For zero-downtime (rolling) updates, build first, then swap:
-
-```bash
-sudo docker compose -f infra/docker/docker-compose.prod.yml build
-sudo docker compose -f infra/docker/docker-compose.prod.yml up -d
-```
+Push to `main`. If CI is green, the `deploy` job redeploys all three services. No manual
+steps. To force a deploy manually, use the Render API (see [DEPLOY.md](../DEPLOY.md) §11).
 
 ## Environment Separation
 
-| Environment | Infrastructure             | Database         | Redis        | Domain          |
-| ----------- | -------------------------- | ---------------- | ------------ | --------------- |
-| Development | Local (docker-compose.yml) | Local or RDS dev | Upstash dev  | localhost       |
-| Production  | EC2 via Terraform          | RDS prod         | Upstash prod | your-domain.com |
+| Environment | Infrastructure                  | Database         | Redis        | Domain        |
+| ----------- | ------------------------------- | ---------------- | ------------ | ------------- |
+| Development | Local (docker-compose.yml)      | Local or Neon dev | Upstash dev  | localhost     |
+| Production  | Render (3 web services)         | Neon prod        | Upstash prod | modulapp.artisandevs.site |
 
 ## Monitoring & Logs
 
-### Application Logs
+Logs are per-service in the Render dashboard, or via the Render API:
 
 ```bash
-# All services
-docker compose -f infra/docker/docker-compose.prod.yml logs -f
-
-# Specific service
-docker compose -f infra/docker/docker-compose.prod.yml logs -f api-core
-docker compose -f infra/docker/docker-compose.prod.yml logs -f payment-service
-```
-
-### System Logs
-
-```bash
-# Cloud-init bootstrap log
-cat /var/log/user-data.log
-
-# Cloudflare Tunnel
-journalctl -u cloudflared -f
-
-# Docker Compose systemd service
-journalctl -u modula-app -f
+curl "https://api.render.com/v1/logs?ownerId=OWNER_ID&resource=SERVICE_ID&limit=50" \
+  -H "Authorization: Bearer $RENDER_API_KEY"
 ```
 
 ### Health Checks
 
-The Nginx health endpoint aggregates service health:
+- `GET /health` (front-door) → proxied to `modula-api` health.
+- `GET /payments/health` (front-door) → proxied to `modula-payment` health.
 
-- `GET /health` → api-core health
-- `GET /payments/health` → payment-service health (via proxy)
+### Cold starts on the free tier
+
+All three services use the Render **Free** plan. Each one sleeps after ~15 minutes
+without inbound traffic and takes about a minute to wake on the next request. A
+health-check path does not keep a service awake: Render only probes instances that
+are already running. During a cold start, `/api/catalog/prototypes` can return `502`
+and the landing page may render an empty catalog; the first payment call can
+likewise time out. These are transient startup delays, not data loss.
 
 ## Disaster Recovery
-
-### Instance dies / needs replacement
-
-```bash
-# Terraform recreates everything:
-terraform destroy  # Remove old
-terraform apply    # Create new
-
-# Then re-upload .env and start the app
-```
-
-RDS data is safe (it's external). Only the EC2 instance is ephemeral.
 
 ### Rollback a bad deploy
 
 ```bash
-ssh ec2-user@<IP>
-cd /opt/modula
-git log --oneline -5          # Find the last good commit
-git checkout <good-commit>
-sudo docker compose -f infra/docker/docker-compose.prod.yml up --build -d
+# Redeploy a known-good commit on a service:
+curl -X POST "https://api.render.com/v1/services/SERVICE_ID/deploys" \
+  -H "Authorization: Bearer $RENDER_API_KEY" -H "Content-Type: application/json" \
+  -d '{"commitId":"<good-sha>"}'
 ```
+
+Data lives in Neon (external), so it survives service redeploys.
+
+### Service replacement
+
+Services are stateless containers — Render can rebuild them from the Dockerfiles at any
+time. No instance is persistent; all state is in Neon/Upstash/Supabase.
 
 ## Security Checklist
 
-- [ ] SSH restricted to your IP only (or disabled, using SSM)
 - [ ] `.env` never committed to git
-- [ ] `terraform.tfvars` never committed to git
-- [ ] IMDSv2 enforced (set in ec2.tf)
-- [ ] EBS volume encrypted
-- [ ] RDS uses IAM auth (no static password in production)
+- [ ] All secrets set as Render env vars (not in the repo)
+- [ ] `NODE_ENV=production` / `SPRING_PROFILES_ACTIVE=production` (no dev fallbacks)
 - [ ] `PAYPAL_MODE=live` only when ready for real transactions
 - [ ] Cloudflare WAF rules active
 - [ ] Production branch protection enabled on GitHub
+- [ ] `RENDER_API_KEY` stored as a GitHub Actions secret

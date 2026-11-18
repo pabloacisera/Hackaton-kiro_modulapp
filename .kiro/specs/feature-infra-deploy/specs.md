@@ -1,5 +1,9 @@
 # Specs: Infrastructure and deployment
 
+> ⚠️ **HISTORICAL.** This spec targeted AWS (EC2 + RDS + Cloudflare Tunnel). The project
+> now deploys on **Render (free tier)** with **Neon**. See `DEPLOY.md` and
+> `docs/deployment.md` for the current setup.
+
 ## Functional requirements
 
 - FR1. `docker-compose` that starts: `api-core` (NestJS), `payment-service` (Spring Boot), `landing` and `admin-dashboard` (served by Nginx after build), Redis (or pointing to Upstash), and connection to Supabase Postgres.

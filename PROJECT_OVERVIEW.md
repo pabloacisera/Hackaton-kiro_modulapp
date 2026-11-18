@@ -42,7 +42,7 @@ Customers have no accounts — identity is resolved via email + signed tokens
        ▼                              ▼
 ┌──────────────────┐          ┌──────────────┐
 │ payment-service  │          │  PostgreSQL   │
-│ (Java/Spring Boot)│          │  (Supabase)   │
+│ (Java/Spring Boot)│          │   (Neon)      │
 │ PayPal + receipts │          └──────────────┘
 └──────────────────┘                    ┌──────────────┐
                                         │    Redis      │
@@ -67,12 +67,12 @@ Customers have no accounts — identity is resolved via email + signed tokens
 | Frontend | React, MVC architecture, Tailwind CSS, FontAwesome |
 | Backend domain | NestJS + TypeScript, Clean Architecture, Prisma |
 | Financial microservice | Java + Spring Boot (PayPal, receipts) |
-| Database | PostgreSQL (Supabase) |
-| Cache/Queues | Redis (Upstash) + BullMQ |
+| Database | PostgreSQL (Neon) |
+| Cache/Queues | Redis (Upstash: REST + TCP) + BullMQ |
 | Payments | PayPal (Orders API, Refunds API) |
 | Email | Mailjet (transactional) |
 | Realtime | SSE (landing) + WebSockets (admin) |
-| Infrastructure | Docker + Docker Compose, Nginx |
+| Infrastructure | Docker + Nginx on Render (free tier) |
 | Monorepo | Turborepo |
 
 ## Agent rules summary
@@ -136,7 +136,7 @@ Copilot, etc.). Full details in `.kiro/steerings/00-project-context.md`.
 docs/               Documentation for human developers
 scripts/            Automation (bash)
 apps/               Landing, admin dashboard, api-core, payment-service
-infra/              Docker and Nginx
+infra/              Docker, Nginx, Render front-door, seed images
 packages/           Shared types/DTOs (Turborepo)
 ```
 

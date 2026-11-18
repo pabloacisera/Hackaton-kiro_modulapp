@@ -2,34 +2,54 @@
 
 ## Overview
 
-The CI pipeline runs on every PR and push to `main`. It is initially created by
-`TASK-auth-12` (feature-admin-auth-core) and extended by `TASK-infra-9`
-(feature-infra-deploy).
+The pipeline runs on every push and PR to `main`, defined in
+[`.github/workflows/ci.yml`](../.github/workflows/ci.yml). It has two jobs:
 
-## Pipeline stages
+1. **`lint-test-build`** — quality gate (runs on push **and** PR).
+2. **`deploy`** — triggers Render deploys, **only** on a push to `main` and **only** if
+   `lint-test-build` passed.
+
+## Job 1 — `lint-test-build`
 
 ```
-Lint → Test → Build (Turborepo cache) → Docker image build → Deploy
+Install (pnpm) → prisma generate → Lint → Test → Build
 ```
 
-| Stage | Tool | Scope |
-|---|---|---|
-| Lint | ESLint | All JS/TS packages |
-| Test | Jest (backend), Vitest (frontend) | Unit + integration tests |
-| Build | Turborepo | All workspaces |
-| Docker | Docker buildx | api-core, payment-service |
-| Maven | Maven | payment-service (parallel to Turborepo) |
+| Step            | Tool                  | Scope                              |
+| --------------- | --------------------- | ---------------------------------- |
+| Install         | pnpm 9 (`--frozen-lockfile`) | All workspaces              |
+| prisma generate | Prisma                | `apps/api-core` (dummy DATABASE_URL) |
+| Lint            | ESLint via Turborepo  | All JS/TS packages                 |
+| Test            | Jest + Vitest         | Unit + integration tests           |
+| Build           | Turborepo             | All workspaces                     |
 
-## Workflow file
+Node.js 22, pnpm cache enabled.
 
-`.github/workflows/ci.yml`
+> **Note:** `payment-service` (Java) is **not** built or tested in CI. It is built by its
+> own Dockerfile at deploy time (Render), and its tests (`mvn test`) are run locally.
 
-## Payment service (Java)
+## Job 2 — `deploy` (CI-gated)
 
-`payment-service` has its own Maven build job that runs in parallel to the
-Turborepo pipeline. It is added by `TASK-infra-10`.
+```yaml
+needs: lint-test-build
+if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+```
+
+It loops over the three Render service IDs and calls
+`POST https://api.render.com/v1/services/{id}/deploys` with body
+`{"clearCache":"do_not_clear"}`.
+
+**Requirement:** the `RENDER_API_KEY` secret must be set in the GitHub repository
+(Settings → Secrets and variables → Actions).
+
+```bash
+gh secret set RENDER_API_KEY --body "<your-render-api-key>"
+```
+
+Because `deploy` `needs` the quality gate and is gated on `push` to `main`, **production
+only ever receives code that passed lint + tests + build**, and PRs never deploy.
 
 ## Branch protection
 
-After `TASK-auth-12` is merged and the pipeline has run green at least once,
-enable "require status checks" on `main` in GitHub branch protection rules.
+Once the pipeline has run green at least once, enable **"require status checks"** on
+`main` in GitHub branch protection rules.

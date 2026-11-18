@@ -50,9 +50,10 @@ business flows that converge at the same checkout but behave differently:
 - **Realtime**: SSE from backend to **landing** (syncs catalog price/stock in
   real-time). WebSockets in **admin dashboard** (notifications, alarms,
   non-intrusive sound).
-- **Persistence**: PostgreSQL via Supabase. Cache/queues via Redis (Upstash).
-- **Infrastructure**: Docker + Docker Compose, Nginx serving React static builds
-  in production.
+- **Persistence**: PostgreSQL via Neon. Cache/queues via Redis (Upstash; REST for
+  cache, TCP for BullMQ).
+- **Infrastructure**: Docker + Nginx on Render (free tier) in production. Supabase is
+  used only for object storage (images, PDFs), not as the database.
 
 ## Golden rule: never lose sync between landing ↔ admin
 
@@ -119,7 +120,7 @@ phases and dependency notes. Before starting any feature, the agent MUST:
    - Dependencies (check `design.md` `## Cross-feature dependencies` sections).
    - What the human (owner) asks for.
 
-The agent MUST NOT自主地 skip to a later feature unless the owner explicitly
+The agent MUST NOT unilaterally skip to a later feature unless the owner explicitly
 directs it. If the owner asks to start a feature that depends on unmerged
 features, the agent MUST flag the dependency and ask how to proceed (mock,
 wait, or reorder).

@@ -1,6 +1,6 @@
 -- =============================================================================
 -- ENUM TYPES FOR api-core DATABASE
--- PostgreSQL (Supabase)
+-- PostgreSQL (Neon)
 -- =============================================================================
 
 -- Required extension for UUID generation

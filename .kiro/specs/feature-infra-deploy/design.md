@@ -1,5 +1,9 @@
 # Design: Infrastructure and deployment
 
+> ⚠️ **HISTORICAL.** This spec targeted AWS (EC2 + RDS + Cloudflare Tunnel). The project
+> now deploys on **Render (free tier)** with **Neon**. See `DEPLOY.md` and
+> `docs/deployment.md` for the current setup.
+
 ## docker-compose (services)
 
 ```yaml

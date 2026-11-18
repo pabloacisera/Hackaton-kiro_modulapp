@@ -1,794 +1,451 @@
-# Guía de Deploy — ModulaApp
+# Guía de Deploy — ModulaApp (Render free)
 
 > **IMPORTANTE:** Sigue cada paso en orden. Si omites un paso, el deploy fallará.
-> Última actualización: 2026-07-27
+> Última actualización: 2026-11-15
+>
+> **Hosting actual: [Render](https://render.com) (plan free)**, con base de datos en
+> **Neon** y **Redis en Upstash**. La infraestructura AWS/Terraform que describía este
+> documento antes quedó **obsoleta** (la cuenta AWS se perdió). El código de
+> `infra/terraform/` se conserva solo como referencia histórica — ver
+> [`docs/terraform-guide.md`](docs/terraform-guide.md) (marcado como legacy).
+>
+> ¿Vienes de otro proveedor? La guía abstracta de migración está fuera del repo, en
+> `Documentacion/02_Guias/aws_migration/`.
 
 ---
 
 ## Tabla de Contenidos
 
-1. [Requisitos Previos](#1-requisitos-previos)
-2. [Preparar el .env de Producción](#2-preparar-el-env-de-producción)
-3. [Configurar PayPal para Producción](#3-configurar-paypal-para-producción)
-4. [Configurar Cloudflare Tunnel](#4-configurar-cloudflare-tunnel)
-5. [Aplicar Cambios al Código (Pre-Deploy Fixes)](#5-aplicar-cambios-al-código-pre-deploy-fixes)
-6. [Crear Key Pair en AWS](#6-crear-key-pair-en-aws)
-7. [Provisionar Infraestructura con Terraform](#7-provisionar-infraestructura-con-terraform)
-8. [Subir el .env a la Instancia](#8-subir-el-env-a-la-instancia)
-9. [Truncar Tablas (Base de Datos Limpia)](#9-truncar-tablas-base-de-datos-limpia)
-10. [Insertar Admin Fundador](#10-insertar-admin-fundador)
-11. [Iniciar la Aplicación](#11-iniciar-la-aplicación)
-12. [Verificar el Deploy](#12-verificar-el-deploy)
-13. [Post-Deploy: PayPal Webhook URL](#13-post-deploy-paypal-webhook-url)
-14. [Actualizar DNS (si aplica)](#14-actualizar-dns-si-aplica)
-15. [Troubleshooting](#15-troubleshooting)
+1. [Arquitectura en Producción](#1-arquitectura-en-producción)
+2. [Requisitos Previos](#2-requisitos-previos)
+3. [Preparar las Variables de Entorno](#3-preparar-las-variables-de-entorno)
+4. [Base de Datos (Neon) y Redis (Upstash)](#4-base-de-datos-neon-y-redis-upstash)
+5. [Configurar PayPal](#5-configurar-paypal)
+6. [Crear los Servicios en Render](#6-crear-los-servicios-en-render)
+7. [Dominio Custom y DNS (Cloudflare)](#7-dominio-custom-y-dns-cloudflare)
+8. [CI-gated Deploy (GitHub Actions → Render)](#8-ci-gated-deploy-github-actions--render)
+9. [Datos de Ejemplo (Seed) e Imágenes](#9-datos-de-ejemplo-seed-e-imágenes)
+10. [Verificar el Deploy](#10-verificar-el-deploy)
+11. [Operaciones (Render API)](#11-operaciones-render-api)
+12. [Troubleshooting](#12-troubleshooting)
 
 ---
 
-## 1. Requisitos Previos
+## 1. Arquitectura en Producción
 
-Antes de comenzar, necesitas tener instalado y configurado:
+```
+Cloudflare (DNS-only CNAME)
+        │
+        ▼
+modula-web  (Render free, Docker: nginx + landing + admin)   ← https://modulapp.artisandevs.site
+  ├── /                → landing (estático)
+  ├── /admin/          → admin dashboard (estático, base /admin/)
+  ├── /api/*  ───────► modula-api.onrender.com        (strip /api/)
+  ├── /socket.io/* ──► modula-api.onrender.com        (preserva)
+  ├── /health ───────► modula-api.onrender.com/health
+  └── /payments/* ───► modula-payment.onrender.com    (preserva prefijo)
 
-```bash
-# Terraform
-terraform --version  # >= 1.5.0
-
-# AWS CLI
-aws --version        # >= 2.x
-aws configure        # Con credenciales IAM que tengan EC2, IAM, SSM permisos
-#   Region: us-east-2
-#   Output: json
-
-# psql (cliente PostgreSQL — para scripts SQL)
-psql --version
-
-# Node.js (para generar hash de password)
-node --version       # >= 20
+modula-api      (Render free, Docker: NestJS api-core)   → Neon (api-core) + Upstash
+modula-payment  (Render free, Docker: Spring Boot)       → Neon (payment) + PayPal
 ```
 
-Verifica acceso a AWS:
+> **Clave:** los *free web services* de Render **no pueden recibir tráfico por la red
+> privada** (solo enviarlo). Por eso `modula-web` (front-door) proxea a las **URLs
+> públicas** de los otros servicios, no a nombres internos.
 
-```bash
-aws sts get-caller-identity
-```
-
-Si no ves tu account ID, corrige tus credenciales antes de continuar.
+| Componente                    | Dónde corre                          |
+| ----------------------------- | ------------------------------------ |
+| Landing (React)               | `modula-web` — nginx sirve estáticos |
+| Admin Dashboard (React)       | `modula-web` — nginx sirve estáticos |
+| API Core (NestJS)             | `modula-api` (contenedor Docker)     |
+| Payment Service (Spring Boot) | `modula-payment` (contenedor Docker) |
+| Nginx (reverse proxy)         | `modula-web` (front-door)            |
+| PostgreSQL                    | **Neon** (2 bases, external)         |
+| Redis                         | **Upstash** (REST cache + TCP BullMQ)|
+| HTTPS / DNS                   | **Cloudflare** (DNS-only)            |
+| Email                         | Mailjet (external)                   |
+| Pagos                         | PayPal API (external)                |
+| Storage                       | Supabase Storage (external)          |
 
 ---
 
-## 2. Preparar el .env de Producción
+## 2. Requisitos Previos
 
-Copia tu `.env` actual y modifica los siguientes valores para producción.
-**No subas el .env al repo.** Se transfiere manualmente a la instancia.
+```bash
+# Render CLI (opcional) o acceso a la API de Render
+# Cuenta de Render con un API key: Dashboard → Account Settings → API Keys
+export RENDER_API_KEY="rnd_..."     # NO commitear
 
-### Valores que DEBES cambiar:
+# Cloudflare (DNS del dominio) — token con permiso DNS:Edit
+# Neon (Postgres serverless) y Upstash (Redis) ya provisionados
+
+# Herramientas locales
+psql --version        # cliente PostgreSQL (Neon)
+node --version        # >= 20 (para generar hash de password / seed)
+docker --version      # para el contenedor one-off de seed
+```
+
+Servicios externos que deben existir **antes** de deployar:
+
+1. **Neon** — 2 bases Postgres (api-core y payment-service).
+2. **Upstash** — Redis REST (cache/rate-limit) **y** endpoint TCP `rediss://` (BullMQ).
+3. **Supabase** — proyecto + bucket público para imágenes/PDFs.
+4. **PayPal** — app (sandbox o live) con webhook.
+5. **Mailjet** — cuenta + sender verificado.
+6. **Cloudflare** — dominio con acceso DNS.
+
+---
+
+## 3. Preparar las Variables de Entorno
+
+Copia tu `.env` y ajusta los valores de producción. **No subas el `.env` al repo.**
+Los valores se cargan por servicio en Render (paso 6).
+
+### 3.1 Valores que DEBES cambiar para producción
 
 ```env
 # ─── URLs Públicas ─────────────────────────────────────────────────────────
-APP_PUBLIC_URL=https://modula.artisandevs.site
+APP_PUBLIC_URL=https://modulapp.artisandevs.site
 VITE_API_URL=/api
 
 # ─── CORS ─────────────────────────────────────────────────────────────────
-CORS_ORIGINS=https://modula.artisandevs.site
-
-# ─── Redis (BullMQ — dentro de Docker Compose) ────────────────────────────
-# IMPORTANTE: En producción el host es "redis" (nombre del servicio Docker)
-REDIS_HOST=redis
-
-# ─── URLs internas entre servicios Docker ──────────────────────────────────
-# IMPORTANTE: "payment-service" es el nombre del container, NO localhost
-PAYMENT_SERVICE_URL=http://payment-service:8081
+CORS_ORIGINS=https://modulapp.artisandevs.site
 
 # ─── Admin Dashboard URL (para emails de registro) ────────────────────────
-ADMIN_DASHBOARD_URL=https://modula.artisandevs.site/admin
+ADMIN_DASHBOARD_URL=https://modulapp.artisandevs.site/admin
+
+# ─── API ↔ payment-service (URLs PÚBLICAS de Render) ──────────────────────
+# api-core llama al payment-service por su URL pública:
+PAYMENT_SERVICE_URL=https://modula-payment.onrender.com
+# payment-service llama a api-core por su URL pública:
+API_CORE_WEBHOOK_URL=https://modula-api.onrender.com
+
+# ─── Redis BullMQ (TCP persistente — Upstash) ─────────────────────────────
+BULL_REDIS_URL=rediss://default:PASSWORD@HOST.upstash.io:6379
 
 # ─── PayPal ───────────────────────────────────────────────────────────────
-# Si vas a producción real: cambiar mode a "live" y usar credenciales live
-# Si sigues en sandbox, solo cambia la webhook URL:
 PAYPAL_MODE=sandbox
-PAYPAL_WEBHOOK_URL=https://modula.artisandevs.site/payments/webhooks/paypal
+PAYPAL_WEBHOOK_URL=https://modulapp.artisandevs.site/payments/webhooks/paypal
+
+# ─── Entornos ─────────────────────────────────────────────────────────────
+NODE_ENV=production
+SPRING_PROFILES_ACTIVE=production
 ```
 
-### Valores que DEBEN mantenerse (ya están correctos):
+### 3.2 Valores que se mantienen
 
 ```env
-DATABASE_URL=postgresql://...         # Tu RDS de api-core
-PAYMENT_DATABASE_URL=postgresql://... # Tu RDS de payment-service
-UPSTASH_REDIS_REST_URL=...           # Para cache/rate-limiting
+DATABASE_URL=postgresql://...            # Neon (api-core)
+PAYMENT_DATABASE_URL=postgresql://...    # Neon (payment-service)
+UPSTASH_REDIS_REST_URL=...               # cache/rate-limiting
 UPSTASH_REDIS_REST_TOKEN=...
 JWT_ACCESS_SECRET=...
 JWT_REFRESH_SECRET=...
-QUOTE_ACTION_TOKEN_SECRET=...
+QUOTE_TOKEN_SECRET=...                   # ⚠️ el código usa QUOTE_TOKEN_SECRET
 PAYPAL_CLIENT_ID=...
 PAYPAL_CLIENT_SECRET=...
-PAYPAL_WEBHOOK_ID=...                 # Se actualiza en paso 13
+PAYPAL_WEBHOOK_ID=...                    # se actualiza en el paso 5
 MAILJET_API_KEY=...
 MAILJET_API_SECRET=...
 MAILJET_FROM_EMAIL=...
 MAILJET_FROM_NAME=...
-SUPABASE_URL=...
-SUPABASE_STORAGE_BUCKET=...
+SUPABASE_URL=...                         # sin /rest/v1/
+SUPABASE_STORAGE_BUCKET=modulapp_bucket
 SUPABASE_SERVICE_ROLE_KEY=...
-PAYMENT_DB_REGION=us-east-2
-```
-
-### Valores que puedes ELIMINAR (no se usan en código):
-
-```env
-# API_BASE_URL — no se referencia en ningún archivo del proyecto
-# GITHUB_TOKEN — solo para MCP local
-# GOOGLE_* — solo para scripts locales de Google Drive
-```
-
-### .env final de producción — plantilla completa:
-
-Asegúrate que tu `.env` contenga exactamente estas claves (con tus valores reales):
-
-```env
-VITE_API_URL=/api
-APP_PUBLIC_URL=https://modula.artisandevs.site
-DATABASE_URL=postgresql://USER:PASS@HOST:5432/postgres
-PAYMENT_DATABASE_URL=postgresql://USER:PASS@HOST:5432/postgres
-UPSTASH_REDIS_REST_URL=https://....upstash.io
-UPSTASH_REDIS_REST_TOKEN=...
-JWT_ACCESS_SECRET=...
-JWT_REFRESH_SECRET=...
-QUOTE_ACTION_TOKEN_SECRET=...
-PAYPAL_CLIENT_ID=...
-PAYPAL_CLIENT_SECRET=...
-PAYPAL_MODE=sandbox
-PAYPAL_WEBHOOK_ID=...
-PAYPAL_WEBHOOK_URL=https://modula.artisandevs.site/payments/webhooks/paypal
-PAYMENT_DB_REGION=us-east-2
-MAILJET_API_KEY=...
-MAILJET_API_SECRET=...
-MAILJET_FROM_EMAIL=modulapp1@gmail.com
-MAILJET_FROM_NAME=modulapp
 WEBHOOK_SHARED_SECRET=...
-PAYMENT_SERVICE_URL=http://payment-service:8081
-CORS_ORIGINS=https://modula.artisandevs.site
-ADMIN_DASHBOARD_URL=https://modula.artisandevs.site/admin
-SUPABASE_URL=https://....supabase.co
-SUPABASE_STORAGE_BUCKET=modulapp-receipts-dev
-SUPABASE_SERVICE_ROLE_KEY=...
-REDIS_HOST=redis
 ```
+
+> **Nota:** `QUOTE_ACTION_TOKEN_SECRET` que aparecía en docs viejas **no existe** en el
+> código; el nombre real es `QUOTE_TOKEN_SECRET`. Ver
+> [`.kiro/steerings/09-environment-variables.md`](.kiro/steerings/09-environment-variables.md).
 
 ---
 
-## 3. Configurar PayPal para Producción
+## 4. Base de Datos (Neon) y Redis (Upstash)
 
-### 3.1 Webhook URL (sandbox o live)
+### 4.1 Neon — dos bases Postgres
 
-1. Ve a https://developer.paypal.com/dashboard/applications
-2. Selecciona tu aplicación (sandbox o live)
-3. Sección **Webhooks** → Edit/Add webhook
-4. **Webhook URL:** `https://modula.artisandevs.site/payments/webhooks/paypal`
-5. **Events to subscribe:**
-   - `CHECKOUT.ORDER.APPROVED`
-   - `PAYMENT.CAPTURE.COMPLETED`
-   - `PAYMENT.CAPTURE.DENIED`
-   - `PAYMENT.CAPTURE.REFUNDED`
-6. Guarda y copia el **Webhook ID** que PayPal te da
-7. Coloca ese Webhook ID en tu `.env`:
-   ```
-   PAYPAL_WEBHOOK_ID=<el-nuevo-webhook-id>
-   ```
+Neon provee dos connection strings (usar la variante **pooled** para la app):
 
-### 3.2 Return URLs
+- `DATABASE_URL` → base de **api-core** (Prisma).
+- `PAYMENT_DATABASE_URL` → base del **payment-service** (Flyway).
 
-PayPal redirige al usuario a estas URLs después del pago:
+Las migraciones corren **solas al arrancar** los contenedores:
 
-- Éxito: `https://modula.artisandevs.site/checkout/success`
-- Cancelado: `https://modula.artisandevs.site/checkout/cancel`
+- `modula-api`: `prisma migrate deploy` en el `CMD`.
+- `modula-payment`: Flyway al iniciar Spring Boot.
 
-Estas URLs se construyen automáticamente desde `APP_PUBLIC_URL` en el código del
-payment-service. No necesitas configurar nada extra si `APP_PUBLIC_URL` es correcto.
+> Neon entra en "suspended" por scale-to-zero; es normal. La primera request tras
+> inactividad tarda unos segundos en despertar.
 
-### 3.3 Si vas a producción real (live)
+### 4.2 Upstash — dos usos
 
-1. En PayPal Developer → switch a **Live**
-2. Crea una app Live o usa la existente
-3. Copia Client ID y Secret del modo Live
-4. Cambia en `.env`:
-   ```
-   PAYPAL_MODE=live
-   PAYPAL_CLIENT_ID=<live-client-id>
-   PAYPAL_CLIENT_SECRET=<live-secret>
-   ```
-5. Crea un nuevo webhook Live con la misma URL y eventos
-6. Actualiza `PAYPAL_WEBHOOK_ID` con el ID del webhook Live
+| Uso | Variable | Protocolo |
+| --- | --- | --- |
+| Cache / rate-limiting | `UPSTASH_REDIS_REST_URL` + `_TOKEN` | REST (HTTP) |
+| BullMQ (colas) | `BULL_REDIS_URL` | TCP `rediss://` |
+
+> BullMQ necesita **TCP persistente**; el endpoint REST **no** sirve para colas.
 
 ---
 
-## 4. Configurar Cloudflare Tunnel
+## 5. Configurar PayPal
 
-El Cloudflare Tunnel conecta tu EC2 a internet con HTTPS sin exponer puertos.
+1. https://developer.paypal.com/dashboard/applications → tu app.
+2. **Webhooks** → Add/Edit:
+   - **Webhook URL:** `https://modulapp.artisandevs.site/payments/webhooks/paypal`
+   - **Events:** `CHECKOUT.ORDER.APPROVED`, `PAYMENT.CAPTURE.COMPLETED`,
+     `PAYMENT.CAPTURE.DENIED`, `PAYMENT.CAPTURE.REFUNDED`.
+3. Copia el **Webhook ID** → `PAYPAL_WEBHOOK_ID` en el servicio `modula-payment`.
+4. Return URLs (se construyen desde `APP_PUBLIC_URL`):
+   - Éxito: `https://modulapp.artisandevs.site/checkout/success`
+   - Cancelado: `https://modulapp.artisandevs.site/checkout/cancel`
 
-### 4.1 Crear el Tunnel
-
-1. Ve a https://one.dash.cloudflare.com → **Networks** → **Tunnels**
-2. Click **Create a tunnel**
-3. Nombre: `modula-production`
-4. En la pantalla de instalación, copia el **token** (cadena larga que empieza con `eyJ...`)
-5. Guarda este token — lo usarás en `terraform.tfvars`
-
-### 4.2 Configurar el Public Hostname
-
-En la configuración del tunnel, agrega un **Public Hostname**:
-
-| Campo     | Valor                            |
-| --------- | -------------------------------- |
-| Subdomain | (vacío o `www` según tu dominio) |
-| Domain    | `modula.artisandevs.site`        |
-| Type      | HTTP                             |
-| URL       | `localhost:80`                   |
-
-Esto le dice a Cloudflare: "todo el tráfico HTTPS de `modula.artisandevs.site`
-debe reenviarse al puerto 80 de la instancia EC2 donde corre Nginx."
-
-### 4.3 Verificar DNS
-
-En **Cloudflare DNS** para tu dominio, debe existir un registro CNAME:
-
-- **Name:** `@` (o `modula` según tu setup)
-- **Target:** `<tunnel-id>.cfargotunnel.com`
-- **Proxied:** ✓ (nube naranja)
+Para **live**: cambiar `PAYPAL_MODE=live`, usar credenciales live y crear un webhook
+live con la misma URL.
 
 ---
 
-## 5. Aplicar Cambios al Código (Pre-Deploy Fixes)
+## 6. Crear los Servicios en Render
 
-Antes de deployar, los siguientes archivos necesitan cambios. Estos se detallan
-en el plan de acción y deben estar commiteados en la rama de deploy:
+Tres **Web Services** (plan free, region `oregon`, branch `main`), cada uno con build por
+**Dockerfile**:
 
-### 5.1 `infra/docker/docker-compose.prod.yml`
+| Servicio         | Dockerfile                    | Contexto             | Health | URL pública                         |
+| ---------------- | ----------------------------- | -------------------- | ------ | ----------------------------------- |
+| `modula-api`     | `apps/api-core/Dockerfile`    | `.` (raíz)           | `/health` | `https://modula-api.onrender.com`   |
+| `modula-payment` | `apps/payment-service/Dockerfile` | `apps/payment-service` | `/health` | `https://modula-payment.onrender.com` |
+| `modula-web`     | `infra/render/Dockerfile.web` | `.` (raíz)           | `/`    | `https://modula-web-x8xk.onrender.com` |
 
-Agregar:
+> `modula-web` usa `envsubst` en el arranque con `$PORT`, `$API_CORE_URL` y `$PAYMENT_URL`.
+> Render inyecta `$PORT`; los servicios deben escuchar en `0.0.0.0:$PORT`.
 
-- Servicio `redis` (sin puertos expuestos, solo red interna)
-- Variables `REDIS_HOST=redis`, `REDIS_PORT=6379` en `api-core`
-- Variable `PAYMENT_SERVICE_URL=http://payment-service:8081` en `api-core`
-- `depends_on: redis` en `api-core`
-- Volumen `redis-data`
+### 6.1 Env vars por servicio
 
-### 5.2 `infra/nginx/nginx.conf`
+**`modula-api`** (`NODE_ENV=production`):
 
-Agregar en el bloque `http {}`:
-
-```nginx
-client_max_body_size 50m;
+```
+DATABASE_URL, BULL_REDIS_URL, UPSTASH_REDIS_REST_URL, UPSTASH_REDIS_REST_TOKEN,
+JWT_ACCESS_SECRET, JWT_REFRESH_SECRET, QUOTE_TOKEN_SECRET, WEBHOOK_SHARED_SECRET,
+PAYMENT_SERVICE_URL=https://modula-payment.onrender.com,
+APP_PUBLIC_URL, CORS_ORIGINS, ADMIN_DASHBOARD_URL,
+SUPABASE_URL, SUPABASE_STORAGE_BUCKET, SUPABASE_SERVICE_ROLE_KEY,
+MAILJET_API_KEY, MAILJET_API_SECRET, MAILJET_FROM_EMAIL, MAILJET_FROM_NAME,
+ADMIN_SEED_EMAIL, ADMIN_SEED_PASSWORD, NODE_ENV=production
 ```
 
-### 5.3 `.env.example`
+**`modula-payment`** (`SPRING_PROFILES_ACTIVE=production`):
 
-Regenerar como esqueleto exacto del `.env` real (sin credenciales).
+```
+PAYMENT_DATABASE_URL, API_CORE_WEBHOOK_URL=https://modula-api.onrender.com,
+PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET, PAYPAL_MODE, PAYPAL_WEBHOOK_ID,
+MAILJET_API_KEY, MAILJET_API_SECRET, MAILJET_FROM_EMAIL, MAILJET_FROM_NAME,
+SUPABASE_URL, SUPABASE_STORAGE_BUCKET, SUPABASE_SERVICE_ROLE_KEY,
+APP_PUBLIC_URL, SPRING_PROFILES_ACTIVE=production
+```
 
-### 5.4 Código de api-core (límite de upload)
+**`modula-web`** (front-door):
 
-- Subir `MAX_FILE_SIZE` de 5MB a 50MB en `admin-catalog.controller.ts`
-- O crear constantes separadas para imágenes (5MB) y documentos (50MB)
+```
+API_CORE_URL=https://modula-api.onrender.com
+PAYMENT_URL=https://modula-payment.onrender.com
+```
 
-> **NOTA:** Estos cambios se implementan en el paso del plan de acción.
-> Si ya los aplicaste, continúa al paso 6.
+### 6.2 Auto-deploy
+
+Dejar **`autoDeploy: no`** en los tres servicios: los deploys los dispara el job de CI
+(paso 8), no el push directo de Render.
 
 ---
 
-## 6. Crear Key Pair en AWS
+## 7. Dominio Custom y DNS (Cloudflare)
 
-Si no lo tienes ya:
+1. En Render → servicio `modula-web` → **Settings → Custom Domains** → agregar
+   `modulapp.artisandevs.site`. Render lo marca como **verified** tras validar el DNS.
+2. En **Cloudflare DNS** (zona `artisandevs.site`) crear un **CNAME DNS-only**:
 
-1. AWS Console → **EC2** → **Key Pairs** → **Create Key Pair**
-2. Configuración:
-   - Name: `modula-prod-key`
-   - Type: RSA
-   - Format: `.pem`
-3. Descarga el archivo y guárdalo:
+   | Tipo  | Nombre     | Valor                            | Proxy   |
+   | ----- | ---------- | -------------------------------- | ------- |
+   | CNAME | `modulapp` | `modula-web-x8xk.onrender.com`   | DNS only (nube gris) |
 
-```bash
-mv ~/Downloads/modula-prod-key.pem ~/.ssh/modula-prod-key.pem
-chmod 400 ~/.ssh/modula-prod-key.pem
-```
+   > **DNS-only** (no proxied) para no romper la emisión/renovación del TLS de Render.
 
----
+3. Verificar propagación:
 
-## 7. Provisionar Infraestructura con Terraform
-
-### 7.1 Crear `terraform.tfvars`
-
-```bash
-cd infra/terraform
-```
-
-Crea el archivo `terraform.tfvars`:
-
-```hcl
-key_pair_name           = "modula-prod-key"
-ssh_allowed_cidrs       = ["TU_IP_PUBLICA/32"]  # Ejecuta: curl -s ifconfig.me
-app_repo_url            = "https://github.com/TU_USER/Hackaton-kiro_modulapp.git"
-app_branch              = "main"
-cloudflare_tunnel_token = "eyJ..."  # Del paso 4.1
-instance_type           = "t3.small"
-root_volume_size        = 30
-```
-
-Para obtener tu IP pública:
-
-```bash
-curl -s ifconfig.me
-# Resultado ejemplo: 181.47.102.55
-# Entonces: ssh_allowed_cidrs = ["181.47.102.55/32"]
-```
-
-### 7.2 Inicializar Terraform
-
-```bash
-terraform init
-```
-
-Espera: `Terraform has been successfully initialized!`
-
-### 7.3 Verificar el plan
-
-```bash
-terraform plan
-```
-
-Deberías ver: `Plan: 8 to add, 0 to change, 0 to destroy.`
-
-Recursos que se crean:
-
-- 1 EC2 instance (t3.small)
-- 1 Elastic IP
-- 1 Security Group + 3 rules
-- 1 IAM Role + policy + instance profile
-
-### 7.4 Aplicar
-
-```bash
-terraform apply
-```
-
-Escribe `yes` cuando pida confirmación. Espera ~2-3 minutos.
-
-Guarda los outputs:
-
-```
-public_ip   = "X.X.X.X"
-instance_id = "i-0abc..."
-ssh_command = "ssh -i ~/.ssh/modula-prod-key.pem ec2-user@X.X.X.X"
-```
-
-### 7.5 Esperar bootstrap
-
-El `user-data.sh` se ejecuta en background después del lanzamiento.
-Espera ~3-5 minutos para que instale Docker, Docker Compose y clone el repo.
-
-Verifica que terminó:
-
-```bash
-ssh -i ~/.ssh/modula-prod-key.pem ec2-user@<IP> "tail -5 /var/log/user-data.log"
-```
-
-Debes ver: `✓ Bootstrap complete!`
-
----
-
-## 8. Subir el .env a la Instancia
-
-```bash
-scp -i ~/.ssh/modula-prod-key.pem .env ec2-user@<IP>:/opt/modula/.env
-```
-
-Verifica que se subió correctamente:
-
-```bash
-ssh -i ~/.ssh/modula-prod-key.pem ec2-user@<IP> "head -3 /opt/modula/.env"
-```
-
----
-
-## 9. Truncar Tablas (Base de Datos Limpia)
-
-Ejecuta estos scripts contra tus bases de datos RDS para empezar de cero.
-
-### 9.1 Base de datos api-core
-
-```bash
-psql "postgresql://modulappuser:PASSWORD@db-modulapp.c7yc8qiw01pj.us-east-2.rds.amazonaws.com:5432/postgres" << 'EOF'
-
--- Desactivar restricciones temporalmente
-SET session_replication_role = replica;
-
--- Truncar todas las tablas (orden no importa con replica role)
-TRUNCATE TABLE admin_notifications CASCADE;
-TRUNCATE TABLE low_stock_alert_state CASCADE;
-TRUNCATE TABLE supply_stock_change_log CASCADE;
-TRUNCATE TABLE supplies CASCADE;
-TRUNCATE TABLE complaints CASCADE;
-TRUNCATE TABLE orders CASCADE;
-TRUNCATE TABLE quotes CASCADE;
-TRUNCATE TABLE proto_images CASCADE;
-TRUNCATE TABLE prototypes CASCADE;
-TRUNCATE TABLE refresh_tokens CASCADE;
-TRUNCATE TABLE admin_users CASCADE;
-
--- Reactivar restricciones
-SET session_replication_role = DEFAULT;
-
--- Verificar que quedó vacío
-SELECT 'admin_users' as t, count(*) FROM admin_users
-UNION ALL SELECT 'prototypes', count(*) FROM prototypes
-UNION ALL SELECT 'orders', count(*) FROM orders
-UNION ALL SELECT 'quotes', count(*) FROM quotes;
-
-EOF
-```
-
-### 9.2 Base de datos payment-service
-
-```bash
-psql "postgresql://modulappuserpay:PASSWORD@db-modulapp-payment.c7yc8qiw01pj.us-east-2.rds.amazonaws.com:5432/postgres" << 'EOF'
-
-SET session_replication_role = replica;
-
-TRUNCATE TABLE receipts CASCADE;
-TRUNCATE TABLE refunds CASCADE;
-TRUNCATE TABLE payments CASCADE;
-TRUNCATE TABLE audit_logs CASCADE;
-
-SET session_replication_role = DEFAULT;
-
--- Verificar
-SELECT 'payments' as t, count(*) FROM payments
-UNION ALL SELECT 'refunds', count(*) FROM refunds
-UNION ALL SELECT 'audit_logs', count(*) FROM audit_logs;
-
-EOF
-```
-
-> **NOTA:** Las migraciones de Prisma y Flyway ya están aplicadas (tablas y
-> enums existen). Solo limpiamos los datos, no el schema.
-
----
-
-## 10. Insertar Admin Fundador
-
-Sin este paso, no podrás acceder al admin dashboard ni crear otros administradores.
-
-### 10.1 Generar el hash del password
-
-En tu máquina local (donde tengas node_modules):
-
-```bash
-cd apps/api-core
-node -e "const argon2 = require('argon2'); argon2.hash('TU_PASSWORD_SEGURO_AQUI').then(h => console.log(h))"
-```
-
-Copia el hash resultante (empieza con `$argon2id$v=19$...`).
-
-### 10.2 Insertar en la base de datos
-
-```bash
-psql "postgresql://modulappuser:PASSWORD@db-modulapp.c7yc8qiw01pj.us-east-2.rds.amazonaws.com:5432/postgres" << 'EOF'
-
-INSERT INTO admin_users (id, email, password_hash, active, created_at)
-VALUES (
-  gen_random_uuid(),
-  'admin@modulapp.com',
-  '$argon2id$v=19$m=65536,t=3,p=4$...TU_HASH_AQUI...',
-  true,
-  NOW()
-)
-ON CONFLICT (email) DO NOTHING;
-
--- Verificar
-SELECT id, email, active, created_at FROM admin_users;
-
-EOF
-```
-
-### 10.3 Verificar que funciona
-
-Una vez la app esté arriba (paso 11), prueba login en:
-`https://modula.artisandevs.site/admin` con:
-
-- Email: `admin@modulapp.com`
-- Password: el que elegiste
-
-Este admin puede luego generar **invite codes** para crear más administradores
-desde Settings → Generate Invite Code.
-
----
-
-## 11. Iniciar la Aplicación
-
-```bash
-ssh -i ~/.ssh/modula-prod-key.pem ec2-user@<IP>
-```
-
-Dentro de la instancia:
-
-```bash
-sudo systemctl start modula-app
-```
-
-Esto ejecuta `docker compose -f infra/docker/docker-compose.prod.yml up -d --build`.
-
-La primera vez tarda **5-10 minutos** porque:
-
-- Descarga imágenes base de Docker Hub
-- Compila el frontend (Vite build)
-- Compila el backend (NestJS build + Prisma generate)
-- Compila payment-service (Maven build)
-
-### Monitorear el progreso:
-
-```bash
-# Ver el status del systemd service
-sudo systemctl status modula-app
-
-# Ver logs de build en tiempo real
-cd /opt/modula
-sudo docker compose -f infra/docker/docker-compose.prod.yml logs -f
-
-# Ver solo un servicio específico
-sudo docker compose -f infra/docker/docker-compose.prod.yml logs -f api-core
-sudo docker compose -f infra/docker/docker-compose.prod.yml logs -f payment-service
-```
-
-### Esperar a que todos los servicios estén healthy:
-
-```bash
-sudo docker compose -f infra/docker/docker-compose.prod.yml ps
-```
-
-Todos deben mostrar status `Up (healthy)`:
-
-```
-NAME                STATUS
-nginx               Up (healthy)
-api-core            Up (healthy)
-payment-service     Up (healthy)
-redis               Up (healthy)
-landing             Up
-admin-dashboard     Up
-```
-
----
-
-## 12. Verificar el Deploy
-
-### 12.1 Health check directo (Elastic IP)
-
-```bash
-curl http://<IP>/health
-# Esperado: {"status":"ok"}
-```
-
-### 12.2 Health check vía dominio (Cloudflare Tunnel)
-
-```bash
-curl https://modula.artisandevs.site/health
-# Esperado: {"status":"ok"}
-```
-
-### 12.3 Verificar cada servicio
-
-```bash
-# Landing (homepage)
-curl -s -o /dev/null -w "%{http_code}" https://modula.artisandevs.site/
-# Esperado: 200
-
-# Admin dashboard
-curl -s -o /dev/null -w "%{http_code}" https://modula.artisandevs.site/admin/
-# Esperado: 200
-
-# API Core
-curl https://modula.artisandevs.site/api/health
-# Esperado: {"status":"ok"}
-
-# Payment service
-curl https://modula.artisandevs.site/payments/health
-# Esperado: 200 o {"status":"UP"}
-```
-
-### 12.4 Verificar Redis (BullMQ queues)
-
-```bash
-ssh -i ~/.ssh/modula-prod-key.pem ec2-user@<IP>
-sudo docker compose -f /opt/modula/infra/docker/docker-compose.prod.yml exec redis redis-cli PING
-# Esperado: PONG
-```
-
-### 12.5 Verificar conexión a RDS
-
-Busca en los logs de api-core:
-
-```bash
-sudo docker compose -f /opt/modula/infra/docker/docker-compose.prod.yml logs api-core | grep -i "prisma\|database\|connected"
-```
-
----
-
-## 13. Post-Deploy: PayPal Webhook URL
-
-Si creaste el webhook ANTES de tener la URL de producción funcionando, PayPal
-puede haber fallado en la verificación. Verifica:
-
-1. Ve a https://developer.paypal.com/dashboard/applications → tu app
-2. **Webhooks** → verifica que el URL es:
-   ```
-   https://modula.artisandevs.site/payments/webhooks/paypal
-   ```
-3. Haz click en **Test** (simulador) para verificar que el endpoint responde
-4. Si el test falla, revisa:
    ```bash
-   sudo docker compose -f /opt/modula/infra/docker/docker-compose.prod.yml logs payment-service | grep -i webhook
+   dig +short modulapp.artisandevs.site CNAME
+   curl -fsS https://modulapp.artisandevs.site/health
    ```
 
-### Verificar que el PAYPAL_WEBHOOK_ID en tu .env coincide con el webhook ID en PayPal Dashboard.
+---
 
-Si cambiaste el webhook o creaste uno nuevo, actualiza el `.env` en el servidor:
+## 8. CI-gated Deploy (GitHub Actions → Render)
+
+El workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) tiene dos jobs:
+
+1. **`lint-test-build`** — `pnpm install` → `prisma generate` → `turbo lint` → `turbo test`
+   → `turbo build` (en push y PR a `main`).
+2. **`deploy`** — corre **solo si `lint-test-build` pasó** y el evento es **push a `main`**
+   (nunca en PR). Dispara `POST /services/{id}/deploys` sobre los 3 servicios de Render.
+
+Requisito único: el secret **`RENDER_API_KEY`** en el repositorio de GitHub
+(Settings → Secrets and variables → Actions).
 
 ```bash
-ssh -i ~/.ssh/modula-prod-key.pem ec2-user@<IP>
-sudo nano /opt/modula/.env
-# Editar PAYPAL_WEBHOOK_ID=<nuevo-id>
-# Guardar y reiniciar:
-sudo systemctl restart modula-app
+# Crear el secret (una vez), con gh:
+gh secret set RENDER_API_KEY --body "$RENDER_API_KEY"
+```
+
+> Si el CI está en rojo, **no** hay deploy: esa es la garantía de que a producción solo
+> llega código que pasó lint + tests + build.
+
+---
+
+## 9. Datos de Ejemplo (Seed) e Imágenes
+
+### 9.1 Seed
+
+`SeedService` corre **solo si `NODE_ENV !== 'production'`** y es **idempotente** (sale si
+ya hay prototipos). Para poblar Neon con datos de ejemplo, correr un contenedor one-off
+con la imagen ya construida:
+
+```bash
+# 1) generar un env-file sin comillas (ojo: '&' en URLs rompe `source`)
+# 2) correr con NODE_ENV=development
+docker run -d --name modula-seed --env-file seed.env <imagen-api>
+docker logs -f modula-seed     # esperar "Seeded ..." y "Nest application successfully started"
+docker rm -f modula-seed
+```
+
+Admin por defecto: `admin@modulapp.com` / `Password123456`
+(override con `ADMIN_SEED_EMAIL` / `ADMIN_SEED_PASSWORD`). Para altas posteriores usar
+`sql/bootstrap-admin.sql` (hash argon2) o el endpoint `admin/auth/register`.
+
+### 9.2 Imágenes
+
+- **Producto nuevo:** se crea con `images: []`; la imagen se sube aparte con
+  `POST /admin/catalog/prototypes/:id/images` (multipart) → `StorageService` la guarda en
+  **Supabase Storage** (`modulapp_bucket/products/…`) y persiste la **URL pública absoluta**.
+- **Datos de ejemplo:** el seed referencia objetos determinísticos
+  `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_STORAGE_BUCKET}/products/seed-<slug>.jpg`.
+  Las imágenes fuente viven en `infra/seed-images/` y se suben una vez:
+
+  ```bash
+  ./infra/seed-images/upload.sh   # idempotente (x-upsert)
+  ```
+
+- **Fallback:** `apps/landing/public/placeholder.jpg` se usa cuando un prototipo no tiene
+  imágenes.
+
+---
+
+## 10. Verificar el Deploy
+
+```bash
+# Landing
+curl -s -o /dev/null -w "%{http_code}\n" https://modulapp.artisandevs.site/          # 200
+
+# Admin dashboard + assets
+curl -s -o /dev/null -w "%{http_code}\n" https://modulapp.artisandevs.site/admin/     # 200
+
+# API health (vía front-door)
+curl -fsS https://modulapp.artisandevs.site/health                                    # {"status":"ok"}
+
+# Catálogo (proxy /api → modula-api)
+curl -fsS https://modulapp.artisandevs.site/api/catalog/prototypes | head
+
+# Login admin (espera 201 + accessToken)
+curl -fsS -X POST https://modulapp.artisandevs.site/api/admin/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@modulapp.com","password":"<PASSWORD>"}'
+
+# Webhook de PayPal (sin firma → 401, es lo esperado)
+curl -s -o /dev/null -w "%{http_code}\n" -X POST \
+  https://modulapp.artisandevs.site/payments/webhooks/paypal
 ```
 
 ---
 
-## 14. Actualizar DNS (si aplica)
+## 11. Operaciones (Render API)
 
-Si tu dominio NO está en Cloudflare (o tienes DNS externo):
+Base: `https://api.render.com/v1` — header `Authorization: Bearer $RENDER_API_KEY`.
 
-| Tipo  | Nombre   | Valor                          | TTL  |
-| ----- | -------- | ------------------------------ | ---- |
-| CNAME | `modula` | `<tunnel-id>.cfargotunnel.com` | Auto |
+```bash
+# Disparar deploy de un servicio
+curl -X POST "https://api.render.com/v1/services/SERVICE_ID/deploys" \
+  -H "Authorization: Bearer $RENDER_API_KEY" -H "Content-Type: application/json" \
+  -d '{"clearCache":"do_not_clear"}'
 
-O si usas Elastic IP directamente (sin Cloudflare Tunnel):
+# Último deploy
+curl "https://api.render.com/v1/services/SERVICE_ID/deploys?limit=1" \
+  -H "Authorization: Bearer $RENDER_API_KEY"
 
-| Tipo | Nombre   | Valor          | TTL |
-| ---- | -------- | -------------- | --- |
-| A    | `modula` | `<Elastic IP>` | 300 |
+# Logs de runtime
+curl "https://api.render.com/v1/logs?ownerId=OWNER_ID&resource=SERVICE_ID&limit=50" \
+  -H "Authorization: Bearer $RENDER_API_KEY"
+
+# Reemplazar TODAS las env vars (reemplaza el set completo)
+curl -X PUT "https://api.render.com/v1/services/SERVICE_ID/env-vars" \
+  -H "Authorization: Bearer $RENDER_API_KEY" -H "Content-Type: application/json" \
+  -d @env.json
+```
+
+**Rollback:** re-deploy de un commit anterior con
+`POST /services/{id}/deploys` y body `{"commitId":"<sha>"}`, o cambiar el CNAME de
+Cloudflare a otro host.
 
 ---
 
-## 15. Troubleshooting
+## 12. Troubleshooting
 
-### La app no arranca
+### Cold start (~30–60 s)
 
-```bash
-# Ver qué falló
-sudo systemctl status modula-app
-sudo journalctl -u modula-app --no-pager -n 50
+Render free duerme los servicios inactivos y Neon escala a cero. La primera request
+tarda; es esperado.
 
-# Ver logs de Docker Compose build
-cd /opt/modula
-sudo docker compose -f infra/docker/docker-compose.prod.yml logs --tail=100
-```
+### `502` / `503` en el front-door
 
-### api-core crashea al iniciar
+`modula-web` proxea a las URLs públicas de los otros servicios. Si `modula-api` o
+`modula-payment` están dormidos, la primera request puede fallar — reintentar o
+"despertar" el servicio.
 
-Causas comunes:
+### Login admin no funciona
 
-- `DATABASE_URL` incorrecto → `Error: P1001: Can't reach database server`
-- Redis no disponible → BullMQ connection error (verificar que el servicio redis está corriendo)
-- `.env` no cargado → `JWT_ACCESS_SECRET is undefined`
+1. Verificar que el admin existe en Neon (seed o `sql/bootstrap-admin.sql`).
+2. `QUOTE_TOKEN_SECRET` / `JWT_*` presentes en `modula-api`.
+3. Revisar logs: `GET /logs?...&resource=<modula-api-id>`.
 
-```bash
-sudo docker compose -f /opt/modula/infra/docker/docker-compose.prod.yml logs api-core | tail -30
-```
+### BullMQ no procesa jobs
 
-### payment-service no conecta a RDS
+- `BULL_REDIS_URL` debe ser `rediss://...` (TCP), no el endpoint REST.
+- Revisar logs de `modula-api` por errores de conexión a Redis.
 
-Verifica que el Security Group de RDS permite conexiones desde la IP del EC2.
-La IP es la Elastic IP del output de Terraform.
+### `413 Request Entity Too Large`
 
-En AWS Console → RDS → tu instancia → Security Group → Inbound Rules:
+El front-door ya setea `client_max_body_size 50m;` en
+[`infra/render/nginx.conf.template`](infra/render/nginx.conf.template).
 
-- Type: PostgreSQL
-- Port: 5432
-- Source: `<Elastic IP>/32` o el Security Group del EC2
+### Webhook PayPal falla
 
-### 413 Request Entity Too Large
+- La URL debe ser exactamente `https://modulapp.artisandevs.site/payments/webhooks/paypal`.
+- `PAYPAL_WEBHOOK_ID` debe coincidir con el del dashboard.
 
-Si ves este error al subir archivos, significa que nginx rechaza el body.
-Verifica que `client_max_body_size 50m;` está en `infra/nginx/nginx.conf`.
+### Imágenes rotas
 
-```bash
-# Dentro del EC2:
-sudo docker compose -f /opt/modula/infra/docker/docker-compose.prod.yml exec nginx cat /etc/nginx/nginx.conf | grep client_max
-```
-
-### Cloudflare Tunnel no conecta
-
-```bash
-sudo systemctl status cloudflared
-sudo journalctl -u cloudflared --no-pager -n 20
-```
-
-Si muestra `ERR  error="connection refused"`:
-
-- Nginx no está escuchando en puerto 80
-- Verificar: `curl http://localhost/health` dentro del EC2
-
-### No puedo hacer login en admin
-
-1. Verificar que insertaste el admin en el paso 10
-2. Verificar que el hash es correcto (regenerar si dudas)
-3. Verificar que las cookies secure funcionan (necesitas HTTPS via Cloudflare)
-4. Revisar logs: `docker compose logs api-core | grep -i "login\|auth\|401"`
-
-### Redis "Connection refused"
-
-```bash
-sudo docker compose -f /opt/modula/infra/docker/docker-compose.prod.yml ps redis
-# Si no está corriendo:
-sudo docker compose -f /opt/modula/infra/docker/docker-compose.prod.yml up -d redis
-```
-
----
-
-## Resumen de Arquitectura en Producción
-
-```
-Internet
-   │
-   ▼
-Cloudflare (HTTPS + DDoS + CDN)
-   │
-   │ Tunnel (HTTP :80)
-   ▼
-┌────────────────────────────────────────────────────┐
-│  EC2 (t3.small — us-east-2)                        │
-│                                                    │
-│  ┌─── Docker Compose ───────────────────────────┐  │
-│  │                                              │  │
-│  │  nginx:80 ─┬─ / ──────→ landing:80          │  │
-│  │            ├─ /admin/ ─→ admin-dashboard:80  │  │
-│  │            ├─ /api/ ───→ api-core:8080       │  │
-│  │            └─ /payments/→ payment-svc:8081   │  │
-│  │                                              │  │
-│  │  api-core ───→ redis:6379 (BullMQ)           │  │
-│  │          ───→ Upstash (cache/rate-limit)     │  │
-│  │          ───→ RDS PostgreSQL (api-core DB)   │  │
-│  │          ───→ Supabase Storage (files)       │  │
-│  │                                              │  │
-│  │  payment-service ──→ RDS (payment DB)        │  │
-│  │                  ──→ PayPal API              │  │
-│  │                  ──→ api-core:8080 (webhook) │  │
-│  │                                              │  │
-│  └──────────────────────────────────────────────┘  │
-└────────────────────────────────────────────────────┘
-
-Servicios Externos:
-  • RDS PostgreSQL (2 instancias — us-east-2)
-  • Upstash Redis (REST — cache + rate limiting)
-  • Supabase Storage (archivos/PDFs)
-  • PayPal API (sandbox/live)
-  • Mailjet (emails transaccionales)
-  • Cloudflare (DNS + HTTPS + Tunnel)
-```
+- Verificar que el bucket `SUPABASE_STORAGE_BUCKET` es **público** y que las URLs en
+  `proto_images` son absolutas (`https://...supabase.co/storage/v1/object/public/...`).
+- Re-subir las de seed con `infra/seed-images/upload.sh`.
 
 ---
 
 ## Checklist Final
 
-- [ ] `.env` con valores de producción preparado
-- [ ] PayPal webhook apuntando a URL de producción
-- [ ] Cloudflare Tunnel creado y configurado
-- [ ] Cambios de código commiteados (redis en prod compose, nginx 50mb, etc.)
-- [ ] Key Pair creado en AWS
-- [ ] `terraform apply` ejecutado exitosamente
-- [ ] `.env` subido a `/opt/modula/.env`
-- [ ] Tablas truncadas (api-core DB + payment DB)
-- [ ] Admin fundador insertado en `admin_users`
-- [ ] `systemctl start modula-app` ejecutado
-- [ ] Health check responde OK
-- [ ] Login de admin funciona
-- [ ] PayPal webhook test pasó
-- [ ] Security Group de RDS permite la IP del EC2
+- [ ] `.env` de producción preparado (valores del paso 3)
+- [ ] 2 bases Neon + migraciones aplicadas
+- [ ] Upstash REST + TCP (`BULL_REDIS_URL`) listos
+- [ ] PayPal webhook apuntando al dominio de producción
+- [ ] 3 servicios creados en Render con sus env vars
+- [ ] Dominio custom `modulapp.artisandevs.site` verified + CNAME DNS-only
+- [ ] Secret `RENDER_API_KEY` en GitHub; CI verde
+- [ ] Seed corrido (datos de ejemplo) + imágenes subidas al bucket
+- [ ] Health check, admin, login y webhook verificados

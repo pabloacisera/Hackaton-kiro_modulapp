@@ -1,5 +1,14 @@
 # Terraform Guide — Step by Step for Developers
 
+> ⚠️ **LEGACY / HISTORICAL.** This guide describes the old **AWS** deployment
+> (EC2 + RDS + Cloudflare Tunnel). That infrastructure is **no longer in use** — the
+> AWS account was lost and ModulaApp now runs on **Render (free tier)** with **Neon**.
+> The files in [`infra/terraform/`](../infra/terraform/) are kept for reference only.
+>
+> For the current production deployment see [deployment.md](deployment.md) and
+> [../DEPLOY.md](../DEPLOY.md). A generic, reusable Terraform manual lives outside the
+> repo in `Documentacion/02_Guias/provisioning_iac/manual_terraform.md`.
+
 > This guide assumes you have ZERO experience with Terraform.
 > It covers everything from installation to destroying the infrastructure.
 

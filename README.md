@@ -63,7 +63,7 @@ Built during the Kiro Hackathon 2026 as a full-stack production-ready applicatio
        ▼                                  ▼
 ┌──────────────────┐              ┌──────────────┐
 │ payment-service  │              │  PostgreSQL   │
-│ (Spring Boot)    │              │  (Supabase)   │
+│ (Spring Boot)    │              │   (Neon)      │
 │    Port 8081     │              └──────────────┘
 │ PayPal + Refunds │
 └──────────────────┘              ┌──────────────┐
@@ -93,18 +93,18 @@ Built during the Kiro Hackathon 2026 as a full-stack production-ready applicatio
 | Backend        | NestJS + TypeScript             | Clean Architecture, domain-driven          |
 | Payments       | Spring Boot 3 + Java 17         | Isolated financial microservice            |
 | ORM            | Prisma                          | Type-safe database access                  |
-| Database       | PostgreSQL (Supabase)           | Primary data store                         |
+| Database       | PostgreSQL (Neon)               | Primary data store                         |
 | Cache          | Redis (Upstash REST)            | Response caching, rate limiting            |
-| Queues         | Redis + BullMQ                  | Background job processing                  |
+| Queues         | Redis (Upstash TCP) + BullMQ    | Background job processing                  |
 | Payments       | PayPal Orders API + Refunds API | Payment processing                         |
 | Email          | Mailjet                         | Transactional emails                       |
 | Storage        | Supabase Storage                | Product images, PDF receipts               |
 | PDF            | pdfkit                          | Quote document generation                  |
 | Realtime       | SSE + Socket.IO                 | Live updates for catalog and notifications |
 | i18n           | react-i18next                   | Multilingual support (es/en)               |
-| Infrastructure | Docker + Nginx                  | Containerized deployment                   |
-| CI/CD          | GitHub Actions                  | Lint, test, build on every push            |
-| IaC            | Terraform                       | AWS infrastructure provisioning            |
+| Infrastructure | Docker + Nginx on Render (free) | Containerized deployment                   |
+| CI/CD          | GitHub Actions                  | Lint, test, build, then CI-gated deploy    |
+| IaC            | Terraform (legacy)              | Old AWS provisioning — reference only      |
 
 ---
 
@@ -192,8 +192,10 @@ npx prisma migrate deploy  # Apply migrations
 │   └── shared-types/        TypeScript DTOs shared across apps
 ├── infra/
 │   ├── docker/              Docker Compose configs (dev + prod)
-│   ├── nginx/               Reverse proxy configuration
-│   └── terraform/           AWS infrastructure as code
+│   ├── nginx/               Reverse proxy configuration (self-hosted)
+│   ├── render/              Front-door Dockerfile + nginx for Render
+│   ├── seed-images/         Source images for seeded catalog items
+│   └── terraform/           Legacy AWS infrastructure as code (reference)
 ├── scripts/                 Automation scripts
 ├── sql/                     Database schemas and migrations
 ├── docs/                    Developer documentation
@@ -209,8 +211,8 @@ See [`.kiro/steerings/09-environment-variables.md`](.kiro/steerings/09-environme
 
 Key groups:
 
-- **Database** — Supabase PostgreSQL connection
-- **Redis** — Upstash REST (cache) + local Redis (BullMQ queues)
+- **Database** — Neon PostgreSQL connection
+- **Redis** — Upstash REST (cache) + Upstash TCP (BullMQ queues)
 - **Auth** — JWT secrets for admin tokens and quote action tokens
 - **PayPal** — Client credentials and webhook configuration
 - **Email** — Mailjet API keys
@@ -240,37 +242,44 @@ cd apps/landing && npx vitest run
 
 ## CI/CD
 
-GitHub Actions runs on every push to `main` and on PRs:
+GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs on every
+push to `main` and on PRs:
 
 1. **Lint** — ESLint across all workspaces
 2. **Test** — Full test suite (Jest + Vitest)
 3. **Build** — TypeScript compilation + Vite production builds
+4. **Deploy** — *(push to `main` only, after the steps above pass)* triggers the three
+   Render services via the Render API. Requires the `RENDER_API_KEY` GitHub secret.
+
+The `deploy` job never runs on pull requests, so production only receives code that
+passed lint + tests + build.
 
 ---
 
 ## Deployment
 
-### Docker Compose (Production)
+Production runs on **Render (free tier)** as three web services, backed by **Neon**
+(PostgreSQL) and **Upstash** (Redis):
 
-```bash
-bash scripts/prod-up.sh
-```
+| Service          | Role                                          |
+| ---------------- | --------------------------------------------- |
+| `modula-web`     | Front-door: serves landing + admin, proxies API |
+| `modula-api`     | NestJS api-core                               |
+| `modula-payment` | Spring Boot payment service                   |
 
-Uses `infra/docker/docker-compose.prod.yml` with:
+Public URL: **https://modulapp.artisandevs.site**
 
-- Nginx reverse proxy (port 80)
-- All services as containers
-- Health checks with restart policies
-- Cloudflare Tunnel for HTTPS termination
+> **Production note (Render free tier):** all three web services sleep after
+> ~15 minutes without inbound traffic. The first request after inactivity takes
+> about a minute, so the catalog may briefly appear empty and payment health
+> checks may time out while the API wakes up. Render health checks do not prevent
+> this; they only probe instances that are already running.
 
-### AWS (Terraform)
+Full guides:
 
-See [`docs/terraform-guide.md`](docs/terraform-guide.md) and [`docs/deployment.md`](docs/deployment.md) for the full production deployment guide with:
-
-- EC2 instance
-- RDS PostgreSQL with IAM authentication
-- Security groups and networking
-- Automated provisioning
+- [`DEPLOY.md`](DEPLOY.md) — operational deploy runbook (Render).
+- [`docs/deployment.md`](docs/deployment.md) — deployment reference.
+- [`docs/terraform-guide.md`](docs/terraform-guide.md) — ⚠️ legacy AWS/Terraform (no longer used).
 
 ---
 
@@ -284,7 +293,7 @@ See [`docs/terraform-guide.md`](docs/terraform-guide.md) and [`docs/deployment.m
 | [docs/feature-status.md](docs/feature-status.md)         | Current status of all features              |
 | [docs/sprint-plan.md](docs/sprint-plan.md)               | Day-by-day execution plan                   |
 | [docs/deployment.md](docs/deployment.md)                 | Production deployment guide                 |
-| [docs/terraform-guide.md](docs/terraform-guide.md)       | Infrastructure as Code walkthrough          |
+| [docs/terraform-guide.md](docs/terraform-guide.md)       | Legacy AWS/Terraform walkthrough (reference) |
 | [docs/commit-conventions.md](docs/commit-conventions.md) | Commit message standards                    |
 
 ---

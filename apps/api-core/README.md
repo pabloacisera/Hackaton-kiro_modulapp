@@ -25,7 +25,7 @@ Runs on http://localhost:8080.
 
 ## Database
 
-Uses Prisma ORM with PostgreSQL (Supabase).
+Uses Prisma ORM with PostgreSQL (Neon).
 
 ```bash
 npx prisma migrate dev    # Run migrations

@@ -1,5 +1,9 @@
 # Tasks: Infrastructure and deployment
 
+> ⚠️ **HISTORICAL.** This spec targeted AWS (EC2 + RDS + Cloudflare Tunnel). The project
+> now deploys on **Render (free tier)** with **Neon**. See `DEPLOY.md` and
+> `docs/deployment.md` for the current setup.
+
 - [x] TASK-infra-1: Setup Turborepo at monorepo root (`turbo.json`, workspaces for `apps/*` and `services/api-core`)
   - Assigned to: unassigned
 - [x] TASK-infra-2: Multi-stage Dockerfile for `api-core` (build + runtime)

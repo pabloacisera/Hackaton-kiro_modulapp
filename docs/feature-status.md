@@ -1,7 +1,7 @@
 # Feature status
 
 This file tracks the implementation status of each feature.
-Last updated: 2026-07-24
+Last updated: 2026-11-15
 
 | Feature                            | Status         | Tasks | PR(s)          |
 | ---------------------------------- | -------------- | ----- | -------------- |
@@ -17,7 +17,7 @@ Last updated: 2026-07-24
 | `feature-order-delivery-schedule`  | ✅ Complete    | 8/8   | #16            |
 | `feature-complaints-refunds`       | ✅ Complete    | 11/11 | #14            |
 | `feature-i18n-localization`        | ✅ Complete    | 8/8   | #20            |
-| `feature-infra-deploy`             | 🟡 In Progress | 10/14 | #21, #23       |
+| `feature-infra-deploy`             | ✅ Complete    | 14/14 | #21, #23       |
 | `feature-admin-catalog-crud`       | ✅ Complete    | 3/3   | #25            |
 | `feature-job-queue-infrastructure` | ✅ Complete    | 3/3   | #24            |
 | `feature-structured-logging`       | ✅ Complete    | —     | #27            |
@@ -33,12 +33,20 @@ Last updated: 2026-07-24
 
 ## Remaining work
 
-### feature-infra-deploy (4 tasks remaining)
+None tracked. `feature-infra-deploy` is closed by the **Render free-tier** deployment
+(3 web services) with **CI-gated deploys**, backed by **Neon** (Postgres) and
+**Upstash** (Redis).
 
-- [ ] Extended CI pipeline (Docker + Maven build jobs)
-- [ ] Docker image push to ECR/registry
-- [ ] `scripts/prod-up.sh` production startup script
-- [ ] Full integration test with Docker Compose
+### Deployment (current)
+
+- Hosting: Render free tier — `modula-web` (front-door), `modula-api`, `modula-payment`.
+- Database: Neon (2 databases). Redis: Upstash (REST for cache, TCP for BullMQ).
+- CI-gated deploy: `.github/workflows/ci.yml` job `deploy` (Render API) runs only after
+  the `lint-test-build` quality gate passes on a push to `main`.
+- Public URL: https://modulapp.artisandevs.site
+
+> The old AWS/Terraform tasks (ECR push, Maven CI job, `scripts/prod-up.sh`) are
+> **obsolete** — see `docs/terraform-guide.md` (legacy).
 
 ## Architecture additions (Day 4)
 

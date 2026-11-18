@@ -323,7 +323,7 @@ comunicaciones para ese registro.
 === RELACIONES CROSS-FLOJO ===
 
 1. Order.payment_service_ref -> Payment.reference_id
-   Relacion cross-microservicio: api-core (PostgreSQL/Supabase) -> payment-service (propia DB).
+   Relacion cross-microservicio: api-core (PostgreSQL/Neon) -> payment-service (propia DB).
    order_id de api-core se usa como reference_id en payment-service.
 
 2. Quote.payment_service_ref -> Payment.reference_id
@@ -372,7 +372,7 @@ Reglas:
 
 === RESUMEN DE BASES DE DATOS ===
 
-Base de datos 1: PostgreSQL (Supabase) - api-core
+Base de datos 1: PostgreSQL (Neon) - api-core
   Tablas: AdminUser, RefreshToken, Prototype, ProtoImage, Order, Quote,
           Complaint, Supply, SupplyStockChangeLog, LowStockAlertState,
           AdminNotification

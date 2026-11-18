@@ -20,7 +20,7 @@ the coding agent. Configuration lives in `.kiro/mcp/mcp.json`.
 ### postgres
 
 - **Command**: `npx -y @modelcontextprotocol/server-postgres ${SUPABASE_DB_URL}`
-- **Purpose**: Query/validate the real database schema (Supabase Postgres) before
+- **Purpose**: Query/validate the real database schema (Neon Postgres) before
   generating migrations. Read-only mode for spec design/validation; actual
   migrations are run via `scripts/`, not from the agent in production.
 
